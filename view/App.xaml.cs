@@ -2,7 +2,7 @@
 using System.Data;
 using System.Windows;
 
-namespace Learnix
+namespace Learnix.view
 {
     /// <summary>
     /// Interaction logic for App.xaml

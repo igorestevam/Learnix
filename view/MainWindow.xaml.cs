@@ -9,7 +9,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Learnix
+namespace Learnix.view
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
