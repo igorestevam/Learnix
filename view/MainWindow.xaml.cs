@@ -20,5 +20,10 @@ namespace Learnix.view
         {
             InitializeComponent();
         }
+
+        private void InitializeComponent()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
