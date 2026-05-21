@@ -1,8 +1,8 @@
 ﻿using Learnix.model;
-using Learnix.Repositorio;
+using Learnix.repositorio;
 using System.Collections.Generic;
 
-namespace Learnix.Controllers
+namespace Learnix.control
 {
     public class CursoController
     {
@@ -10,14 +10,32 @@ namespace Learnix.Controllers
 
         public CursoController()
         {
-            // O controller instancia o repositório
             _cursoRepository = new CursoRepository();
         }
 
-        public List<Curso> BuscarCursos(string termoPesquisa)
+        public void SalvarCurso(Curso curso)
         {
-            // O controller apenas se comunica com o repositório, delegando a busca
-            return _cursoRepository.BuscarCursosPorNome(termoPesquisa);
+            _cursoRepository.SalvarNoBanco(curso);
+        }
+
+        public List<Curso> ListarCursos()
+        {
+            return _cursoRepository.RecuperarTodosOsDados();
+        }
+
+        public Curso? BuscarCursoPorId(int id)
+        {
+            return _cursoRepository.RecuperarDadoEspecifico(id);
+        }
+
+        public void ExcluirCurso(int id)
+        {
+            _cursoRepository.DeletarDado(id);
+        }
+
+        public List<Curso> BuscarViaSql(string termo)
+        {
+            return _cursoRepository.BuscarCursosPorNomeSqlPuro(termo);
         }
     }
 }
