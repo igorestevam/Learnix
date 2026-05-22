@@ -1,0 +1,123 @@
+<UserControl x:Class="Learnix.SidebarControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Width="220">
+
+    <UserControl.Resources>
+
+        <Style x:Key="BtnSidebarStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#D8CCF0"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Height" Value="50"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="borda" Background="{TemplateBinding Background}"
+                                CornerRadius="8" Margin="8,2">
+                            <ContentPresenter VerticalAlignment="Center"
+                                              HorizontalAlignment="Left"
+                                              Margin="16,0,0,0"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="borda" Property="Background" Value="#3A2860"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="borda" Property="Background" Value="#2C1F4A"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+    </UserControl.Resources>
+
+    <Border Background="#2A2040" CornerRadius="0,16,16,0">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Logo (mesmo estilo TelaLogin) -->
+            <StackPanel Grid.Row="0" HorizontalAlignment="Left"
+                        Orientation="Horizontal" Margin="20,28,20,20">
+                <TextBlock Text="&#x1F393;" FontSize="26" VerticalAlignment="Center"/>
+                <TextBlock Text="LEARNIX" FontSize="14" FontWeight="Bold"
+                           Foreground="#3C3250" VerticalAlignment="Center"
+                           Margin="10,0,0,0" FontFamily="Segoe UI"/>
+            </StackPanel>
+
+            <Rectangle Grid.Row="0" Height="1" Fill="#9E8FC0"
+                       Margin="16,0" VerticalAlignment="Bottom" Opacity="0.4"/>
+
+            <!-- Saudação -->
+            <StackPanel Grid.Row="1" Margin="20,16,20,10">
+                <TextBlock Text="Ol&#xE1; &#x1F44B;" Foreground="#D8CCF0"
+                           FontSize="12" FontFamily="Segoe UI" Opacity="0.75"/>
+                <TextBlock x:Name="TxtNomeAluno" Text="Aluno"
+                           Foreground="White" FontSize="15" FontWeight="SemiBold"
+                           FontFamily="Segoe UI" Margin="0,2,0,0"/>
+            </StackPanel>
+
+            <Rectangle Grid.Row="1" Height="1" Fill="#9E8FC0"
+                       Margin="16,0" VerticalAlignment="Bottom" Opacity="0.3"/>
+
+            <!-- Itens de navegação -->
+            <StackPanel Grid.Row="2" Margin="0,10,0,0">
+
+                <Button x:Name="BtnMenu" Style="{StaticResource BtnSidebarStyle}"
+                        Click="BtnMenu_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#x1F3E0;" FontSize="16" VerticalAlignment="Center"/>
+                        <TextBlock Text="Menu" FontSize="14" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                    </StackPanel>
+                </Button>
+
+                <Button x:Name="BtnNotas" Style="{StaticResource BtnSidebarStyle}"
+                        Click="BtnNotas_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#x1F4CB;" FontSize="16" VerticalAlignment="Center"/>
+                        <TextBlock Text="Notas" FontSize="14" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                    </StackPanel>
+                </Button>
+
+                <Button x:Name="BtnMeusCursos" Style="{StaticResource BtnSidebarStyle}"
+                        Click="BtnMeusCursos_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#x1F4DA;" FontSize="16" VerticalAlignment="Center"/>
+                        <TextBlock Text="Meus Cursos" FontSize="14" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                    </StackPanel>
+                </Button>
+
+                <Button x:Name="BtnPerfil" Style="{StaticResource BtnSidebarStyle}"
+                        Click="BtnPerfil_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#x1F464;" FontSize="16" VerticalAlignment="Center"/>
+                        <TextBlock Text="Perfil" FontSize="14" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                    </StackPanel>
+                </Button>
+
+            </StackPanel>
+
+            <!-- Sair -->
+            <Button Grid.Row="3" Style="{StaticResource BtnSidebarStyle}"
+                    Click="BtnSair_Click" Margin="0,0,0,20">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="&#x1F6AA;" FontSize="16" VerticalAlignment="Center"/>
+                    <TextBlock Text="Sair" FontSize="14" VerticalAlignment="Center"
+                               Margin="12,0,0,0" Foreground="#FF8A80"/>
+                </StackPanel>
+            </Button>
+
+        </Grid>
+    </Border>
+</UserControl>

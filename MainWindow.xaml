@@ -1,9 +1,10 @@
-﻿<Window x:Class="Learnix.MainWindow"
+<Window x:Class="Learnix.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:Learnix"
         Title="Learnix" Height="480" Width="500"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        Background="#1E1E1E">
     <Grid>
         <ContentControl x:Name="conteudoPrincipal"/>
     </Grid>

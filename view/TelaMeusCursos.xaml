@@ -1,0 +1,242 @@
+<UserControl x:Class="Learnix.TelaMeusCursos"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:Learnix"
+             Background="#1E1E1E">
+
+    <UserControl.Resources>
+
+        <Style x:Key="CursoCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="#2A2040"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="22,18"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+        </Style>
+
+        <Style x:Key="BtnAcessarStyle" TargetType="Button">
+            <Setter Property="Background" Value="#4E3A7A"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="18,8"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="borda" Background="{TemplateBinding Background}"
+                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="borda" Property="Background" Value="#3A2860"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="borda" Property="Background" Value="#2C1F4A"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="220"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <local:SidebarControl x:Name="Sidebar" Grid.Column="0"/>
+
+        <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="36,32,36,32">
+
+                <!-- Cabeçalho + filtros -->
+                <Grid Margin="0,0,0,24">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="&#x1F4DA;  Meus Cursos"
+                                   Foreground="White" FontSize="24" FontWeight="Bold"
+                                   FontFamily="Segoe UI"/>
+                        <TextBlock Text="Todas as suas matr&#xED;culas em um s&#xF3; lugar"
+                                   Foreground="#9E8FC0" FontSize="12"
+                                   FontFamily="Segoe UI" Margin="0,6,0,0"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom">
+                        <Border Background="#4E3A7A" CornerRadius="20" Padding="14,7" Margin="0,0,8,0">
+                            <TextBlock Text="Todos" Foreground="White"
+                                       FontFamily="Segoe UI" FontSize="12" Cursor="Hand"/>
+                        </Border>
+                        <Border Background="#2A2040" CornerRadius="20" Padding="14,7" Margin="0,0,8,0">
+                            <TextBlock Text="Exatas" Foreground="#D8CCF0"
+                                       FontFamily="Segoe UI" FontSize="12" Cursor="Hand"/>
+                        </Border>
+                        <Border Background="#2A2040" CornerRadius="20" Padding="14,7">
+                            <TextBlock Text="Humanas" Foreground="#D8CCF0"
+                                       FontFamily="Segoe UI" FontSize="12" Cursor="Hand"/>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+
+                <Separator Background="#9E8FC0" Opacity="0.25" Margin="0,0,0,18"/>
+
+                <!-- Curso 1 -->
+                <Border Style="{StaticResource CursoCardStyle}">
+                    <StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Algoritmos e Estrutura de Dados"
+                                           Foreground="White" FontSize="15" FontWeight="Bold"
+                                           FontFamily="Segoe UI"/>
+                                <TextBlock Text="Prof. Carlos Lima"
+                                           Foreground="#9E8FC0" FontSize="12"
+                                           FontFamily="Segoe UI" Margin="0,4,0,0"/>
+                            </StackPanel>
+                            <Border Grid.Column="1" Background="#3A2860" CornerRadius="20"
+                                    Padding="12,5" VerticalAlignment="Top" Margin="12,0">
+                                <TextBlock Text="Exatas" Foreground="#D8CCF0"
+                                           FontFamily="Segoe UI" FontSize="11"/>
+                            </Border>
+                            <Button Grid.Column="2" Content="Acessar &#x2192;"
+                                    Style="{StaticResource BtnAcessarStyle}"
+                                    VerticalAlignment="Top"/>
+                        </Grid>
+                        <StackPanel Orientation="Horizontal" Margin="0,12,0,10">
+                            <TextBlock Text="&#x1F4C5; Mar 2026" Foreground="#9E8FC0"
+                                       FontSize="12" FontFamily="Segoe UI" Margin="0,0,18,0"/>
+                            <TextBlock Text="&#x1F551; 60h" Foreground="#9E8FC0"
+                                       FontSize="12" FontFamily="Segoe UI" Margin="0,0,18,0"/>
+                            <TextBlock Text="&#x270F;&#xFE0F; 6 atividades" Foreground="#9E8FC0"
+                                       FontSize="12" FontFamily="Segoe UI"/>
+                        </StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Background="#3A2860" CornerRadius="3" Height="6" VerticalAlignment="Center">
+                                <Border Background="#7E6BAC" CornerRadius="3"
+                                        HorizontalAlignment="Left" Width="200"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" Text="68%" Foreground="#D8CCF0"
+                                       FontSize="12" FontWeight="SemiBold"
+                                       FontFamily="Segoe UI" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Curso 2 -->
+                <Border Style="{StaticResource CursoCardStyle}">
+                    <StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="C&#xE1;lculo I"
+                                           Foreground="White" FontSize="15" FontWeight="Bold"
+                                           FontFamily="Segoe UI"/>
+                                <TextBlock Text="Prof. Ana Souza"
+                                           Foreground="#9E8FC0" FontSize="12"
+                                           FontFamily="Segoe UI" Margin="0,4,0,0"/>
+                            </StackPanel>
+                            <Border Grid.Column="1" Background="#3A2860" CornerRadius="20"
+                                    Padding="12,5" VerticalAlignment="Top" Margin="12,0">
+                                <TextBlock Text="Exatas" Foreground="#D8CCF0"
+                                           FontFamily="Segoe UI" FontSize="11"/>
+                            </Border>
+                            <Button Grid.Column="2" Content="Acessar &#x2192;"
+                                    Style="{StaticResource BtnAcessarStyle}"
+                                    VerticalAlignment="Top"/>
+                        </Grid>
+                        <StackPanel Orientation="Horizontal" Margin="0,12,0,10">
+                            <TextBlock Text="&#x1F4C5; Fev 2026" Foreground="#9E8FC0"
+                                       FontSize="12" FontFamily="Segoe UI" Margin="0,0,18,0"/>
+                            <TextBlock Text="&#x1F551; 45h" Foreground="#9E8FC0"
+                                       FontSize="12" FontFamily="Segoe UI" Margin="0,0,18,0"/>
+                            <TextBlock Text="&#x270F;&#xFE0F; 4 atividades" Foreground="#9E8FC0"
+                                       FontSize="12" FontFamily="Segoe UI"/>
+                        </StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Background="#3A2860" CornerRadius="3" Height="6" VerticalAlignment="Center">
+                                <Border Background="#7E6BAC" CornerRadius="3"
+                                        HorizontalAlignment="Left" Width="120"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" Text="40%" Foreground="#D8CCF0"
+                                       FontSize="12" FontWeight="SemiBold"
+                                       FontFamily="Segoe UI" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Curso 3 -->
+                <Border Style="{StaticResource CursoCardStyle}">
+                    <StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Engenharia de Software"
+                                           Foreground="White" FontSize="15" FontWeight="Bold"
+                                           FontFamily="Segoe UI"/>
+                                <TextBlock Text="Prof. Marcos Freitas"
+                                           Foreground="#9E8FC0" FontSize="12"
+                                           FontFamily="Segoe UI" Margin="0,4,0,0"/>
+                            </StackPanel>
+                            <Border Grid.Column="1" Background="#1A3A2A" CornerRadius="20"
+                                    Padding="12,5" VerticalAlignment="Top" Margin="12,0">
+                                <TextBlock Text="Humanas" Foreground="#A5D6A7"
+                                           FontFamily="Segoe UI" FontSize="11"/>
+                            </Border>
+                            <Button Grid.Column="2" Content="Acessar &#x2192;"
+                                    Style="{StaticResource BtnAcessarStyle}"
+                                    VerticalAlignment="Top"/>
+                        </Grid>
+                        <StackPanel Orientation="Horizontal" Margin="0,12,0,10">
+                            <TextBlock Text="&#x1F4C5; Jan 2026" Foreground="#9E8FC0"
+                                       FontSize="12" FontFamily="Segoe UI" Margin="0,0,18,0"/>
+                            <TextBlock Text="&#x1F551; 80h" Foreground="#9E8FC0"
+                                       FontSize="12" FontFamily="Segoe UI" Margin="0,0,18,0"/>
+                            <TextBlock Text="&#x270F;&#xFE0F; 8 atividades" Foreground="#9E8FC0"
+                                       FontSize="12" FontFamily="Segoe UI"/>
+                        </StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Background="#3A2860" CornerRadius="3" Height="6" VerticalAlignment="Center">
+                                <Border Background="#7E6BAC" CornerRadius="3"
+                                        HorizontalAlignment="Left" Width="260"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" Text="87%" Foreground="#D8CCF0"
+                                       FontSize="12" FontWeight="SemiBold"
+                                       FontFamily="Segoe UI" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

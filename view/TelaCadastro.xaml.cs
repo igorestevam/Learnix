@@ -6,7 +6,7 @@ namespace Learnix
 {
     public partial class TelaCadastro : UserControl
     {
-        public event RoutedEventHandler SolicitarLogin;
+        public event RoutedEventHandler? SolicitarLogin;
 
         public TelaCadastro()
         {

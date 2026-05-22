@@ -6,8 +6,12 @@ namespace Learnix
 {
     public partial class TelaLogin : UserControl
     {
-        public event RoutedEventHandler SolicitarCadastro;
-        public event RoutedEventHandler SolicitarRecuperacaoSenha;
+        public event RoutedEventHandler? SolicitarCadastro;
+        public event RoutedEventHandler? SolicitarRecuperacaoSenha;
+
+        // Novo: passa o nome do aluno após login bem-sucedido
+        public delegate void HomeHandler(object sender, RoutedEventArgs e, string nomeAluno);
+        public event HomeHandler? SolicitarHome;
 
         public TelaLogin()
         {
@@ -26,12 +30,10 @@ namespace Learnix
                 return;
             }
 
-            // TODO: validação real (banco de dados / serviço)
+            // TODO: substituir pela validação real no banco de dados
             if (usuario == "admin" && senha == "1234")
             {
-                MessageBox.Show("Login realizado com sucesso!",
-                    "Learnix", MessageBoxButton.OK, MessageBoxImage.Information);
-                // Navegar para tela principal aqui
+                SolicitarHome?.Invoke(this, new RoutedEventArgs(), usuario);
             }
             else
             {
@@ -41,13 +43,9 @@ namespace Learnix
         }
 
         private void LnkCadastro_Click(object sender, MouseButtonEventArgs e)
-        {
-            SolicitarCadastro?.Invoke(this, new RoutedEventArgs());
-        }
+            => SolicitarCadastro?.Invoke(this, new RoutedEventArgs());
 
         private void LnkEsqueceuSenha_Click(object sender, MouseButtonEventArgs e)
-        {
-            SolicitarRecuperacaoSenha?.Invoke(this, new RoutedEventArgs());
-        }
+            => SolicitarRecuperacaoSenha?.Invoke(this, new RoutedEventArgs());
     }
 }
