@@ -24,9 +24,9 @@ Learnix/
 
 ```
 TelaLogin
-  ├── [Entrar]            → valida credenciais (TODO: banco de dados)
-  ├── [Esqueceu a senha?] → TelaEsqueceuSenha → [← Voltar] → TelaLogin
-  └── [Cadastre-se]       → TelaCadastro      → [← Voltar] → TelaLogin
+├── [Entrar] → valida credenciais (TODO: banco de dados)
+├── [Esqueceu a senha?] → TelaEsqueceuSenha → [← Voltar] → TelaLogin
+└── [Cadastre-se] → TelaCadastro → [← Voltar] → TelaLogin
 ```
 
 ---
@@ -92,11 +92,17 @@ namespace Learnix
 ---
 
 ## 2. Tela de Login
+
+### `TelaLogin.xaml`
+
+```xml
 <UserControl x:Class="Learnix.TelaLogin"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             Background="#1E1E1E"
-             Width="500" Height="420">
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="480" d:DesignWidth="500">
 
     <UserControl.Resources>
 
@@ -185,7 +191,7 @@ namespace Learnix
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
 
                 <StackPanel HorizontalAlignment="Center" Margin="0,0,0,16">
-                    <TextBlock Text="🎓" FontSize="32" HorizontalAlignment="Center"/>
+                    <TextBlock Text="&#x1F393;" FontSize="32" HorizontalAlignment="Center"/>
                     <TextBlock Text="LEARNIX" FontSize="11" FontWeight="Bold"
                                Foreground="#3C3250" HorizontalAlignment="Center"/>
                 </StackPanel>
@@ -223,7 +229,7 @@ namespace Learnix
     </Grid>
 
 </UserControl>
-
+```
 
 ### `TelaLogin.xaml.cs`
 
@@ -287,11 +293,16 @@ namespace Learnix
 
 ## 3. Tela de Cadastro
 
+### `TelaCadastro.xaml`
+
+```xml
 <UserControl x:Class="Learnix.TelaCadastro"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             Background="#1E1E1E"
-             Width="500" Height="480">
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="480" d:DesignWidth="500">
 
     <UserControl.Resources>
 
@@ -369,7 +380,7 @@ namespace Learnix
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
 
                 <StackPanel HorizontalAlignment="Center" Margin="0,0,0,12">
-                    <TextBlock Text="🎓" FontSize="28" HorizontalAlignment="Center"/>
+                    <TextBlock Text="&#x1F393;" FontSize="28" HorizontalAlignment="Center"/>
                     <TextBlock Text="LEARNIX" FontSize="11" FontWeight="Bold"
                                Foreground="#3C3250" HorizontalAlignment="Center"/>
                 </StackPanel>
@@ -393,7 +404,7 @@ namespace Learnix
                 <Button Content="Cadastrar" Style="{StaticResource BotaoStyle}"
                         Margin="0,14,0,0" Click="BtnCadastrar_Click"/>
 
-                <TextBlock Text="← Voltar ao login"
+                <TextBlock Text="&#x2190; Voltar ao login"
                            Foreground="#D8CCF0" FontSize="11"
                            Cursor="Hand" TextDecorations="Underline"
                            HorizontalAlignment="Center" Margin="0,6,0,0"
@@ -405,6 +416,7 @@ namespace Learnix
     </Grid>
 
 </UserControl>
+```
 
 ### `TelaCadastro.xaml.cs`
 
@@ -465,11 +477,16 @@ namespace Learnix
 
 ## 4. Tela de Recuperação de Senha
 
+### `TelaEsqueceuSenha.xaml`
+
+```xml
 <UserControl x:Class="Learnix.TelaEsqueceuSenha"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             Background="#1E1E1E"
-             Width="500" Height="420">
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="480" d:DesignWidth="500">
 
     <UserControl.Resources>
 
@@ -527,7 +544,7 @@ namespace Learnix
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
 
                 <StackPanel HorizontalAlignment="Center" Margin="0,0,0,12">
-                    <TextBlock Text="🎓" FontSize="28" HorizontalAlignment="Center"/>
+                    <TextBlock Text="&#x1F393;" FontSize="28" HorizontalAlignment="Center"/>
                     <TextBlock Text="LEARNIX" FontSize="11" FontWeight="Bold"
                                Foreground="#3C3250" HorizontalAlignment="Center"/>
                 </StackPanel>
@@ -536,7 +553,7 @@ namespace Learnix
                            Foreground="White" HorizontalAlignment="Center"
                            Margin="0,0,0,4"/>
 
-                <TextBlock Text="Informe seu e-mail cadastrado e enviaremos&#10;as instruções de recuperação."
+                <TextBlock Text="Informe seu e-mail cadastrado e enviaremos&#x0A;as instruções de recuperação."
                            Foreground="#E0D8F5" FontSize="11"
                            TextAlignment="Center" HorizontalAlignment="Center"
                            Margin="0,0,0,12"/>
@@ -547,7 +564,7 @@ namespace Learnix
                 <Button Content="Enviar instruções" Style="{StaticResource BotaoStyle}"
                         Margin="0,16,0,0" Click="BtnEnviar_Click"/>
 
-                <TextBlock Text="← Voltar ao login"
+                <TextBlock Text="&#x2190; Voltar ao login"
                            Foreground="#D8CCF0" FontSize="11"
                            Cursor="Hand" TextDecorations="Underline"
                            HorizontalAlignment="Center" Margin="0,8,0,0"
@@ -559,6 +576,8 @@ namespace Learnix
     </Grid>
 
 </UserControl>
+```
+
 ### `TelaEsqueceuSenha.xaml.cs`
 
 ```csharp
@@ -607,22 +626,24 @@ namespace Learnix
 
 ## Paleta de Cores
 
-| Elemento            | Cor HEX   |
-|---------------------|-----------|
-| Fundo da janela     | `#1E1E1E` |
-| Painel central      | `#7E6BAC` |
-| Botão principal     | `#4E3A7A` |
-| Botão hover         | `#3A2860` |
-| Botão pressed       | `#2C1F4A` |
-| Texto logo          | `#3C3250` |
-| Inputs              | `#F5F5F0` |
-| Links               | `#D8CCF0` |
-| Separador           | `#9E8FC0` |
+| Elemento         | Cor HEX   |
+|------------------|-----------|
+| Fundo da janela  | `#1E1E1E` |
+| Painel central   | `#7E6BAC` |
+| Botão principal  | `#4E3A7A` |
+| Botão hover      | `#3A2860` |
+| Botão pressed    | `#2C1F4A` |
+| Texto logo       | `#3C3250` |
+| Inputs           | `#F5F5F0` |
+| Links            | `#D8CCF0` |
+| Separador        | `#9E8FC0` |
 
 ---
 
 ## Observações
 
-- A navegação entre telas é controlada pela `MainWindow` via **eventos customizados**, sem acoplamento direto entre os UserControls.
-- Os campos de senha utilizam `PasswordBox` nativo do WPF, garantindo segurança no input.
-- Os blocos marcados com `// TODO` indicam onde deve ser integrado o **banco de dados ou serviço de autenticação**.
+- A navegação entre telas é controlada pela `MainWindow` via eventos customizados, sem acoplamento direto entre os UserControls.
+- - Os campos de senha utilizam `PasswordBox` nativo do WPF, garantindo segurança no input.
+  - - Os blocos marcados com `// TODO` indicam onde deve ser integrado o banco de dados ou serviço de autenticação.
+    - - Os emojis de graduação (`🎓`) foram substituídos pelo escape XML `&#x1F393;` para garantir compatibilidade com todos os editores XAML.
+      - - A seta `←` foi substituída por `&#x2190;` para evitar problemas de encoding no XAML.
