@@ -12,6 +12,12 @@ namespace Learnix.model
 
         public List<Matricula> HistoricoMatriculas { get; set; }
 
+        // Construtor Vazio
+        public Aluno() : base()
+        {
+            HistoricoMatriculas = new List<Matricula>();
+        }
+
         public Aluno(int id, string nome, string email, string matriculaAcademica)
             : base(id, nome, email)
         {

@@ -12,6 +12,12 @@ namespace Learnix.model
         public int MatriculaId { get; set; }
         public Matricula Matricula { get; set; }
 
+        // Construtor Vazio
+        public Avaliacao()
+        {
+            DataRealizacao = DateTime.Now;
+        }
+
         public Avaliacao(int id, string titulo, double nota)
         {
             Id = id;

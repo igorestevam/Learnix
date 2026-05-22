@@ -13,6 +13,12 @@ namespace Learnix.model
 
         public List<Aula> Aulas { get; set; }
 
+        // Construtor Vazio
+        public Modulo()
+        {
+            Aulas = new List<Aula>();
+        }
+
         public Modulo(int id, string titulo, int ordem)
         {
             Id = id;

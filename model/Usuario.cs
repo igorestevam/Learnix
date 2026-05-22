@@ -10,6 +10,12 @@ namespace Learnix.model
         public string Senha { get; set; }
         public DateTime DataCadastro { get; set; }
 
+        // Construtor Vazio (protected por ser uma classe abstrata)
+        protected Usuario()
+        {
+            DataCadastro = DateTime.Now;
+        }
+
         protected Usuario(int id, string nome, string email)
         {
             Id = id;

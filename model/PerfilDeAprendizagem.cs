@@ -8,6 +8,11 @@
 
         public Aluno Aluno { get; set; }
 
+        // Construtor Vazio
+        public PerfilDeAprendizagem()
+        {
+        }
+
         public PerfilDeAprendizagem(int id, string estiloPredominante)
         {
             Id = id;

@@ -10,6 +10,12 @@ namespace Learnix.model
 
         public List<Curso> Cursos { get; set; }
 
+        // Construtor Vazio
+        public Instrutor() : base()
+        {
+            Cursos = new List<Curso>();
+        }
+
         public Instrutor(int id, string nome, string email, string especialidade)
             : base(id, nome, email)
         {

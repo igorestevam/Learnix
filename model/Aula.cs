@@ -13,6 +13,11 @@ namespace Learnix.model
         public int ModuloId { get; set; }
         public Modulo Modulo { get; set; }
 
+        // Construtor Vazio
+        public Aula()
+        {
+        }
+
         public Aula(int id, string titulo, string videoUrl, TimeSpan duracao, int ordem)
         {
             Id = id;

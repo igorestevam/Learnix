@@ -7,6 +7,11 @@ namespace Learnix.model
         public bool PossuiLaboratorioVirtual { get; set; }
         public string FerramentaSoftwareSugerida { get; set; }
 
+        // Construtor Vazio
+        public CursoExatas() : base()
+        {
+        }
+
         public CursoExatas(int id, string titulo, int cargaHoraria, bool possuiLaboratorioVirtual)
             : base(id, titulo, cargaHoraria)
         {

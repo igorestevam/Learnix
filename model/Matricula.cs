@@ -39,6 +39,14 @@ namespace Learnix.model
             }
         }
 
+        // Construtor Vazio
+        public Matricula()
+        {
+            DataMatricula = DateTime.Now;
+            Status = StatusMatricula.Ativa;
+            Avaliacoes = new List<Avaliacao>();
+        }
+
         public Matricula(int id, Aluno aluno, Curso curso)
         {
             Id = id;

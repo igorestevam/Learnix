@@ -20,6 +20,13 @@ namespace Learnix.model
         public List<Modulo> Modulos { get; set; }
         public List<Matricula> MatriculasAtivas { get; set; }
 
+        // Construtor Vazio (protected por ser uma classe abstrata)
+        protected Curso()
+        {
+            Modulos = new List<Modulo>();
+            MatriculasAtivas = new List<Matricula>();
+        }
+
         protected Curso(int id, string titulo, int cargaHoraria)
         {
             Id = id;

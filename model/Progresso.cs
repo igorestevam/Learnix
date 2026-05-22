@@ -12,6 +12,14 @@ namespace Learnix.model
         public int MatriculaId { get; set; }
         public Matricula Matricula { get; set; }
 
+        // Construtor Vazio
+        public Progresso()
+        {
+            AulasConcluidas = 0;
+            PercentualConcluido = 0.0;
+            UltimaAtualizacao = DateTime.Now;
+        }
+
         public Progresso(int id)
         {
             Id = id;
