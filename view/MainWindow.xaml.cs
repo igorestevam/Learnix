@@ -1,29 +1,36 @@
-﻿using System.Text;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
-namespace Learnix.view
+namespace Learnix
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         public MainWindow()
         {
             InitializeComponent();
+            MostrarLogin();
         }
 
-        private void InitializeComponent()
+        private void MostrarLogin()
         {
-            throw new NotImplementedException();
+            var tela = new TelaLogin();
+            tela.SolicitarCadastro += (s, e) => MostrarCadastro();
+            tela.SolicitarRecuperacaoSenha += (s, e) => MostrarEsqueceuSenha();
+            conteudoPrincipal.Content = tela;
+        }
+
+        private void MostrarCadastro()
+        {
+            var tela = new TelaCadastro();
+            tela.SolicitarLogin += (s, e) => MostrarLogin();
+            conteudoPrincipal.Content = tela;
+        }
+
+        private void MostrarEsqueceuSenha()
+        {
+            var tela = new TelaEsqueceuSenha();
+            tela.SolicitarLogin += (s, e) => MostrarLogin();
+            conteudoPrincipal.Content = tela;
         }
     }
 }
