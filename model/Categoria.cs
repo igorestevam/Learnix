@@ -1,0 +1,21 @@
+﻿using System.Collections.Generic;
+
+namespace Learnix.model
+{
+    public class Categoria
+    {
+        public int Id { get; set; }
+        public string Nome { get; set; }
+        public string Descricao { get; set; }
+
+        public List<Curso> Cursos { get; set; }
+
+        public Categoria(int id, string nome, string descricao)
+        {
+            Id = id;
+            Nome = nome;
+            Descricao = descricao;
+            Cursos = new List<Curso>();
+        }
+    }
+}

@@ -1,10 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Learnix.model
 {
-    internal class CursoExatas : Curso
+    public class CursoExatas : Curso
     {
+        public bool PossuiLaboratorioVirtual { get; set; }
+        public string FerramentaSoftwareSugerida { get; set; }
+
+        public CursoExatas(int id, string titulo, int cargaHoraria, bool possuiLaboratorioVirtual)
+            : base(id, titulo, cargaHoraria)
+        {
+            PossuiLaboratorioVirtual = possuiLaboratorioVirtual;
+        }
     }
 }

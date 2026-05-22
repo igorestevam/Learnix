@@ -1,10 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Learnix.model
 {
-    internal class CursoHumanas : Curso
+    public class CursoHumanas : Curso
     {
+        public bool ExigeMonografia { get; set; }
+        public int QuantidadeLivrosObrigatorios { get; set; }
+
+        public CursoHumanas(int id, string titulo, int cargaHoraria, bool exigeMonografia)
+            : base(id, titulo, cargaHoraria)
+        {
+            ExigeMonografia = exigeMonografia;
+        }
     }
 }
