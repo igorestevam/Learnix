@@ -92,10 +92,6 @@ namespace Learnix
 ---
 
 ## 2. Tela de Login
-
-### `TelaLogin.xaml`
-
-```xml
 <UserControl x:Class="Learnix.TelaLogin"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -185,7 +181,8 @@ namespace Learnix
     <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
         <Border Background="#7E6BAC" CornerRadius="8"
                 Width="400" Height="340" Padding="20">
-            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6">
+
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
 
                 <StackPanel HorizontalAlignment="Center" Margin="0,0,0,16">
                     <TextBlock Text="🎓" FontSize="32" HorizontalAlignment="Center"/>
@@ -194,10 +191,10 @@ namespace Learnix
                 </StackPanel>
 
                 <TextBlock Text="Usuário:" Foreground="WhiteSmoke" FontSize="12" Margin="0,0,0,4"/>
-                <TextBox x:Name="txtUsuario" Style="{StaticResource InputStyle}"/>
+                <TextBox x:Name="txtUsuario" Style="{StaticResource InputStyle}" Margin="0,0,0,6"/>
 
-                <TextBlock Text="Senha:" Foreground="WhiteSmoke" FontSize="12" Margin="0,10,0,4"/>
-                <PasswordBox x:Name="txtSenha" Style="{StaticResource PasswordStyle}"/>
+                <TextBlock Text="Senha:" Foreground="WhiteSmoke" FontSize="12" Margin="0,4,0,4"/>
+                <PasswordBox x:Name="txtSenha" Style="{StaticResource PasswordStyle}" Margin="0,0,0,6"/>
 
                 <TextBlock x:Name="lnkEsqueceuSenha"
                            Text="Esqueceu a senha?"
@@ -212,8 +209,8 @@ namespace Learnix
 
                 <Separator Background="#9E8FC0" Margin="0,10,0,6"/>
 
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="4">
-                    <TextBlock Text="Não tem conta?" Foreground="#D8CCF0" FontSize="11"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <TextBlock Text="Não tem conta?" Foreground="#D8CCF0" FontSize="11" Margin="0,0,4,0"/>
                     <TextBlock x:Name="lnkCadastro"
                                Text="Cadastre-se"
                                Style="{StaticResource LinkStyle}"
@@ -221,10 +218,12 @@ namespace Learnix
                 </StackPanel>
 
             </StackPanel>
+
         </Border>
     </Grid>
+
 </UserControl>
-```
+
 
 ### `TelaLogin.xaml.cs`
 
@@ -288,9 +287,6 @@ namespace Learnix
 
 ## 3. Tela de Cadastro
 
-### `TelaCadastro.xaml`
-
-```xml
 <UserControl x:Class="Learnix.TelaCadastro"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -369,7 +365,8 @@ namespace Learnix
     <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
         <Border Background="#7E6BAC" CornerRadius="8"
                 Width="400" Height="400" Padding="20">
-            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6">
+
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
 
                 <StackPanel HorizontalAlignment="Center" Margin="0,0,0,12">
                     <TextBlock Text="🎓" FontSize="28" HorizontalAlignment="Center"/>
@@ -382,16 +379,16 @@ namespace Learnix
                            Margin="0,0,0,8"/>
 
                 <TextBlock Text="Nome completo:" Foreground="WhiteSmoke" FontSize="12" Margin="0,0,0,4"/>
-                <TextBox x:Name="txtNome" Style="{StaticResource InputStyle}"/>
+                <TextBox x:Name="txtNome" Style="{StaticResource InputStyle}" Margin="0,0,0,6"/>
 
                 <TextBlock Text="E-mail:" Foreground="WhiteSmoke" FontSize="12" Margin="0,8,0,4"/>
-                <TextBox x:Name="txtEmail" Style="{StaticResource InputStyle}"/>
+                <TextBox x:Name="txtEmail" Style="{StaticResource InputStyle}" Margin="0,0,0,6"/>
 
                 <TextBlock Text="Senha:" Foreground="WhiteSmoke" FontSize="12" Margin="0,8,0,4"/>
-                <PasswordBox x:Name="txtSenha" Style="{StaticResource PasswordStyle}"/>
+                <PasswordBox x:Name="txtSenha" Style="{StaticResource PasswordStyle}" Margin="0,0,0,6"/>
 
                 <TextBlock Text="Confirmar senha:" Foreground="WhiteSmoke" FontSize="12" Margin="0,8,0,4"/>
-                <PasswordBox x:Name="txtConfirmarSenha" Style="{StaticResource PasswordStyle}"/>
+                <PasswordBox x:Name="txtConfirmarSenha" Style="{StaticResource PasswordStyle}" Margin="0,0,0,6"/>
 
                 <Button Content="Cadastrar" Style="{StaticResource BotaoStyle}"
                         Margin="0,14,0,0" Click="BtnCadastrar_Click"/>
@@ -403,10 +400,11 @@ namespace Learnix
                            MouseLeftButtonDown="LnkVoltar_Click"/>
 
             </StackPanel>
+
         </Border>
     </Grid>
+
 </UserControl>
-```
 
 ### `TelaCadastro.xaml.cs`
 
@@ -467,9 +465,6 @@ namespace Learnix
 
 ## 4. Tela de Recuperação de Senha
 
-### `TelaEsqueceuSenha.xaml`
-
-```xml
 <UserControl x:Class="Learnix.TelaEsqueceuSenha"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -528,7 +523,8 @@ namespace Learnix
     <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
         <Border Background="#7E6BAC" CornerRadius="8"
                 Width="400" Height="300" Padding="20">
-            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6">
+
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
 
                 <StackPanel HorizontalAlignment="Center" Margin="0,0,0,12">
                     <TextBlock Text="🎓" FontSize="28" HorizontalAlignment="Center"/>
@@ -546,7 +542,7 @@ namespace Learnix
                            Margin="0,0,0,12"/>
 
                 <TextBlock Text="E-mail:" Foreground="WhiteSmoke" FontSize="12" Margin="0,0,0,4"/>
-                <TextBox x:Name="txtEmail" Style="{StaticResource InputStyle}"/>
+                <TextBox x:Name="txtEmail" Style="{StaticResource InputStyle}" Margin="0,0,0,6"/>
 
                 <Button Content="Enviar instruções" Style="{StaticResource BotaoStyle}"
                         Margin="0,16,0,0" Click="BtnEnviar_Click"/>
@@ -558,11 +554,11 @@ namespace Learnix
                            MouseLeftButtonDown="LnkVoltar_Click"/>
 
             </StackPanel>
+
         </Border>
     </Grid>
-</UserControl>
-```
 
+</UserControl>
 ### `TelaEsqueceuSenha.xaml.cs`
 
 ```csharp
