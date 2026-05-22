@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Learnix.model
+﻿namespace Learnix.model
 {
-    internal interface IPlanejamento
+    public interface IPlanejamento
     {
+        void Definir();
     }
 }

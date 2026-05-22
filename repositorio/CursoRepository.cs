@@ -1,64 +1,31 @@
 ﻿using Learnix.data;
 using Learnix.model;
 using Microsoft.EntityFrameworkCore;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Learnix.repositorio
+namespace Learnix.Repositorio
 {
-    public class CursoRepository
+    public class CursoRepository : ICursoRepository
     {
-        public void SalvarNoBanco(Curso curso)
-        {
-            using var context = new LearnixDbContext();
+        private readonly LearnixDbContext _context;
 
-            // == Salvar no banco ==
-            context.Cursos.Add(curso);
-            context.SaveChanges();
+        // Injeção de dependência do contexto do banco
+        public CursoRepository(LearnixDbContext context)
+        {
+            _context = context;
         }
 
-        public List<Curso> RecuperarTodosOsDados()
+        public List<Curso> BuscarCursosPorNome(string termoPesquisa)
         {
-            using var context = new LearnixDbContext();
-
-            // Console.WriteLine("SELECT *");
-            var dadosRecuperados = context.Cursos.ToList();
-
-            return dadosRecuperados;
-        }
-
-        public Curso? RecuperarDadoEspecifico(int id)
-        {
-            using var context = new LearnixDbContext();
-
-            // Console.WriteLine("SELECT WHERE V2.0");
-            var dadoRecuperado = context.Cursos.FirstOrDefault(d => d.Id == id);
-
-            return dadoRecuperado;
-        }
-
-        public void DeletarDado(int id)
-        {
-            using var context = new LearnixDbContext();
-            var dadoRecuperado = context.Cursos.FirstOrDefault(d => d.Id == id);
-
-            // Console.WriteLine("DELETE WHERE");
-            if (dadoRecuperado != null)
-            {
-                context.Cursos.Remove(dadoRecuperado);
-                context.SaveChanges();
-            }
-        }
-
-        public List<Curso> BuscarCursosPorNomeSqlPuro(string termoPesquisa)
-        {
-            using var context = new LearnixDbContext();
-
             string query = "SELECT * FROM Cursos WHERE Titulo LIKE {0}";
-            var dadosRecuperados = context.Cursos.FromSqlRaw(query, $"%{termoPesquisa}%").ToList();
 
-            return dadosRecuperados;
+            // Tipagem explícita na lista
+            List<Curso> cursos = _context.Cursos
+                .FromSqlRaw(query, $"%{termoPesquisa}%")
+                .ToList();
+
+            return cursos;
         }
     }
 }

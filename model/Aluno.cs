@@ -1,10 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Learnix.model
 {
-    internal class Aluno : Usuario
+    public class Aluno : Usuario
     {
+        public string MatriculaAcademica { get; set; }
+
+        public int PerfilDeAprendizagemId { get; set; }
+        public PerfilDeAprendizagem Perfil { get; set; }
+
+        public List<Matricula> HistoricoMatriculas { get; set; }
+
+        public Aluno(int id, string nome, string email, string matriculaAcademica)
+            : base(id, nome, email)
+        {
+            MatriculaAcademica = matriculaAcademica;
+            HistoricoMatriculas = new List<Matricula>();
+        }
+
+        public override string ObterCaminhoDashboard()
+        {
+            return $"/PainelAluno/Home?matricula={MatriculaAcademica}";
+        }
     }
 }
