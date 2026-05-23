@@ -1,0 +1,300 @@
+<UserControl x:Class="Learnix.TelaAulas"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:Learnix"
+             Background="#1E1E1E">
+
+    <UserControl.Resources>
+
+        <Style x:Key="AulaCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="#2A2040"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="20,16"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style x:Key="BtnAssistirStyle" TargetType="Button">
+            <Setter Property="Background" Value="#4E3A7A"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="18,8"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="borda" Background="{TemplateBinding Background}"
+                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="borda" Property="Background" Value="#3A2860"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="borda" Property="Background" Value="#2C1F4A"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="220"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <local:SidebarControl x:Name="Sidebar" Grid.Column="0"/>
+
+        <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="36,32,36,32">
+
+                <!-- Botão voltar -->
+                <TextBlock x:Name="BtnVoltar"
+                           Text="&#x2190; Voltar para Meus Cursos"
+                           Foreground="#D8CCF0" FontSize="13"
+                           FontFamily="Segoe UI" Cursor="Hand"
+                           TextDecorations="Underline"
+                           Margin="0,0,0,20"
+                           MouseLeftButtonDown="BtnVoltar_Click"/>
+
+                <!-- Cabeçalho do curso -->
+                <Border Background="#2A2040" CornerRadius="14" Padding="24,20" Margin="0,0,0,28">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                <Border Background="#3A2860" CornerRadius="20" Padding="10,4" Margin="0,0,8,0">
+                                    <TextBlock x:Name="TxtCategoria" Text="Exatas"
+                                               Foreground="#D8CCF0" FontFamily="Segoe UI" FontSize="11"/>
+                                </Border>
+                                <Border Background="#1B3A5E" CornerRadius="20" Padding="10,4">
+                                    <TextBlock x:Name="TxtCargaHoraria" Text="60h"
+                                               Foreground="#90CAF9" FontFamily="Segoe UI" FontSize="11"/>
+                                </Border>
+                            </StackPanel>
+                            <TextBlock x:Name="TxtNomeCurso"
+                                       Text="Algoritmos e Estrutura de Dados"
+                                       Foreground="White" FontSize="20" FontWeight="Bold"
+                                       FontFamily="Segoe UI"/>
+                            <TextBlock x:Name="TxtProfessor"
+                                       Text="Prof. Carlos Lima"
+                                       Foreground="#9E8FC0" FontSize="13"
+                                       FontFamily="Segoe UI" Margin="0,6,0,12"/>
+                            <TextBlock x:Name="TxtDescricao"
+                                       Text="Aprenda os fundamentos de algoritmos, complexidade e as principais estruturas de dados usadas na programa&#xE7;&#xE3;o."
+                                       Foreground="#D8CCF0" FontSize="13"
+                                       FontFamily="Segoe UI" TextWrapping="Wrap"
+                                       Opacity="0.85"/>
+                        </StackPanel>
+
+                        <!-- Progresso circular (simplificado) -->
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center"
+                                    HorizontalAlignment="Center" Margin="24,0,0,0">
+                            <Border Width="90" Height="90" CornerRadius="45"
+                                    Background="#3A2860">
+                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                    <TextBlock x:Name="TxtProgresso" Text="68%"
+                                               Foreground="White" FontSize="22"
+                                               FontWeight="Bold" FontFamily="Segoe UI"
+                                               HorizontalAlignment="Center"/>
+                                    <TextBlock Text="concluído"
+                                               Foreground="#9E8FC0" FontSize="10"
+                                               FontFamily="Segoe UI"
+                                               HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Título lista de aulas -->
+                <TextBlock Text="Aulas do Curso"
+                           Foreground="White" FontSize="16" FontWeight="SemiBold"
+                           FontFamily="Segoe UI"/>
+                <Separator Background="#9E8FC0" Opacity="0.25" Margin="0,8,0,16"/>
+
+                <!-- Módulo 1 -->
+                <TextBlock Text="M&#xF3;dulo 1 — Introdu&#xE7;&#xE3;o"
+                           Foreground="#9E8FC0" FontSize="12" FontWeight="SemiBold"
+                           FontFamily="Segoe UI" Margin="0,0,0,8"/>
+
+                <!-- Aula 1 - Assistida -->
+                <Border Style="{StaticResource AulaCardStyle}"
+                        MouseLeftButtonDown="AulaCard_Click" Tag="1">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <!-- Número + status -->
+                        <Border Grid.Column="0" Width="44" Height="44" CornerRadius="22"
+                                Background="#1B5E20" Margin="0,0,16,0">
+                            <TextBlock Text="&#x2714;" Foreground="#A5D6A7" FontSize="18"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="Aula 01 — O que s&#xE3;o Algoritmos?"
+                                       Foreground="White" FontSize="14" FontWeight="SemiBold"
+                                       FontFamily="Segoe UI"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                <TextBlock Text="&#x1F551; 12 min" Foreground="#9E8FC0"
+                                           FontSize="12" FontFamily="Segoe UI" Margin="0,0,16,0"/>
+                                <TextBlock Text="Assistida" Foreground="#A5D6A7"
+                                           FontSize="12" FontFamily="Segoe UI"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <Button Grid.Column="2" Content="&#x25B6; Rever"
+                                Style="{StaticResource BtnAssistirStyle}"
+                                VerticalAlignment="Center"
+                                Click="BtnAssistir_Click" Tag="Aula 01 — O que são Algoritmos?"/>
+                    </Grid>
+                </Border>
+
+                <!-- Aula 2 - Assistida -->
+                <Border Style="{StaticResource AulaCardStyle}"
+                        MouseLeftButtonDown="AulaCard_Click" Tag="2">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Width="44" Height="44" CornerRadius="22"
+                                Background="#1B5E20" Margin="0,0,16,0">
+                            <TextBlock Text="&#x2714;" Foreground="#A5D6A7" FontSize="18"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="Aula 02 — Complexidade de Algoritmos"
+                                       Foreground="White" FontSize="14" FontWeight="SemiBold"
+                                       FontFamily="Segoe UI"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                <TextBlock Text="&#x1F551; 18 min" Foreground="#9E8FC0"
+                                           FontSize="12" FontFamily="Segoe UI" Margin="0,0,16,0"/>
+                                <TextBlock Text="Assistida" Foreground="#A5D6A7"
+                                           FontSize="12" FontFamily="Segoe UI"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <Button Grid.Column="2" Content="&#x25B6; Rever"
+                                Style="{StaticResource BtnAssistirStyle}"
+                                VerticalAlignment="Center"
+                                Click="BtnAssistir_Click" Tag="Aula 02 — Complexidade de Algoritmos"/>
+                    </Grid>
+                </Border>
+
+                <!-- Módulo 2 -->
+                <TextBlock Text="M&#xF3;dulo 2 — Estruturas de Dados"
+                           Foreground="#9E8FC0" FontSize="12" FontWeight="SemiBold"
+                           FontFamily="Segoe UI" Margin="0,12,0,8"/>
+
+                <!-- Aula 3 - Em andamento -->
+                <Border Style="{StaticResource AulaCardStyle}"
+                        MouseLeftButtonDown="AulaCard_Click" Tag="3">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Width="44" Height="44" CornerRadius="22"
+                                Background="#4E3A7A" Margin="0,0,16,0">
+                            <TextBlock Text="&#x25B6;" Foreground="White" FontSize="16"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="Aula 03 — Listas Encadeadas"
+                                       Foreground="White" FontSize="14" FontWeight="SemiBold"
+                                       FontFamily="Segoe UI"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                <TextBlock Text="&#x1F551; 22 min" Foreground="#9E8FC0"
+                                           FontSize="12" FontFamily="Segoe UI" Margin="0,0,16,0"/>
+                                <TextBlock Text="Em andamento" Foreground="#FFCC80"
+                                           FontSize="12" FontFamily="Segoe UI"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <Button Grid.Column="2" Content="&#x25B6; Continuar"
+                                Style="{StaticResource BtnAssistirStyle}"
+                                VerticalAlignment="Center"
+                                Click="BtnAssistir_Click" Tag="Aula 03 — Listas Encadeadas"/>
+                    </Grid>
+                </Border>
+
+                <!-- Aula 4 - Bloqueada -->
+                <Border Style="{StaticResource AulaCardStyle}" Opacity="0.5">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Width="44" Height="44" CornerRadius="22"
+                                Background="#3A2860" Margin="0,0,16,0">
+                            <TextBlock Text="&#x1F512;" FontSize="18"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="Aula 04 — Pilhas e Filas"
+                                       Foreground="White" FontSize="14" FontWeight="SemiBold"
+                                       FontFamily="Segoe UI"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                <TextBlock Text="&#x1F551; 19 min" Foreground="#9E8FC0"
+                                           FontSize="12" FontFamily="Segoe UI" Margin="0,0,16,0"/>
+                                <TextBlock Text="Bloqueada" Foreground="#9E8FC0"
+                                           FontSize="12" FontFamily="Segoe UI"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <Border Grid.Column="2" Background="#3A2860" CornerRadius="8"
+                                Padding="18,8" VerticalAlignment="Center">
+                            <TextBlock Text="&#x1F512; Bloqueada" Foreground="#9E8FC0"
+                                       FontFamily="Segoe UI" FontSize="13"/>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <!-- Aula 5 - Bloqueada -->
+                <Border Style="{StaticResource AulaCardStyle}" Opacity="0.5">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Width="44" Height="44" CornerRadius="22"
+                                Background="#3A2860" Margin="0,0,16,0">
+                            <TextBlock Text="&#x1F512;" FontSize="18"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="Aula 05 — &#xC1;rvores Bin&#xE1;rias"
+                                       Foreground="White" FontSize="14" FontWeight="SemiBold"
+                                       FontFamily="Segoe UI"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                <TextBlock Text="&#x1F551; 25 min" Foreground="#9E8FC0"
+                                           FontSize="12" FontFamily="Segoe UI" Margin="0,0,16,0"/>
+                                <TextBlock Text="Bloqueada" Foreground="#9E8FC0"
+                                           FontSize="12" FontFamily="Segoe UI"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <Border Grid.Column="2" Background="#3A2860" CornerRadius="8"
+                                Padding="18,8" VerticalAlignment="Center">
+                            <TextBlock Text="&#x1F512; Bloqueada" Foreground="#9E8FC0"
+                                       FontFamily="Segoe UI" FontSize="13"/>
+                        </Border>
+                    </Grid>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

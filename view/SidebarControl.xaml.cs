@@ -6,10 +6,10 @@ namespace Learnix
 {
     public partial class SidebarControl : UserControl
     {
-        // Mesmo padrão de eventos customizados usado em TelaLogin, TelaCadastro, etc.
         public event EventHandler SolicitarMenu;
         public event EventHandler SolicitarNotas;
         public event EventHandler SolicitarMeusCursos;
+        public event EventHandler SolicitarCertificados;
         public event EventHandler SolicitarPerfil;
         public event EventHandler SolicitarSair;
 
@@ -31,6 +31,9 @@ namespace Learnix
 
         private void BtnMeusCursos_Click(object sender, RoutedEventArgs e)
             => SolicitarMeusCursos?.Invoke(this, EventArgs.Empty);
+
+        private void BtnCertificados_Click(object sender, RoutedEventArgs e)
+            => SolicitarCertificados?.Invoke(this, EventArgs.Empty);
 
         private void BtnPerfil_Click(object sender, RoutedEventArgs e)
             => SolicitarPerfil?.Invoke(this, EventArgs.Empty);

@@ -110,7 +110,9 @@
                             </Border>
                             <Button Grid.Column="2" Content="Acessar &#x2192;"
                                     Style="{StaticResource BtnAcessarStyle}"
-                                    VerticalAlignment="Top"/>
+                                    VerticalAlignment="Top"
+                                    Click="BtnContinuar_Click"
+                                    Tag="Algoritmos e Estrutura de Dados|Prof. Carlos Lima|Exatas|60h|Aprenda algoritmos e estruturas de dados.|68%"/>
                         </Grid>
                         <StackPanel Orientation="Horizontal" Margin="0,12,0,10">
                             <TextBlock Text="&#x1F4C5; Mar 2026" Foreground="#9E8FC0"
@@ -160,7 +162,9 @@
                             </Border>
                             <Button Grid.Column="2" Content="Acessar &#x2192;"
                                     Style="{StaticResource BtnAcessarStyle}"
-                                    VerticalAlignment="Top"/>
+                                    VerticalAlignment="Top"
+                                    Click="BtnContinuar_Click"
+                                    Tag="Cálculo I|Prof. Ana Souza|Exatas|45h|Limites, derivadas e integrais.|40%"/>
                         </Grid>
                         <StackPanel Orientation="Horizontal" Margin="0,12,0,10">
                             <TextBlock Text="&#x1F4C5; Fev 2026" Foreground="#9E8FC0"
@@ -210,7 +214,9 @@
                             </Border>
                             <Button Grid.Column="2" Content="Acessar &#x2192;"
                                     Style="{StaticResource BtnAcessarStyle}"
-                                    VerticalAlignment="Top"/>
+                                    VerticalAlignment="Top"
+                                    Click="BtnContinuar_Click"
+                                    Tag="Engenharia de Software|Prof. Marcos Freitas|Humanas|80h|Metodologias ágeis e padrões de projeto.|87%"/>
                         </Grid>
                         <StackPanel Orientation="Horizontal" Margin="0,12,0,10">
                             <TextBlock Text="&#x1F4C5; Jan 2026" Foreground="#9E8FC0"
@@ -230,6 +236,61 @@
                                         HorizontalAlignment="Left" Width="260"/>
                             </Border>
                             <TextBlock Grid.Column="1" Text="87%" Foreground="#D8CCF0"
+                                       FontSize="12" FontWeight="SemiBold"
+                                       FontFamily="Segoe UI" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+
+                <!-- Curso 4 - 100% concluído -->
+                <Border Style="{StaticResource CursoCardStyle}">
+                    <StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Programa&#xE7;&#xE3;o Orientada a Objetos em C#"
+                                           Foreground="White" FontSize="15" FontWeight="Bold"
+                                           FontFamily="Segoe UI"/>
+                                <TextBlock Text="Prof. Roberto Alves"
+                                           Foreground="#9E8FC0" FontSize="12"
+                                           FontFamily="Segoe UI" Margin="0,4,0,0"/>
+                            </StackPanel>
+                            <Border Grid.Column="1" Background="#1A2A3A" CornerRadius="20"
+                                    Padding="12,5" VerticalAlignment="Top" Margin="12,0">
+                                <TextBlock Text="Tecnologia" Foreground="#90CAF9"
+                                           FontFamily="Segoe UI" FontSize="11"/>
+                            </Border>
+                            <!-- Botão CONCLUIR (curso 100%) -->
+                            <Button Grid.Column="2" Content="&#x1F3C6; Concluir"
+                                    Style="{StaticResource BtnAcessarStyle}"
+                                    VerticalAlignment="Top"
+                                    Background="#2E7D32"
+                                    Click="BtnConcluir_Click"
+                                    Tag="Programa&#xE7;&#xE3;o Orientada a Objetos em C#|Prof. Roberto Alves|Tecnologia|40h"/>
+                        </Grid>
+                        <StackPanel Orientation="Horizontal" Margin="0,12,0,10">
+                            <TextBlock Text="&#x1F4C5; Dez 2025" Foreground="#9E8FC0"
+                                       FontSize="12" FontFamily="Segoe UI" Margin="0,0,18,0"/>
+                            <TextBlock Text="&#x1F551; 40h" Foreground="#9E8FC0"
+                                       FontSize="12" FontFamily="Segoe UI" Margin="0,0,18,0"/>
+                            <TextBlock Text="&#x270F;&#xFE0F; 5 atividades" Foreground="#9E8FC0"
+                                       FontSize="12" FontFamily="Segoe UI"/>
+                        </StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Background="#1B5E20" CornerRadius="3" Height="6" VerticalAlignment="Center">
+                                <Border Background="#A5D6A7" CornerRadius="3"
+                                        HorizontalAlignment="Left" Width="300"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" Text="100% &#x2714;" Foreground="#A5D6A7"
                                        FontSize="12" FontWeight="SemiBold"
                                        FontFamily="Segoe UI" Margin="10,0,0,0" VerticalAlignment="Center"/>
                         </Grid>

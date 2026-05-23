@@ -1,16 +1,19 @@
-﻿using System;
+using System;
 
 namespace Learnix.model
 {
+    /// <summary>
+    /// Classe base abstrata para todos os usuários do sistema.
+    /// Telas: TelaLogin, TelaCadastro, TelaPerfil
+    /// </summary>
     public abstract class Usuario
     {
         public int Id { get; set; }
-        public string Nome { get; set; }
-        public string Email { get; set; }
-        public string Senha { get; set; }
+        public string Nome { get; set; } = null!;
+        public string Email { get; set; } = null!;
+        public string Senha { get; set; } = null!;
         public DateTime DataCadastro { get; set; }
 
-        // Construtor Vazio (protected por ser uma classe abstrata)
         protected Usuario()
         {
             DataCadastro = DateTime.Now;
@@ -24,6 +27,7 @@ namespace Learnix.model
             DataCadastro = DateTime.Now;
         }
 
+        // Polimorfismo: cada tipo de usuário define seu próprio painel
         public abstract string ObterCaminhoDashboard();
     }
 }

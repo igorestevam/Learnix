@@ -50,9 +50,9 @@
             <!-- Logo (mesmo estilo TelaLogin) -->
             <StackPanel Grid.Row="0" HorizontalAlignment="Left"
                         Orientation="Horizontal" Margin="20,28,20,20">
-                <TextBlock Text="&#x1F393;" FontSize="26" VerticalAlignment="Center"/>
+                <TextBlock Text="&#x1F393;" FontSize="26" VerticalAlignment="Center" Foreground="White"/>
                 <TextBlock Text="LEARNIX" FontSize="14" FontWeight="Bold"
-                           Foreground="#3C3250" VerticalAlignment="Center"
+                           Foreground="White" VerticalAlignment="Center"
                            Margin="10,0,0,0" FontFamily="Segoe UI"/>
             </StackPanel>
 
@@ -95,6 +95,14 @@
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="&#x1F4DA;" FontSize="16" VerticalAlignment="Center"/>
                         <TextBlock Text="Meus Cursos" FontSize="14" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                    </StackPanel>
+                </Button>
+
+                <Button x:Name="BtnCertificados" Style="{StaticResource BtnSidebarStyle}"
+                        Click="BtnCertificados_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#x1F3C6;" FontSize="16" VerticalAlignment="Center"/>
+                        <TextBlock Text="Certificados" FontSize="14" VerticalAlignment="Center" Margin="12,0,0,0"/>
                     </StackPanel>
                 </Button>
 
