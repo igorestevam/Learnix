@@ -5,16 +5,22 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using Learnix.Controllers;
+using Learnix.data;
+using Learnix.model;
+using Learnix.Services;
 
 namespace Learnix
 {
     public partial class TelaPlayer : UserControl
     {
-        private string _nomeAluno   = "Aluno";
-        private string _nomeCurso   = "";
-        private bool   _isPlaying   = false;
-        private bool   _arrastando  = false;
+        private string _nomeAluno = "Aluno";
+        private string _nomeCurso = "";
+        private bool _isPlaying = false;
+        private bool _arrastando = false;
         private DispatcherTimer _timer;
+        private int _matriculaId;
+        private int _aulaId;
 
         public TelaPlayer()
         {
@@ -23,13 +29,22 @@ namespace Learnix
             VideoPlayer.Volume = SliderVolume.Value;
         }
 
-        public void DefinirAula(string tituloAula, string nomeCurso, string nomeAluno)
+        public void DefinirAula(Aula aula, Matricula matricula, string nomeAluno)
         {
-            TxtTituloAula.Text = tituloAula;
-            TxtNomeCurso.Text  = nomeCurso;
-            _nomeCurso         = nomeCurso;
-            _nomeAluno         = nomeAluno;
+            TxtTituloAula.Text = aula.Titulo;
+            TxtNomeCurso.Text = matricula.Curso?.Titulo ?? "";
+            _nomeCurso = matricula.Curso?.Titulo ?? "";
+            _nomeAluno = nomeAluno;
+            _matriculaId = matricula.Id;
+            _aulaId = aula.Id;
             Sidebar.DefinirAluno(nomeAluno);
+
+            // Carrega o vídeo automaticamente pelo URL do model
+            if (!string.IsNullOrEmpty(aula.VideoUrl))
+            {
+                VideoPlayer.Source = new Uri(aula.VideoUrl, UriKind.RelativeOrAbsolute);
+                OverlaySemVideo.Visibility = Visibility.Collapsed;
+            }
         }
 
         // ── Timer para atualizar barra de progresso ──────────────────────────
@@ -44,19 +59,19 @@ namespace Learnix
         {
             if (VideoPlayer.NaturalDuration.HasTimeSpan && !_arrastando)
             {
-                var total    = VideoPlayer.NaturalDuration.TimeSpan.TotalSeconds;
-                var atual    = VideoPlayer.Position.TotalSeconds;
+                var total = VideoPlayer.NaturalDuration.TimeSpan.TotalSeconds;
+                var atual = VideoPlayer.Position.TotalSeconds;
                 SliderVideo.Value = total > 0 ? (atual / total) * 100 : 0;
 
                 TxtTempo.Text = $"{Formatar(VideoPlayer.Position)} / " +
-                                $"{Formatar(VideoPlayer.NaturalDuration.TimeSpan)}";
+                    $"{Formatar(VideoPlayer.NaturalDuration.TimeSpan)}";
             }
         }
 
         private string Formatar(TimeSpan t)
             => t.TotalHours >= 1
-               ? $"{(int)t.TotalHours:D2}:{t.Minutes:D2}:{t.Seconds:D2}"
-               : $"{t.Minutes:D2}:{t.Seconds:D2}";
+                ? $"{(int)t.TotalHours:D2}:{t.Minutes:D2}:{t.Seconds:D2}"
+                : $"{t.Minutes:D2}:{t.Seconds:D2}";
 
         // ── Controles do player ──────────────────────────────────────────────
 
@@ -114,115 +129,31 @@ namespace Learnix
                 VideoPlayer.Volume = e.NewValue;
         }
 
-        // ── Abrir arquivo de vídeo ───────────────────────────────────────────
-
-        private void BtnAbrirVideo_Click(object sender, RoutedEventArgs e)
-        {
-            var dlg = new OpenFileDialog
-            {
-                Title  = "Selecionar vídeo da aula",
-                Filter = "Vídeos|*.mp4;*.avi;*.mkv;*.wmv;*.mov|Todos os arquivos|*.*"
-            };
-
-            if (dlg.ShowDialog() == true)
-            {
-                VideoPlayer.Source = new Uri(dlg.FileName);
-                OverlaySemVideo.Visibility = Visibility.Collapsed;
-                VideoPlayer.Play();
-                _isPlaying = true;
-                BtnPlayPause.Content = "⏸";
-                _timer.Start();
-            }
-        }
-
-        // ── Eventos do MediaElement ──────────────────────────────────────────
-
-        private void VideoPlayer_MediaOpened(object sender, RoutedEventArgs e)
-        {
-            if (VideoPlayer.NaturalDuration.HasTimeSpan)
-                TxtTempo.Text = $"00:00 / {Formatar(VideoPlayer.NaturalDuration.TimeSpan)}";
-        }
+        // ── Fim do vídeo: registrar conclusão da aula ────────────────────────
 
         private void VideoPlayer_MediaEnded(object sender, RoutedEventArgs e)
         {
             _isPlaying = false;
             BtnPlayPause.Content = "▶";
             _timer.Stop();
-            VideoPlayer.Position = TimeSpan.Zero;
-            SliderVideo.Value = 0;
+
+            var controller = new AulaController(new ProgressoService(new LearnixDbContext()));
+            controller.ConcluirAula(_matriculaId, _aulaId);
         }
 
-        private void VideoPlayer_MediaFailed(object sender, ExceptionRoutedEventArgs e)
+        // ── Abrir arquivo de vídeo (fallback manual) ─────────────────────────
+
+        private void BtnAbrirVideo_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show($"Não foi possível carregar o vídeo.\n{e.ErrorException?.Message}",
-                "Learnix", MessageBoxButton.OK, MessageBoxImage.Error);
-            OverlaySemVideo.Visibility = Visibility.Visible;
-        }
-
-        // ── Abas ─────────────────────────────────────────────────────────────
-
-        private void AbaMateriaisClick(object sender, MouseButtonEventArgs e)
-            => MostrarAba("Materiais");
-
-        private void AbaTranscricaoClick(object sender, MouseButtonEventArgs e)
-            => MostrarAba("Transcricao");
-
-        private void AbaAnotacoesClick(object sender, MouseButtonEventArgs e)
-            => MostrarAba("Anotacoes");
-
-        private void MostrarAba(string aba)
-        {
-            AbaMateriais.Visibility    = aba == "Materiais"  ? Visibility.Visible : Visibility.Collapsed;
-            AbaTranscricao.Visibility  = aba == "Transcricao"? Visibility.Visible : Visibility.Collapsed;
-            AbaAnotacoes.Visibility    = aba == "Anotacoes"  ? Visibility.Visible : Visibility.Collapsed;
-
-            var ativo    = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#7E6BAC"));
-            var inativo  = new SolidColorBrush(Colors.Transparent);
-            var branco   = new SolidColorBrush(Colors.White);
-            var cinza    = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#9E8FC0"));
-
-            AbaMateriaisHeader.BorderBrush    = aba == "Materiais"   ? ativo : inativo;
-            AbaTranscricaoHeader.BorderBrush  = aba == "Transcricao" ? ativo : inativo;
-            AbaAnotacoesHeader.BorderBrush    = aba == "Anotacoes"   ? ativo : inativo;
-
-            (AbaMateriaisHeader.Child as TextBlock).Foreground   = aba == "Materiais"   ? branco : cinza;
-            (AbaTranscricaoHeader.Child as TextBlock).Foreground = aba == "Transcricao" ? branco : cinza;
-            (AbaAnotacoesHeader.Child as TextBlock).Foreground   = aba == "Anotacoes"   ? branco : cinza;
-        }
-
-        private void BtnSalvarAnotacoes_Click(object sender, RoutedEventArgs e)
-        {
-            // TODO: persistir anotações no banco de dados
-            MessageBox.Show("Anotações salvas!", "Learnix",
-                MessageBoxButton.OK, MessageBoxImage.Information);
-        }
-
-        // ── Lista de aulas lateral ───────────────────────────────────────────
-
-        private void AulaLista_Click(object sender, MouseButtonEventArgs e)
-        {
-            if (sender is Border b && b.Tag is string titulo)
+            var dlg = new OpenFileDialog
             {
-                TxtTituloAula.Text = titulo;
-                BtnStop_Click(null, null);
-                OverlaySemVideo.Visibility = Visibility.Visible;
-                VideoPlayer.Source = null;
+                Filter = "Vídeos|*.mp4;*.avi;*.mkv;*.wmv;*.mov|Todos os arquivos|*.*"
+            };
+            if (dlg.ShowDialog() == true)
+            {
+                VideoPlayer.Source = new Uri(dlg.FileName, UriKind.Absolute);
+                OverlaySemVideo.Visibility = Visibility.Collapsed;
             }
-        }
-
-        // ── Navegação ────────────────────────────────────────────────────────
-
-        private void BtnVoltar_Click(object sender, MouseButtonEventArgs e)
-        {
-            _timer.Stop();
-            VideoPlayer.Stop();
-            VideoPlayer.Source = null;
-
-            var aulas = new TelaAulas();
-            aulas.DefinirAluno(_nomeAluno);
-            aulas.DefinirCurso(_nomeCurso, "", "", "", "", "68%");
-            var main = Application.Current.MainWindow as MainWindow;
-            main?.MostrarTela(aulas, _nomeAluno);
         }
     }
 }
