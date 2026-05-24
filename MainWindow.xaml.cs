@@ -7,7 +7,7 @@ namespace Learnix
     public partial class MainWindow : Window
     {
         // Armazena o usuario logado para propagar entre telas
-        private Usuario _usuarioLogado;
+        private Usuario? _usuarioLogado;
 
         public MainWindow()
         {
