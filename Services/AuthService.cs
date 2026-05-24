@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using Learnix.data;
 using Learnix.model;
 
@@ -20,24 +20,15 @@ namespace Learnix.Services
                 .FirstOrDefault(a => a.MatriculaAcademica == codigoAcesso && a.Senha == senha);
 
             if (alunoEncontrado != null)
-            {
                 return alunoEncontrado;
-            }
 
-            // Caso o código seja numérico, tenta buscar por Instrutor usando o ID
-            int idInstrutor;
-            bool isNumero = int.TryParse(codigoAcesso, out idInstrutor);
+            // Busca por Instrutor usando Email como identificador universal
+            // (Email já existe em Usuario, evitando dependência de Id numérico frágil)
+            Instrutor instrutorEncontrado = _context.Instrutores
+                .FirstOrDefault(i => i.Email == codigoAcesso && i.Senha == senha);
 
-            if (isNumero)
-            {
-                Instrutor instrutorEncontrado = _context.Instrutores
-                    .FirstOrDefault(i => i.Id == idInstrutor && i.Senha == senha);
-
-                if (instrutorEncontrado != null)
-                {
-                    return instrutorEncontrado;
-                }
-            }
+            if (instrutorEncontrado != null)
+                return instrutorEncontrado;
 
             return null;
         }
