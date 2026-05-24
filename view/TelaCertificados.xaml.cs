@@ -129,7 +129,6 @@ namespace Learnix
                 "Certificado enviado!\nDica: escolha 'Salvar como PDF' na impressora.",
                 "Learnix", MessageBoxButton.OK, MessageBoxImage.Information);
         }
-    }
 
         private void BtnBaixarPdf_Click(object sender, RoutedEventArgs e)
         {
