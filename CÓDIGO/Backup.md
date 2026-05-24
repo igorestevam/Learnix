@@ -1438,3 +1438,107 @@ private void AulaLista_Click(object sender, MouseButtonEventArgs e) { ... }
 ---
 
 *Backup atualizado em 24/05/2026 — Learnix*
+
+
+---
+
+## 17. view/TelaAulas.xaml.cs
+
+**Commit:** `fix: TelaAulas - remover PainelModulos, adaptar para cards estaticos XAML` (`0c10c00`)
+
+**Erro corrigido:** CS0103 - O nome "PainelModulos" não existe no contexto atual (linhas 34, 48, 53) + CS1061 - AulaCard_Click não definido no TelaAulas.xaml
+
+**Causa:** O XAML tem cards de aula estáticos (AulaCard_Click, BtnAssistir_Click) sem um ItemsControl x:Name="PainelModulos".
+
+**ANTES:**
+```csharp
+// CarregarModulos usava PainelModulos.Children.Clear() - elemento inexistente no XAML
+private void CarregarModulos(List<Modulo> modulos)
+{
+    PainelModulos.Children.Clear(); // CS0103
+    ...
+}
+// Não tinha AulaCard_Click
+```
+
+**DEPOIS:**
+```csharp
+// Removido PainelModulos; adicionado AulaCard_Click e BtnAssistir_Click compatíveis com XAML estático
+private void AulaCard_Click(object sender, MouseButtonEventArgs e) { ... }
+private void BtnAssistir_Click(object sender, RoutedEventArgs e) { ... }
+```
+
+---
+
+## 18. view/TelaCertificados.xaml.cs
+
+**Commit:** `fix: TelaCertificados - adicionar BtnPdf_Click e BtnBaixarPdf_Click` (`1e57ebd`)
+
+**Erro corrigido:** CS1061 - TelaCertificados não contém definição para "BtnPdf_Click" (linha 144) e "BtnBaixarPdf_Click" (linha 192)
+
+**Causa:** O XAML chama `BtnPdf_Click` e `BtnBaixarPdf_Click`, mas o code-behind só tinha `BtnImprimir_Click`.
+
+**ANTES:**
+```csharp
+private void BtnImprimir_Click(object sender, RoutedEventArgs e) { ... }
+// Sem BtnPdf_Click nem BtnBaixarPdf_Click
+```
+
+**DEPOIS:**
+```csharp
+private void BtnPdf_Click(object sender, RoutedEventArgs e) { ... }
+private void BtnBaixarPdf_Click(object sender, RoutedEventArgs e)
+{
+    BtnPdf_Click(sender, e); // delega para o mesmo comportamento
+}
+```
+
+---
+
+## 19. view/TelaPlayer.xaml.cs
+
+**Commit:** `fix: TelaPlayer - renomear PainelMateriais/Transcricao/Anotacoes para AbaMateriais/etc` (`69edccb`)
+
+**Erro corrigido:** CS0103 - Os nomes "PainelMateriais", "PainelTranscricao", "PainelAnotacoes" não existem no contexto atual (linhas 178-194)
+
+**Causa:** O XAML usa x:Name="AbaMateriais", "AbaTranscricao", "AbaAnotacoes", mas o code-behind referenciava "PainelMateriais", "PainelTranscricao", "PainelAnotacoes".
+
+**ANTES:**
+```csharp
+if (PainelMateriais != null) PainelMateriais.Visibility = Visibility.Visible;
+if (PainelTranscricao != null) PainelTranscricao.Visibility = Visibility.Collapsed;
+if (PainelAnotacoes != null) PainelAnotacoes.Visibility = Visibility.Collapsed;
+```
+
+**DEPOIS:**
+```csharp
+if (AbaMateriais != null) AbaMateriais.Visibility = Visibility.Visible;
+if (AbaTranscricao != null) AbaTranscricao.Visibility = Visibility.Collapsed;
+if (AbaAnotacoes != null) AbaAnotacoes.Visibility = Visibility.Collapsed;
+```
+
+---
+
+## 20. view/TelaLogin.xaml.cs
+
+**Commit:** `fix: TelaLogin - adicionar using Learnix.Controllers (CS0246)` (`6194d61`)
+
+**Erro corrigido:** CS0246 - O nome do tipo "LoginController" não pode ser encontrado (linha 38)
+
+**Causa:** LoginController está no namespace Learnix.Controllers, mas não havia `using Learnix.Controllers;` no arquivo.
+
+**ANTES:**
+```csharp
+using Learnix.data;
+using Learnix.model;
+using Learnix.Services;
+// sem using Learnix.Controllers
+```
+
+**DEPOIS:**
+```csharp
+using Learnix.data;
+using Learnix.model;
+using Learnix.Controllers;
+using Learnix.Services;
+```
