@@ -9,7 +9,7 @@ namespace Learnix
     public partial class TelaPerfil : UserControl
     {
         private bool _modoEdicao = false;
-        private Aluno _aluno;
+        private Aluno? _aluno;
 
         public TelaPerfil()
         {
@@ -24,16 +24,6 @@ namespace Learnix
             TxtEditEmail.Text = aluno.Email;
             TxtEmailPerfil.Text = aluno.Email;
             Sidebar.DefinirAluno(aluno.Nome);
-
-            // Exibe campos exclusivos do model Aluno
-            if (TxtMatricula != null)
-                TxtMatricula.Text = aluno.MatriculaAcademica;
-
-            if (TxtEstilo != null)
-                TxtEstilo.Text = aluno.Perfil?.EstiloPredominante ?? "-";
-
-            if (TxtRitmo != null)
-                TxtRitmo.Text = aluno.Perfil?.RitmoSugerido ?? "-";
 
             // Iniciais do avatar
             if (aluno.Nome.Length > 0)
@@ -74,18 +64,19 @@ namespace Learnix
                 return;
             }
 
-            // Persiste as alterações no banco de dados
-            using var db = new LearnixDbContext();
-            var aluno = db.Alunos.Find(_aluno.Id);
-            if (aluno != null)
+            // Persiste no banco de dados
+            if (_aluno != null)
             {
-                aluno.Nome = TxtEditNome.Text;
-                aluno.Email = TxtEditEmail.Text;
-                db.SaveChanges();
-
-                // Atualiza objeto local
-                _aluno.Nome = aluno.Nome;
-                _aluno.Email = aluno.Email;
+                using var db = new LearnixDbContext();
+                var aluno = db.Alunos.Find(_aluno.Id);
+                if (aluno != null)
+                {
+                    aluno.Nome  = TxtEditNome.Text;
+                    aluno.Email = TxtEditEmail.Text;
+                    db.SaveChanges();
+                    _aluno.Nome  = aluno.Nome;
+                    _aluno.Email = aluno.Email;
+                }
             }
 
             // Atualiza exibição
@@ -93,7 +84,6 @@ namespace Learnix
             TxtEmailPerfil.Text = TxtEditEmail.Text;
             Sidebar.DefinirAluno(TxtEditNome.Text);
 
-            // Atualiza iniciais do avatar
             var partes = TxtEditNome.Text.Split(' ');
             TxtIniciais.Text = partes.Length >= 2
                 ? $"{partes[0][0]}{partes[1][0]}".ToUpper()
@@ -104,13 +94,11 @@ namespace Learnix
 
             TxtEditNome.IsReadOnly = true;
             TxtEditEmail.IsReadOnly = true;
-
             TxtEditNome.Background = corLeitura;
             TxtEditEmail.Background = corLeitura;
 
             BtnSalvar.Visibility = Visibility.Collapsed;
             BtnEditar.Visibility = Visibility.Visible;
-
             _modoEdicao = false;
 
             MessageBox.Show("Perfil atualizado com sucesso!",
