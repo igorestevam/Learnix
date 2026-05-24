@@ -1263,3 +1263,178 @@ namespace Learnix
 ---
 
 *Backup atualizado em 24/05/2026 — Learnix*
+
+
+---
+
+## 12. `view/TelaPerfil.xaml.cs` — Correção de compilação
+
+**Commit:** `fix: TelaPerfil - remover campos inexistentes no XAML (TxtMatricula/Estilo/Ritmo)`
+
+**Problema:** O code-behind referenciava `TxtMatricula`, `TxtEstilo` e `TxtRitmo` que não existem no XAML. Também referenciava `TxtEditTelefone` e `TxtEditNascimento` que não existem no model.
+
+### ANTES (com erros CS0103)
+```csharp
+public void DefinirAluno(Aluno aluno)
+{
+    // ...
+    if (TxtMatricula != null)        // CS0103 - não existe no XAML
+        TxtMatricula.Text = aluno.MatriculaAcademica;
+    if (TxtEstilo != null)           // CS0103 - não existe no XAML
+        TxtEstilo.Text = aluno.Perfil?.EstiloPredominante ?? "-";
+    if (TxtRitmo != null)            // CS0103 - não existe no XAML
+        TxtRitmo.Text = aluno.Perfil?.RitmoSugerido ?? "-";
+}
+```
+
+### DEPOIS (compilável)
+```csharp
+public void DefinirAluno(Aluno aluno)
+{
+    _aluno = aluno;
+    TxtNomePerfil.Text = aluno.Nome;
+    TxtEditNome.Text = aluno.Nome;
+    TxtEditEmail.Text = aluno.Email;
+    TxtEmailPerfil.Text = aluno.Email;
+    Sidebar.DefinirAluno(aluno.Nome);
+    // TxtMatricula/TxtEstilo/TxtRitmo removidos (não existem no XAML atual)
+}
+```
+
+---
+
+## 13. `view/TelaNotas.xaml.cs` — Correção de compilação
+
+**Commit:** `fix: TelaNotas - remover referencias a elementos inexistentes no XAML`
+
+**Problema:** O XAML de TelaNotas tem dados de notas **estáticos/hardcoded**. O code-behind referenciava `PainelAvaliacoes` e `TxtMediaGeral` que não existem no XAML.
+
+### ANTES (com erros CS0103)
+```csharp
+public void DefinirMatricula(Matricula matricula)
+{
+    PainelAvaliacoes.Children.Clear();  // CS0103 - não existe no XAML
+    foreach (var av in matricula.Avaliacoes) { ... }
+    TxtMediaGeral.Text = matricula.NotaFinal.ToString("0.0");  // CS0103
+}
+```
+
+### DEPOIS (compilável)
+```csharp
+public void DefinirMatricula(Matricula? matricula)
+{
+    if (matricula == null) return;
+    Sidebar.DefinirAluno(matricula.Aluno?.Nome ?? "Aluno");
+    // Para binding dinâmico, adicione x:Name="PainelAvaliacoes" e
+    // x:Name="TxtMediaGeral" no TelaNotas.xaml.
+}
+```
+
+---
+
+## 14. `view/TelaMeusCursos.xaml.cs` — Correção de compilação
+
+**Commit:** `fix: TelaMeusCursos - compatibilizar com cards estaticos do XAML, remover PainelCursos`
+
+**Problema:** O XAML tem cards **estáticos** com `BtnContinuar_Click` e `BtnConcluir_Click` usando `Tag` em formato string. O code-behind referenciava `PainelCursos` que não existe no XAML.
+
+### ANTES (com erros CS0103)
+```csharp
+private void CarregarCards()
+{
+    PainelCursos.Children.Clear();  // CS0103 - não existe no XAML
+    foreach (var matricula in _matriculas) { ... }
+}
+```
+
+### DEPOIS (compilável)
+```csharp
+// Mantém DefinirAluno(Aluno aluno) para sidebar e lista de matrículas
+// BtnContinuar_Click e BtnConcluir_Click usam Tag string do XAML estático
+// Tenta buscar Matricula correspondente em _matriculas antes de navegar
+private void BtnContinuar_Click(object sender, RoutedEventArgs e)
+{
+    if (sender is Button btn && btn.Tag is string dados)
+    {
+        var nomeCurso = dados.Split('|')[0];
+        var matricula = _matriculas.Find(m => m.Curso?.Titulo == nomeCurso);
+        if (matricula != null)
+            main?.MostrarAulas(matricula);
+    }
+}
+```
+
+---
+
+## 15. `view/TelaMenu.xaml.cs` — Correção de compilação
+
+**Commit:** `fix: TelaMenu - reverter para cards estaticos do XAML, adicionar BtnMatricular_Click`
+
+**Problema:** O XAML tem 5 cards estáticos (`CardCurso1`–`CardCurso5`) e botões com `Click="BtnMatricular_Click"`. O code-behind referenciava `ListaCursos` (ItemsControl) que não existe no XAML, e não tinha o método `BtnMatricular_Click`.
+
+### ANTES (com erros CS0103 e CS1061)
+```csharp
+public void CarregarCursos(string termoBusca = "")
+{
+    var controller = new CursoController(...);
+    var cursos = controller.BuscarCursos(termoBusca);
+    ListaCursos.ItemsSource = cursos;  // CS0103 - não existe no XAML
+}
+// Sem BtnMatricular_Click → CS1061 em todos os cards do XAML
+```
+
+### DEPOIS (compilável)
+```csharp
+// Revertido para filtrar os 5 cards estáticos existentes no XAML
+// BtnMatricular_Click adicionado para compatibilidade com o XAML
+private void BtnMatricular_Click(object sender, RoutedEventArgs e)
+{
+    if (sender is Button btn)
+        MessageBox.Show($"Matrícula solicitada para: {btn.Tag}");
+}
+```
+
+---
+
+## 16. `view/TelaPlayer.xaml.cs` — Correção de compilação
+
+**Commit:** `fix: TelaPlayer - adicionar todos os handlers referenciados no XAML`
+
+**Problema:** O XAML do TelaPlayer referencia vários métodos que não existiam no code-behind: `BtnVoltar_Click`, `VideoPlayer_MediaOpened`, `VideoPlayer_MediaFailed`, `AbaMateriaisClick`, `AbaTranscricaoClick`, `AbaAnotacoesClick`, `BtnSalvarAnotacoes_Click`, `AulaLista_Click`.
+
+### ANTES (com erros CS1061)
+```
+TelaPlayer não contém BtnVoltar_Click
+TelaPlayer não contém VideoPlayer_MediaOpened
+TelaPlayer não contém VideoPlayer_MediaFailed
+TelaPlayer não contém AbaMateriaisClick
+TelaPlayer não contém AbaTranscricaoClick
+TelaPlayer não contém AbaAnotacoesClick
+TelaPlayer não contém BtnSalvarAnotacoes_Click
+TelaPlayer não contém AulaLista_Click
+```
+
+### DEPOIS (compilável)
+```csharp
+private void BtnVoltar_Click(object sender, MouseButtonEventArgs e)
+    => (Application.Current.MainWindow as MainWindow)?.MostrarMeusCursos(_nomeAluno);
+
+private void VideoPlayer_MediaOpened(object sender, RoutedEventArgs e)
+    => OverlaySemVideo.Visibility = Visibility.Collapsed;
+
+private void VideoPlayer_MediaFailed(object sender, ExceptionRoutedEventArgs e)
+    => MessageBox.Show("Erro ao carregar vídeo: " + e.ErrorException?.Message);
+
+private void AbaMateriaisClick(object sender, MouseButtonEventArgs e) { ... }
+private void AbaTranscricaoClick(object sender, MouseButtonEventArgs e) { ... }
+private void AbaAnotacoesClick(object sender, MouseButtonEventArgs e) { ... }
+private void BtnSalvarAnotacoes_Click(object sender, RoutedEventArgs e) { ... }
+private void AulaLista_Click(object sender, MouseButtonEventArgs e) { ... }
+
+// Timer_Tick corrigido para nullable: private void Timer_Tick(object? sender, EventArgs e)
+// _timer declarado como DispatcherTimer? (nullable)
+```
+
+---
+
+*Backup atualizado em 24/05/2026 — Learnix*
