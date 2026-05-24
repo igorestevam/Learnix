@@ -1,37 +1,47 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using Learnix.data;
+using Learnix.model;
 
 namespace Learnix
 {
     public partial class TelaPerfil : UserControl
     {
         private bool _modoEdicao = false;
+        private Aluno _aluno;
 
         public TelaPerfil()
         {
             InitializeComponent();
         }
 
-        public void DefinirAluno(string nome, string email = "")
+        public void DefinirAluno(Aluno aluno)
         {
-            TxtNomePerfil.Text  = nome;
-            TxtEditNome.Text    = nome;
-            Sidebar.DefinirAluno(nome);
+            _aluno = aluno;
+            TxtNomePerfil.Text = aluno.Nome;
+            TxtEditNome.Text = aluno.Nome;
+            TxtEditEmail.Text = aluno.Email;
+            TxtEmailPerfil.Text = aluno.Email;
+            Sidebar.DefinirAluno(aluno.Nome);
+
+            // Exibe campos exclusivos do model Aluno
+            if (TxtMatricula != null)
+                TxtMatricula.Text = aluno.MatriculaAcademica;
+
+            if (TxtEstilo != null)
+                TxtEstilo.Text = aluno.Perfil?.EstiloPredominante ?? "-";
+
+            if (TxtRitmo != null)
+                TxtRitmo.Text = aluno.Perfil?.RitmoSugerido ?? "-";
 
             // Iniciais do avatar
-            if (nome.Length > 0)
+            if (aluno.Nome.Length > 0)
             {
-                var partes = nome.Split(' ');
+                var partes = aluno.Nome.Split(' ');
                 TxtIniciais.Text = partes.Length >= 2
                     ? $"{partes[0][0]}{partes[1][0]}".ToUpper()
-                    : nome[0].ToString().ToUpper();
-            }
-
-            if (!string.IsNullOrEmpty(email))
-            {
-                TxtEmailPerfil.Text = email;
-                TxtEditEmail.Text   = email;
+                    : aluno.Nome[0].ToString().ToUpper();
             }
         }
 
@@ -39,19 +49,14 @@ namespace Learnix
         {
             _modoEdicao = true;
 
-            // Habilita os campos editáveis
             var corEdicao = new SolidColorBrush(
                 (Color)ColorConverter.ConvertFromString("#4E3A7A"));
 
-            TxtEditNome.IsReadOnly      = false;
-            TxtEditEmail.IsReadOnly     = false;
-            TxtEditTelefone.IsReadOnly  = false;
-            TxtEditNascimento.IsReadOnly = false;
+            TxtEditNome.IsReadOnly = false;
+            TxtEditEmail.IsReadOnly = false;
 
-            TxtEditNome.Background      = corEdicao;
-            TxtEditEmail.Background     = corEdicao;
-            TxtEditTelefone.Background  = corEdicao;
-            TxtEditNascimento.Background = corEdicao;
+            TxtEditNome.Background = corEdicao;
+            TxtEditEmail.Background = corEdicao;
 
             BtnEditar.Visibility = Visibility.Collapsed;
             BtnSalvar.Visibility = Visibility.Visible;
@@ -61,17 +66,30 @@ namespace Learnix
 
         private void BtnSalvar_Click(object sender, RoutedEventArgs e)
         {
-            // Validação básica
             if (string.IsNullOrWhiteSpace(TxtEditNome.Text) ||
                 string.IsNullOrWhiteSpace(TxtEditEmail.Text))
             {
-                MessageBox.Show("Nome e e-mail s&#xE3;o obrigat&#xF3;rios.",
-                    "Aten&#xE7;&#xE3;o", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Nome e e-mail são obrigatórios.",
+                    "Atenção", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
+            // Persiste as alterações no banco de dados
+            using var db = new LearnixDbContext();
+            var aluno = db.Alunos.Find(_aluno.Id);
+            if (aluno != null)
+            {
+                aluno.Nome = TxtEditNome.Text;
+                aluno.Email = TxtEditEmail.Text;
+                db.SaveChanges();
+
+                // Atualiza objeto local
+                _aluno.Nome = aluno.Nome;
+                _aluno.Email = aluno.Email;
+            }
+
             // Atualiza exibição
-            TxtNomePerfil.Text  = TxtEditNome.Text;
+            TxtNomePerfil.Text = TxtEditNome.Text;
             TxtEmailPerfil.Text = TxtEditEmail.Text;
             Sidebar.DefinirAluno(TxtEditNome.Text);
 
@@ -81,26 +99,20 @@ namespace Learnix
                 ? $"{partes[0][0]}{partes[1][0]}".ToUpper()
                 : TxtEditNome.Text[0].ToString().ToUpper();
 
-            // Volta para modo leitura
             var corLeitura = new SolidColorBrush(
                 (Color)ColorConverter.ConvertFromString("#3A2860"));
 
-            TxtEditNome.IsReadOnly      = true;
-            TxtEditEmail.IsReadOnly     = true;
-            TxtEditTelefone.IsReadOnly  = true;
-            TxtEditNascimento.IsReadOnly = true;
+            TxtEditNome.IsReadOnly = true;
+            TxtEditEmail.IsReadOnly = true;
 
-            TxtEditNome.Background      = corLeitura;
-            TxtEditEmail.Background     = corLeitura;
-            TxtEditTelefone.Background  = corLeitura;
-            TxtEditNascimento.Background = corLeitura;
+            TxtEditNome.Background = corLeitura;
+            TxtEditEmail.Background = corLeitura;
 
             BtnSalvar.Visibility = Visibility.Collapsed;
             BtnEditar.Visibility = Visibility.Visible;
 
             _modoEdicao = false;
 
-            // TODO: persistir no banco de dados
             MessageBox.Show("Perfil atualizado com sucesso!",
                 "Learnix", MessageBoxButton.OK, MessageBoxImage.Information);
         }
