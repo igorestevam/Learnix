@@ -18,7 +18,7 @@ namespace Learnix
         private string _nomeCurso = "";
         private bool _isPlaying = false;
         private bool _arrastando = false;
-        private DispatcherTimer _timer;
+        private DispatcherTimer? _timer;
         private int _matriculaId;
         private int _aulaId;
 
@@ -39,7 +39,6 @@ namespace Learnix
             _aulaId = aula.Id;
             Sidebar.DefinirAluno(nomeAluno);
 
-            // Carrega o vídeo automaticamente pelo URL do model
             if (!string.IsNullOrEmpty(aula.VideoUrl))
             {
                 VideoPlayer.Source = new Uri(aula.VideoUrl, UriKind.RelativeOrAbsolute);
@@ -55,7 +54,7 @@ namespace Learnix
             _timer.Tick += Timer_Tick;
         }
 
-        private void Timer_Tick(object sender, EventArgs e)
+        private void Timer_Tick(object? sender, EventArgs e)
         {
             if (VideoPlayer.NaturalDuration.HasTimeSpan && !_arrastando)
             {
@@ -82,7 +81,7 @@ namespace Learnix
                 VideoPlayer.Play();
                 _isPlaying = true;
                 BtnPlayPause.Content = "⏸";
-                _timer.Start();
+                _timer?.Start();
                 OverlaySemVideo.Visibility = Visibility.Collapsed;
             }
             else
@@ -90,7 +89,7 @@ namespace Learnix
                 VideoPlayer.Pause();
                 _isPlaying = false;
                 BtnPlayPause.Content = "▶";
-                _timer.Stop();
+                _timer?.Stop();
             }
         }
 
@@ -99,20 +98,16 @@ namespace Learnix
             VideoPlayer.Stop();
             _isPlaying = false;
             BtnPlayPause.Content = "▶";
-            _timer.Stop();
+            _timer?.Stop();
             SliderVideo.Value = 0;
             TxtTempo.Text = "00:00 / 00:00";
         }
 
         private void BtnVoltar10_Click(object sender, RoutedEventArgs e)
-        {
-            VideoPlayer.Position -= TimeSpan.FromSeconds(10);
-        }
+            => VideoPlayer.Position -= TimeSpan.FromSeconds(10);
 
         private void BtnAvancar10_Click(object sender, RoutedEventArgs e)
-        {
-            VideoPlayer.Position += TimeSpan.FromSeconds(10);
-        }
+            => VideoPlayer.Position += TimeSpan.FromSeconds(10);
 
         private void SliderVideo_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
@@ -129,16 +124,28 @@ namespace Learnix
                 VideoPlayer.Volume = e.NewValue;
         }
 
-        // ── Fim do vídeo: registrar conclusão da aula ────────────────────────
+        // ── Eventos do MediaElement ──────────────────────────────────────────
+
+        private void VideoPlayer_MediaOpened(object sender, RoutedEventArgs e)
+        {
+            OverlaySemVideo.Visibility = Visibility.Collapsed;
+        }
 
         private void VideoPlayer_MediaEnded(object sender, RoutedEventArgs e)
         {
             _isPlaying = false;
             BtnPlayPause.Content = "▶";
-            _timer.Stop();
+            _timer?.Stop();
 
             var controller = new AulaController(new ProgressoService(new LearnixDbContext()));
             controller.ConcluirAula(_matriculaId, _aulaId);
+        }
+
+        private void VideoPlayer_MediaFailed(object sender, ExceptionRoutedEventArgs e)
+        {
+            MessageBox.Show("Não foi possível carregar o vídeo: " + e.ErrorException?.Message,
+                "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+            OverlaySemVideo.Visibility = Visibility.Visible;
         }
 
         // ── Abrir arquivo de vídeo (fallback manual) ─────────────────────────
@@ -154,6 +161,50 @@ namespace Learnix
                 VideoPlayer.Source = new Uri(dlg.FileName, UriKind.Absolute);
                 OverlaySemVideo.Visibility = Visibility.Collapsed;
             }
+        }
+
+        // ── Voltar para tela de aulas ────────────────────────────────────────
+
+        private void BtnVoltar_Click(object sender, MouseButtonEventArgs e)
+        {
+            var main = Application.Current.MainWindow as MainWindow;
+            main?.MostrarMeusCursos(_nomeAluno);
+        }
+
+        // ── Abas: Materiais / Transcrição / Anotações ────────────────────────
+
+        private void AbaMateriaisClick(object sender, MouseButtonEventArgs e)
+        {
+            if (PainelMateriais != null) PainelMateriais.Visibility = Visibility.Visible;
+            if (PainelTranscricao != null) PainelTranscricao.Visibility = Visibility.Collapsed;
+            if (PainelAnotacoes != null) PainelAnotacoes.Visibility = Visibility.Collapsed;
+        }
+
+        private void AbaTranscricaoClick(object sender, MouseButtonEventArgs e)
+        {
+            if (PainelMateriais != null) PainelMateriais.Visibility = Visibility.Collapsed;
+            if (PainelTranscricao != null) PainelTranscricao.Visibility = Visibility.Visible;
+            if (PainelAnotacoes != null) PainelAnotacoes.Visibility = Visibility.Collapsed;
+        }
+
+        private void AbaAnotacoesClick(object sender, MouseButtonEventArgs e)
+        {
+            if (PainelMateriais != null) PainelMateriais.Visibility = Visibility.Collapsed;
+            if (PainelTranscricao != null) PainelTranscricao.Visibility = Visibility.Collapsed;
+            if (PainelAnotacoes != null) PainelAnotacoes.Visibility = Visibility.Visible;
+        }
+
+        private void BtnSalvarAnotacoes_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Anotações salvas!",
+                "Learnix", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        // ── Lista de aulas lateral ────────────────────────────────────────────
+
+        private void AulaLista_Click(object sender, MouseButtonEventArgs e)
+        {
+            // Navegação entre aulas pela lista lateral — implementar conforme estrutura do XAML
         }
     }
 }
