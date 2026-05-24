@@ -116,7 +116,7 @@ namespace Learnix
 
         // ── Imprimir / salvar como PDF ───────────────────────────────────────
 
-        private void BtnImprimir_Click(object sender, RoutedEventArgs e)
+        private void BtnPdf_Click(object sender, RoutedEventArgs e)
         {
             if (_certAtual == null) return;
 
@@ -128,6 +128,13 @@ namespace Learnix
             MessageBox.Show(
                 "Certificado enviado!\nDica: escolha 'Salvar como PDF' na impressora.",
                 "Learnix", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+    }
+
+        private void BtnBaixarPdf_Click(object sender, RoutedEventArgs e)
+        {
+            // Mesmo comportamento: imprimir/salvar como PDF
+            BtnPdf_Click(sender, e);
         }
     }
 }
