@@ -1,4 +1,4 @@
-﻿using Learnix.data;
+using Learnix.data;
 using Learnix.model;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
@@ -18,11 +18,12 @@ namespace Learnix.Repositorio
 
         public List<Curso> BuscarCursosPorNome(string termoPesquisa)
         {
-            string query = "SELECT * FROM Cursos WHERE Titulo LIKE {0}";
-
-            // Tipagem explícita na lista
+            // Substituído SQL raw por LINQ para respeitar o mapeamento TPH
+            // (EF adiciona automaticamente o filtro de Discriminator)
             List<Curso> cursos = _context.Cursos
-                .FromSqlRaw(query, $"%{termoPesquisa}%")
+                .Where(c => c.Titulo.Contains(termoPesquisa))
+                .Include(c => c.Categoria)
+                .Include(c => c.Instrutor)
                 .ToList();
 
             return cursos;
