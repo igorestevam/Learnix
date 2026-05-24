@@ -8,7 +8,7 @@ namespace Learnix
     public partial class TelaAulas : UserControl
     {
         private string _nomeAluno = "Aluno";
-        private Matricula _matricula;
+        private Matricula? _matricula;
 
         public TelaAulas()
         {
@@ -26,96 +26,42 @@ namespace Learnix
             TxtDescricao.Text = matricula.Curso?.Descricao;
             TxtProgresso.Text = matricula.Progresso?.PercentualConcluido + "%";
             Sidebar.DefinirAluno(nomeAluno);
-            CarregarModulos(matricula.Curso?.Modulos);
+            // Os módulos e aulas são exibidos via cards estáticos no XAML.
+            // Para tornar dinâmico no futuro, adicione um ItemsControl x:Name="PainelModulos" no XAML.
         }
 
-        private void CarregarModulos(System.Collections.Generic.List<Modulo> modulos)
+        // ── Handlers dos cards de aula estáticos do XAML ─────────────────────
+
+        private void AulaCard_Click(object sender, MouseButtonEventArgs e)
         {
-            PainelModulos.Children.Clear();
-            if (modulos == null) return;
-
-            foreach (var modulo in modulos)
+            // Card clicado: navega para o player com a matrícula atual
+            if (_matricula != null)
             {
-                // Cabeçalho do módulo
-                var header = new TextBlock
-                {
-                    Text = $"Módulo {modulo.Ordem}: {modulo.Titulo}",
-                    FontSize = 15,
-                    FontWeight = System.Windows.FontWeights.Bold,
-                    Foreground = System.Windows.Media.Brushes.White,
-                    Margin = new Thickness(0, 12, 0, 4)
-                };
-                PainelModulos.Children.Add(header);
-
-                foreach (var aula in modulo.Aulas)
-                {
-                    var card = CriarCardAula(aula);
-                    PainelModulos.Children.Add(card);
-                }
+                var player = new TelaPlayer();
+                // Usa a primeira aula disponível na matrícula como fallback
+                var aula = _matricula.Curso?.Modulos?.SelectMany(m => m.Aulas).FirstOrDefault();
+                if (aula != null)
+                    player.DefinirAula(aula, _matricula, _nomeAluno);
+                (Application.Current.MainWindow as MainWindow)?.MostrarTela(player, _nomeAluno);
             }
         }
 
-        private UIElement CriarCardAula(Aula aula)
+        private void BtnAssistir_Click(object sender, RoutedEventArgs e)
         {
-            var border = new Border
+            if (_matricula != null)
             {
-                Margin = new Thickness(0, 4, 0, 4),
-                Tag = aula,
-                Opacity = 1.0
-            };
-
-            var grid = new Grid();
-            var sp = new StackPanel { Margin = new Thickness(12) };
-
-            var titulo = new TextBlock
-            {
-                Text = $"{aula.Ordem}. {aula.Titulo}",
-                FontSize = 14,
-                FontWeight = System.Windows.FontWeights.Bold,
-                Foreground = System.Windows.Media.Brushes.White
-            };
-            var duracao = new TextBlock
-            {
-                Text = $"Duração: {aula.Duracao}",
-                FontSize = 12,
-                Foreground = System.Windows.Media.Brushes.LightGray
-            };
-            var btnAssistir = new Button { Content = "Assistir", Tag = aula, Margin = new Thickness(0, 6, 0, 0) };
-            btnAssistir.Click += BtnAssistir_Click;
-
-            sp.Children.Add(titulo);
-            sp.Children.Add(duracao);
-            sp.Children.Add(btnAssistir);
-            grid.Children.Add(sp);
-            border.Child = grid;
-
-            // Clique no card também abre o player
-            border.MouseLeftButtonUp += (s, e) =>
-            {
-                if (s is Border b && b.Tag is Aula a)
-                    AbrirPlayer(a);
-            };
-
-            return border;
+                var player = new TelaPlayer();
+                var aula = _matricula.Curso?.Modulos?.SelectMany(m => m.Aulas).FirstOrDefault();
+                if (aula != null)
+                    player.DefinirAula(aula, _matricula, _nomeAluno);
+                (Application.Current.MainWindow as MainWindow)?.MostrarTela(player, _nomeAluno);
+            }
         }
 
         private void BtnVoltar_Click(object sender, MouseButtonEventArgs e)
         {
             var main = Application.Current.MainWindow as MainWindow;
             main?.MostrarMeusCursos(_nomeAluno);
-        }
-
-        private void BtnAssistir_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is Button btn && btn.Tag is Aula aula)
-                AbrirPlayer(aula);
-        }
-
-        private void AbrirPlayer(Aula aula)
-        {
-            var player = new TelaPlayer();
-            player.DefinirAula(aula, _matricula, _nomeAluno);
-            (Application.Current.MainWindow as MainWindow)?.MostrarTela(player, _nomeAluno);
         }
     }
 }
