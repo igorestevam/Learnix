@@ -2,9 +2,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using Learnix.Controllers;
-using Learnix.data;
-using Learnix.Repositorio;
 
 namespace Learnix
 {
@@ -16,16 +13,6 @@ namespace Learnix
         public TelaMenu()
         {
             InitializeComponent();
-            CarregarCursos();
-        }
-
-        // ── Carregar cursos via CursoController ───────────────────────────────
-
-        public void CarregarCursos(string termoBusca = "")
-        {
-            var controller = new CursoController(new CursoRepository(new LearnixDbContext()));
-            var cursos = controller.BuscarCursos(termoBusca);
-            ListaCursos.ItemsSource = cursos;
         }
 
         // ── Busca ────────────────────────────────────────────────────────────
@@ -52,7 +39,7 @@ namespace Learnix
         private void TxtBusca_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (TxtBusca.Text == PlaceholderBusca) return;
-            CarregarCursos(TxtBusca.Text.Trim());
+            AplicarFiltros();
         }
 
         // ── Filtros de categoria ─────────────────────────────────────────────
@@ -89,24 +76,56 @@ namespace Learnix
                 case "Tecnologia": BtnTecnologia.Background = corAtiva; break;
             }
 
-            // Recarrega com filtro de categoria aplicado via LINQ no DataTemplate
-            // (o binding do ItemsSource já traz todos; CollectionView filtra localmente)
-            AplicarFiltroCategoria();
+            AplicarFiltros();
         }
 
-        private void AplicarFiltroCategoria()
+        private void AplicarFiltros()
         {
-            if (ListaCursos.ItemsSource is System.Collections.Generic.List<Learnix.model.Curso> cursos)
+            string busca = TxtBusca.Text == PlaceholderBusca
+                ? "" : TxtBusca.Text.ToLower().Trim();
+
+            foreach (var card in new[] { CardCurso1, CardCurso2, CardCurso3, CardCurso4, CardCurso5 })
             {
-                var view = System.Windows.Data.CollectionViewSource.GetDefaultView(cursos);
-                view.Filter = item =>
+                string categoria = card.Tag?.ToString() ?? "";
+                bool passaCategoria = _categoriaAtiva == "Todos" || categoria == _categoriaAtiva;
+
+                bool passaBusca = true;
+                if (!string.IsNullOrEmpty(busca))
                 {
-                    if (_categoriaAtiva == "Todos") return true;
-                    if (item is Learnix.model.Curso curso)
-                        return curso.Categoria?.Nome == _categoriaAtiva;
-                    return false;
-                };
-                view.Refresh();
+                    var titulo = EncontrarTitulo(card);
+                    passaBusca = titulo != null && titulo.ToLower().Contains(busca);
+                }
+
+                card.Visibility = (passaCategoria && passaBusca)
+                    ? Visibility.Visible
+                    : Visibility.Collapsed;
+            }
+        }
+
+        private string? EncontrarTitulo(Border card)
+        {
+            if (card.Child is Grid grid &&
+                grid.Children.Count > 0 &&
+                grid.Children[0] is StackPanel sp)
+            {
+                foreach (var child in sp.Children)
+                {
+                    if (child is TextBlock tb &&
+                        tb.FontWeight == FontWeights.Bold &&
+                        tb.FontSize == 15)
+                        return tb.Text;
+                }
+            }
+            return null;
+        }
+
+        private void BtnMatricular_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn)
+            {
+                string nomeCurso = btn.Tag?.ToString() ?? "Curso";
+                MessageBox.Show($"Matrícula solicitada para: {nomeCurso}",
+                    "Learnix", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
     }
