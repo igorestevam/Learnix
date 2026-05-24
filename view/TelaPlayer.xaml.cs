@@ -175,23 +175,23 @@ namespace Learnix
 
         private void AbaMateriaisClick(object sender, MouseButtonEventArgs e)
         {
-            if (PainelMateriais != null) PainelMateriais.Visibility = Visibility.Visible;
-            if (PainelTranscricao != null) PainelTranscricao.Visibility = Visibility.Collapsed;
-            if (PainelAnotacoes != null) PainelAnotacoes.Visibility = Visibility.Collapsed;
+            if (AbaMateriais != null) AbaMateriais.Visibility = Visibility.Visible;
+            if (AbaTranscricao != null) AbaTranscricao.Visibility = Visibility.Collapsed;
+            if (AbaAnotacoes != null) AbaAnotacoes.Visibility = Visibility.Collapsed;
         }
 
         private void AbaTranscricaoClick(object sender, MouseButtonEventArgs e)
         {
-            if (PainelMateriais != null) PainelMateriais.Visibility = Visibility.Collapsed;
-            if (PainelTranscricao != null) PainelTranscricao.Visibility = Visibility.Visible;
-            if (PainelAnotacoes != null) PainelAnotacoes.Visibility = Visibility.Collapsed;
+            if (AbaMateriais != null) AbaMateriais.Visibility = Visibility.Collapsed;
+            if (AbaTranscricao != null) AbaTranscricao.Visibility = Visibility.Visible;
+            if (AbaAnotacoes != null) AbaAnotacoes.Visibility = Visibility.Collapsed;
         }
 
         private void AbaAnotacoesClick(object sender, MouseButtonEventArgs e)
         {
-            if (PainelMateriais != null) PainelMateriais.Visibility = Visibility.Collapsed;
-            if (PainelTranscricao != null) PainelTranscricao.Visibility = Visibility.Collapsed;
-            if (PainelAnotacoes != null) PainelAnotacoes.Visibility = Visibility.Visible;
+            if (AbaMateriais != null) AbaMateriais.Visibility = Visibility.Collapsed;
+            if (AbaTranscricao != null) AbaTranscricao.Visibility = Visibility.Collapsed;
+            if (AbaAnotacoes != null) AbaAnotacoes.Visibility = Visibility.Visible;
         }
 
         private void BtnSalvarAnotacoes_Click(object sender, RoutedEventArgs e)
