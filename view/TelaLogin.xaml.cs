@@ -1,6 +1,9 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Learnix.data;
+using Learnix.model;
+using Learnix.Services;
 
 namespace Learnix
 {
@@ -9,8 +12,8 @@ namespace Learnix
         public event RoutedEventHandler? SolicitarCadastro;
         public event RoutedEventHandler? SolicitarRecuperacaoSenha;
 
-        // Novo: passa o nome do aluno após login bem-sucedido
-        public delegate void HomeHandler(object sender, RoutedEventArgs e, string nomeAluno);
+        // Passa o objeto Usuario autenticado após login bem-sucedido
+        public delegate void HomeHandler(object sender, RoutedEventArgs e, Usuario usuario);
         public event HomeHandler? SolicitarHome;
 
         public TelaLogin()
@@ -20,20 +23,24 @@ namespace Learnix
 
         private void BtnEntrar_Click(object sender, RoutedEventArgs e)
         {
-            string usuario = txtUsuario.Text.Trim();
+            string codigoAcesso = txtUsuario.Text.Trim();
             string senha = txtSenha.Password;
 
-            if (string.IsNullOrEmpty(usuario) || string.IsNullOrEmpty(senha))
+            if (string.IsNullOrEmpty(codigoAcesso) || string.IsNullOrEmpty(senha))
             {
                 MessageBox.Show("Por favor, preencha todos os campos.",
                     "Atenção", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            // TODO: substituir pela validação real no banco de dados
-            if (usuario == "admin" && senha == "1234")
+            var dbContext = new LearnixDbContext();
+            var authService = new AuthService(dbContext);
+            var controller = new LoginController(authService);
+
+            Usuario usuarioAutenticado = authService.RealizarLogin(codigoAcesso, senha);
+            if (usuarioAutenticado != null)
             {
-                SolicitarHome?.Invoke(this, new RoutedEventArgs(), usuario);
+                SolicitarHome?.Invoke(this, new RoutedEventArgs(), usuarioAutenticado);
             }
             else
             {
