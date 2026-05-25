@@ -10,23 +10,48 @@ namespace Learnix.Repositorio
     {
         private readonly LearnixDbContext _context;
 
-        // Injeção de dependência do contexto do banco
         public CursoRepository(LearnixDbContext context)
         {
             _context = context;
         }
 
+        public List<Curso> BuscarTodos()
+        {
+            return _context.Cursos
+                .Include(c => c.Categoria)
+                .Include(c => c.Instrutor)
+                .Include(c => c.Modulos)
+                    .ThenInclude(m => m.Aulas)
+                .ToList();
+        }
+
+        public Curso? BuscarPorId(int id)
+        {
+            return _context.Cursos
+                .Include(c => c.Categoria)
+                .Include(c => c.Instrutor)
+                .Include(c => c.Modulos)
+                    .ThenInclude(m => m.Aulas)
+                .FirstOrDefault(c => c.Id == id);
+        }
+
         public List<Curso> BuscarCursosPorNome(string termoPesquisa)
         {
-            // Substituído SQL raw por LINQ para respeitar o mapeamento TPH
-            // (EF adiciona automaticamente o filtro de Discriminator)
-            List<Curso> cursos = _context.Cursos
+            // LINQ substitui SQL raw para respeitar o mapeamento TPH do EF
+            return _context.Cursos
                 .Where(c => c.Titulo.Contains(termoPesquisa))
                 .Include(c => c.Categoria)
                 .Include(c => c.Instrutor)
                 .ToList();
+        }
 
-            return cursos;
+        public List<Curso> BuscarPorCategoria(string nomeCategoria)
+        {
+            return _context.Cursos
+                .Include(c => c.Categoria)
+                .Include(c => c.Instrutor)
+                .Where(c => c.Categoria != null && c.Categoria.Nome == nomeCategoria)
+                .ToList();
         }
     }
 }
