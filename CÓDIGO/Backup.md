@@ -1542,3 +1542,212 @@ using Learnix.model;
 using Learnix.Controllers;
 using Learnix.Services;
 ```
+
+
+---
+
+## 21. repository/IAlunoRepository.cs *(NOVO)*
+
+**Commit:** `feat: IAlunoRepository - interface de persistencia do Aluno` (`dda9fa0`)
+
+**Motivo:** Arquivo inexistente. Necessário para AuthService (login por matrícula), TelaPerfil (salvar dados), MatriculaService (buscar aluno).
+
+**ANTES:** *Arquivo não existia*
+
+**DEPOIS:**
+```csharp
+public interface IAlunoRepository
+{
+    Aluno? BuscarPorMatricula(string matriculaAcademica);
+    Aluno? BuscarPorEmail(string email);
+    Aluno? BuscarPorId(int id);
+    void Adicionar(Aluno aluno);
+    void Atualizar(Aluno aluno);
+}
+```
+
+---
+
+## 22. repository/AlunoRepository.cs *(NOVO)*
+
+**Commit:** `feat: AlunoRepository - implementacao de persistencia do Aluno com EF` (`c45d329`)
+
+**Motivo:** Arquivo inexistente. Implementação concreta com Entity Framework, carregando HistoricoMatriculas, Perfil, Curso, Progresso, Certificado e Avaliacoes via Include/ThenInclude.
+
+**ANTES:** *Arquivo não existia*
+
+**DEPOIS:**
+```csharp
+public class AlunoRepository : IAlunoRepository
+{
+    // BuscarPorMatricula com todos os Includes necessários
+    // BuscarPorEmail, BuscarPorId, Adicionar, Atualizar
+}
+```
+
+---
+
+## 23. repository/IProgressoRepository.cs *(NOVO)*
+
+**Commit:** `feat: IProgressoRepository - interface de persistencia do Progresso`
+
+**Motivo:** Arquivo inexistente. Necessário para ProgressoService (registrar conclusão de aula e calcular percentual).
+
+**ANTES:** *Arquivo não existia*
+
+**DEPOIS:**
+```csharp
+public interface IProgressoRepository
+{
+    Progresso? BuscarPorMatricula(int matriculaId);
+    void Adicionar(Progresso progresso);
+    void Atualizar(Progresso progresso);
+}
+```
+
+---
+
+## 24. repository/ProgressoRepository.cs *(NOVO)*
+
+**Commit:** `feat: ProgressoRepository - implementacao de persistencia do Progresso`
+
+**Motivo:** Arquivo inexistente. Implementação concreta com EF.
+
+**ANTES:** *Arquivo não existia*
+
+**DEPOIS:**
+```csharp
+public class ProgressoRepository : IProgressoRepository
+{
+    // BuscarPorMatricula com Include de Matricula
+    // Adicionar, Atualizar
+}
+```
+
+---
+
+## 25. repository/ICertificadoRepository.cs *(NOVO)*
+
+**Commit:** `feat: ICertificadoRepository - interface de persistencia do Certificado`
+
+**Motivo:** Arquivo inexistente. Necessário para ProgressoService (emitir certificado) e TelaCertificados (listar).
+
+**ANTES:** *Arquivo não existia*
+
+**DEPOIS:**
+```csharp
+public interface ICertificadoRepository
+{
+    void Adicionar(Certificado certificado);
+    List<Certificado> BuscarPorAluno(int alunoId);
+    Certificado? BuscarPorCodigo(string codigoCertificado);
+    bool ExisteCertificado(int matriculaId);
+}
+```
+
+---
+
+## 26. repository/CertificadoRepository.cs *(NOVO)*
+
+**Commit:** `feat: CertificadoRepository - implementacao de persistencia do Certificado`
+
+**Motivo:** Arquivo inexistente. Implementação concreta com EF, incluindo dados de Aluno, Curso e Instrutor.
+
+**ANTES:** *Arquivo não existia*
+
+**DEPOIS:**
+```csharp
+public class CertificadoRepository : ICertificadoRepository
+{
+    // Adicionar, BuscarPorAluno, BuscarPorCodigo, ExisteCertificado
+}
+```
+
+---
+
+## 27. repository/IAvaliacaoRepository.cs *(NOVO)*
+
+**Commit:** `feat: IAvaliacaoRepository - interface de persistencia da Avaliacao`
+
+**Motivo:** Arquivo inexistente. Necessário para TelaNotas (listar AV1/AV2/AV3).
+
+**ANTES:** *Arquivo não existia*
+
+**DEPOIS:**
+```csharp
+public interface IAvaliacaoRepository
+{
+    void Adicionar(Avaliacao avaliacao);
+    void Atualizar(Avaliacao avaliacao);
+    List<Avaliacao> BuscarPorMatricula(int matriculaId);
+}
+```
+
+---
+
+## 28. repository/AvaliacaoRepository.cs *(NOVO)*
+
+**Commit:** `feat: AvaliacaoRepository - implementacao de persistencia da Avaliacao`
+
+**Motivo:** Arquivo inexistente. Implementação concreta com EF.
+
+**ANTES:** *Arquivo não existia*
+
+**DEPOIS:**
+```csharp
+public class AvaliacaoRepository : IAvaliacaoRepository
+{
+    // Adicionar, Atualizar, BuscarPorMatricula
+}
+```
+
+---
+
+## 29. repository/ICursoRepository.cs *(ALTERADO)*
+
+**Commit:** `feat: ICursoRepository - adicionar BuscarTodos, BuscarPorId, BuscarPorCategoria`
+
+**Motivo:** Interface incompleta — só tinha BuscarCursosPorNome. TelaMenu precisa de BuscarTodos e BuscarPorCategoria.
+
+**ANTES:**
+```csharp
+public interface ICursoRepository
+{
+    List<Curso> BuscarCursosPorNome(string termoPesquisa);
+}
+```
+
+**DEPOIS:**
+```csharp
+public interface ICursoRepository
+{
+    List<Curso> BuscarTodos();
+    Curso? BuscarPorId(int id);
+    List<Curso> BuscarCursosPorNome(string termoPesquisa);
+    List<Curso> BuscarPorCategoria(string nomeCategoria);
+}
+```
+
+---
+
+## 30. repository/CursoRepository.cs *(ALTERADO)*
+
+**Commit:** `feat: CursoRepository - adicionar BuscarTodos, BuscarPorId, BuscarPorCategoria` (`75a0d14`)
+
+**Motivo:** Implementação incompleta — só tinha BuscarCursosPorNome. Adicionados os novos métodos com Includes completos.
+
+**ANTES:**
+```csharp
+public class CursoRepository : ICursoRepository
+{
+    // só BuscarCursosPorNome
+}
+```
+
+**DEPOIS:**
+```csharp
+public class CursoRepository : ICursoRepository
+{
+    // BuscarTodos, BuscarPorId, BuscarCursosPorNome, BuscarPorCategoria
+}
+```
