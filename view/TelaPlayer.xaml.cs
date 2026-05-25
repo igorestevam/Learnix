@@ -1,21 +1,22 @@
-using Microsoft.Win32;
 using System;
+using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Threading;
-using Learnix.Controllers;
+using Microsoft.EntityFrameworkCore;
 using Learnix.data;
 using Learnix.model;
 using Learnix.Services;
+using Microsoft.Win32;
 
 namespace Learnix
 {
     public partial class TelaPlayer : UserControl
     {
-        private string _nomeAluno = "Aluno";
-        private string _nomeCurso = "";
+        private string _nomeAluno = string.Empty;
+        private string _nomeCurso = string.Empty;
         private bool _isPlaying = false;
         private bool _arrastando = false;
         private DispatcherTimer? _timer;
@@ -26,185 +27,208 @@ namespace Learnix
         {
             InitializeComponent();
             InicializarTimer();
-            VideoPlayer.Volume = SliderVolume.Value;
+            VolumePadrao();
         }
 
-        public void DefinirAula(Aula aula, Matricula matricula, string nomeAluno)
+        private void VolumePadrao()
         {
-            TxtTituloAula.Text = aula.Titulo;
-            TxtNomeCurso.Text = matricula.Curso?.Titulo ?? "";
-            _nomeCurso = matricula.Curso?.Titulo ?? "";
-            _nomeAluno = nomeAluno;
+            if (VideoPlayer != null) VideoPlayer.Volume = 0.7;
+        }
+
+        public void DefinirAula(Matricula matricula, Aula aula)
+        {
             _matriculaId = matricula.Id;
             _aulaId = aula.Id;
-            Sidebar.DefinirAluno(nomeAluno);
-
-            if (!string.IsNullOrEmpty(aula.VideoUrl))
+            _nomeCurso = matricula.Curso?.Titulo ?? string.Empty;
+            if (matricula.Aluno != null)
             {
-                VideoPlayer.Source = new Uri(aula.VideoUrl, UriKind.RelativeOrAbsolute);
-                OverlaySemVideo.Visibility = Visibility.Collapsed;
+                _nomeAluno = matricula.Aluno.Nome;
+                Sidebar?.DefinirAluno(matricula.Aluno.Nome);
+            }
+            TxtTituloAula.Text = aula.Titulo ?? "Aula";
+            TxtNomeCurso.Text = _nomeCurso;
+
+            if (!string.IsNullOrWhiteSpace(aula.VideoUrl))
+            {
+                try
+                {
+                    VideoPlayer.Source = new Uri(aula.VideoUrl, UriKind.RelativeOrAbsolute);
+                    OverlaySemVideo.Visibility = Visibility.Collapsed;
+                }
+                catch
+                {
+                    OverlaySemVideo.Visibility = Visibility.Visible;
+                }
+            }
+            else
+            {
+                OverlaySemVideo.Visibility = Visibility.Visible;
             }
         }
 
-        // ── Timer para atualizar barra de progresso ──────────────────────────
-
         private void InicializarTimer()
         {
-            _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
+            _timer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(1)
+            };
             _timer.Tick += Timer_Tick;
+            _timer.Start();
         }
 
         private void Timer_Tick(object? sender, EventArgs e)
         {
-            if (VideoPlayer.NaturalDuration.HasTimeSpan && !_arrastando)
+            if (VideoPlayer == null || _arrastando) return;
+            if (VideoPlayer.NaturalDuration.HasTimeSpan)
             {
-                var total = VideoPlayer.NaturalDuration.TimeSpan.TotalSeconds;
-                var atual = VideoPlayer.Position.TotalSeconds;
-                SliderVideo.Value = total > 0 ? (atual / total) * 100 : 0;
-
-                TxtTempo.Text = $"{Formatar(VideoPlayer.Position)} / " +
-                    $"{Formatar(VideoPlayer.NaturalDuration.TimeSpan)}";
+                SliderVideo.Maximum = VideoPlayer.NaturalDuration.TimeSpan.TotalSeconds;
+                SliderVideo.Value = VideoPlayer.Position.TotalSeconds;
+                TxtTempo.Text = Formatar(VideoPlayer.Position) + " / " + Formatar(VideoPlayer.NaturalDuration.TimeSpan);
             }
         }
 
         private string Formatar(TimeSpan t)
-            => t.TotalHours >= 1
-                ? $"{(int)t.TotalHours:D2}:{t.Minutes:D2}:{t.Seconds:D2}"
-                : $"{t.Minutes:D2}:{t.Seconds:D2}";
-
-        // ── Controles do player ──────────────────────────────────────────────
+        {
+            return (t.TotalHours >= 1)
+                ? string.Format("{0:D2}:{1:D2}:{2:D2}", (int)t.TotalHours, t.Minutes, t.Seconds)
+                : string.Format("{0:D2}:{1:D2}", t.Minutes, t.Seconds);
+        }
 
         private void BtnPlayPause_Click(object sender, RoutedEventArgs e)
         {
-            if (!_isPlaying)
+            if (VideoPlayer == null) return;
+            if (_isPlaying)
             {
-                VideoPlayer.Play();
-                _isPlaying = true;
-                BtnPlayPause.Content = "⏸";
-                _timer?.Start();
-                OverlaySemVideo.Visibility = Visibility.Collapsed;
+                VideoPlayer.Pause();
+                BtnPlayPause.Content = "Play";
             }
             else
             {
-                VideoPlayer.Pause();
-                _isPlaying = false;
-                BtnPlayPause.Content = "▶";
-                _timer?.Stop();
+                VideoPlayer.Play();
+                BtnPlayPause.Content = "Pause";
             }
+            _isPlaying = !_isPlaying;
         }
 
         private void BtnStop_Click(object sender, RoutedEventArgs e)
         {
-            VideoPlayer.Stop();
+            VideoPlayer?.Stop();
             _isPlaying = false;
-            BtnPlayPause.Content = "▶";
-            _timer?.Stop();
-            SliderVideo.Value = 0;
-            TxtTempo.Text = "00:00 / 00:00";
+            BtnPlayPause.Content = "Play";
         }
 
         private void BtnVoltar10_Click(object sender, RoutedEventArgs e)
-            => VideoPlayer.Position -= TimeSpan.FromSeconds(10);
+        {
+            if (VideoPlayer == null) return;
+            VideoPlayer.Position = TimeSpan.FromSeconds(Math.Max(0, VideoPlayer.Position.TotalSeconds - 10));
+        }
 
         private void BtnAvancar10_Click(object sender, RoutedEventArgs e)
-            => VideoPlayer.Position += TimeSpan.FromSeconds(10);
+        {
+            if (VideoPlayer == null) return;
+            VideoPlayer.Position = TimeSpan.FromSeconds(VideoPlayer.Position.TotalSeconds + 10);
+        }
 
         private void SliderVideo_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            if (_arrastando && VideoPlayer.NaturalDuration.HasTimeSpan)
+            if (VideoPlayer != null && _arrastando)
             {
-                var total = VideoPlayer.NaturalDuration.TimeSpan.TotalSeconds;
-                VideoPlayer.Position = TimeSpan.FromSeconds((e.NewValue / 100) * total);
+                VideoPlayer.Position = TimeSpan.FromSeconds(e.NewValue);
             }
         }
 
         private void SliderVolume_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            if (VideoPlayer != null)
-                VideoPlayer.Volume = e.NewValue;
+            if (VideoPlayer != null) VideoPlayer.Volume = e.NewValue;
         }
-
-        // ── Eventos do MediaElement ──────────────────────────────────────────
 
         private void VideoPlayer_MediaOpened(object sender, RoutedEventArgs e)
         {
+            if (VideoPlayer.NaturalDuration.HasTimeSpan)
+            {
+                SliderVideo.Maximum = VideoPlayer.NaturalDuration.TimeSpan.TotalSeconds;
+            }
             OverlaySemVideo.Visibility = Visibility.Collapsed;
         }
 
         private void VideoPlayer_MediaEnded(object sender, RoutedEventArgs e)
         {
             _isPlaying = false;
-            BtnPlayPause.Content = "▶";
-            _timer?.Stop();
+            BtnPlayPause.Content = "Play";
 
-            var controller = new AulaController(new ProgressoService(new LearnixDbContext()));
-            controller.ConcluirAula(_matriculaId, _aulaId);
+            // Marca aula como concluida
+            try
+            {
+                using var ctx = new LearnixDbContext();
+                var progSvc = new ProgressoService(ctx);
+                progSvc.RegistrarConclusaoAula(_matriculaId, _aulaId);
+            }
+            catch { /* silencioso */ }
         }
 
         private void VideoPlayer_MediaFailed(object sender, ExceptionRoutedEventArgs e)
         {
-            MessageBox.Show("Não foi possível carregar o vídeo: " + e.ErrorException?.Message,
-                "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
             OverlaySemVideo.Visibility = Visibility.Visible;
         }
-
-        // ── Abrir arquivo de vídeo (fallback manual) ─────────────────────────
 
         private void BtnAbrirVideo_Click(object sender, RoutedEventArgs e)
         {
             var dlg = new OpenFileDialog
             {
-                Filter = "Vídeos|*.mp4;*.avi;*.mkv;*.wmv;*.mov|Todos os arquivos|*.*"
+                Filter = "Videos (*.mp4;*.wmv;*.avi)|*.mp4;*.wmv;*.avi|Todos os arquivos (*.*)|*.*"
             };
             if (dlg.ShowDialog() == true)
             {
-                VideoPlayer.Source = new Uri(dlg.FileName, UriKind.Absolute);
-                OverlaySemVideo.Visibility = Visibility.Collapsed;
+                try
+                {
+                    VideoPlayer.Source = new Uri(dlg.FileName, UriKind.Absolute);
+                    OverlaySemVideo.Visibility = Visibility.Collapsed;
+                    VideoPlayer.Play();
+                    _isPlaying = true;
+                    BtnPlayPause.Content = "Pause";
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Falha ao abrir video: {ex.Message}", "Erro", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
             }
         }
-
-        // ── Voltar para tela de aulas ────────────────────────────────────────
 
         private void BtnVoltar_Click(object sender, MouseButtonEventArgs e)
         {
             var main = Application.Current.MainWindow as MainWindow;
-            main?.MostrarMeusCursos(_nomeAluno);
+            main?.MostrarMeusCursos();
         }
-
-        // ── Abas: Materiais / Transcrição / Anotações ────────────────────────
 
         private void AbaMateriaisClick(object sender, MouseButtonEventArgs e)
         {
-            if (AbaMateriais != null) AbaMateriais.Visibility = Visibility.Visible;
-            if (AbaTranscricao != null) AbaTranscricao.Visibility = Visibility.Collapsed;
-            if (AbaAnotacoes != null) AbaAnotacoes.Visibility = Visibility.Collapsed;
+            AbaMateriais.Visibility = Visibility.Visible;
+            AbaTranscricao.Visibility = Visibility.Collapsed;
+            AbaAnotacoes.Visibility = Visibility.Collapsed;
         }
 
         private void AbaTranscricaoClick(object sender, MouseButtonEventArgs e)
         {
-            if (AbaMateriais != null) AbaMateriais.Visibility = Visibility.Collapsed;
-            if (AbaTranscricao != null) AbaTranscricao.Visibility = Visibility.Visible;
-            if (AbaAnotacoes != null) AbaAnotacoes.Visibility = Visibility.Collapsed;
+            AbaMateriais.Visibility = Visibility.Collapsed;
+            AbaTranscricao.Visibility = Visibility.Visible;
+            AbaAnotacoes.Visibility = Visibility.Collapsed;
         }
 
         private void AbaAnotacoesClick(object sender, MouseButtonEventArgs e)
         {
-            if (AbaMateriais != null) AbaMateriais.Visibility = Visibility.Collapsed;
-            if (AbaTranscricao != null) AbaTranscricao.Visibility = Visibility.Collapsed;
-            if (AbaAnotacoes != null) AbaAnotacoes.Visibility = Visibility.Visible;
+            AbaMateriais.Visibility = Visibility.Collapsed;
+            AbaTranscricao.Visibility = Visibility.Collapsed;
+            AbaAnotacoes.Visibility = Visibility.Visible;
         }
 
         private void BtnSalvarAnotacoes_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Anotações salvas!",
-                "Learnix", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show("Anotacoes salvas!", "Sucesso", MessageBoxButton.OK, MessageBoxImage.Information);
         }
-
-        // ── Lista de aulas lateral ────────────────────────────────────────────
 
         private void AulaLista_Click(object sender, MouseButtonEventArgs e)
         {
-            // Navegação entre aulas pela lista lateral — implementar conforme estrutura do XAML
+            // Reservado para listagem dinamica de aulas no player.
         }
     }
 }
