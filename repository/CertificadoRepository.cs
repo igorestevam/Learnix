@@ -1,14 +1,11 @@
+using System;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Learnix.data;
 using Learnix.model;
-using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Learnix.Repositorio
 {
-    /// <summary>
-    /// Implementação de persistência para Certificado usando Entity Framework + LocalDB.
-    /// </summary>
     public class CertificadoRepository : ICertificadoRepository
     {
         private readonly LearnixDbContext _context;
@@ -24,32 +21,43 @@ namespace Learnix.Repositorio
             _context.SaveChanges();
         }
 
-        public List<Certificado> BuscarPorAluno(int alunoId)
+        public Certificado? BuscarPorId(int id)
         {
             return _context.Certificados
                 .Include(c => c.Matricula)
                     .ThenInclude(m => m.Aluno)
                 .Include(c => c.Matricula)
                     .ThenInclude(m => m.Curso)
-                        .ThenInclude(curso => curso.Instrutor)
+                        .ThenInclude(cur => cur.Instrutor)
+                .FirstOrDefault(c => c.Id == id);
+        }
+
+        public System.Collections.Generic.List<Certificado> BuscarPorAluno(int alunoId)
+        {
+            return _context.Certificados
+                .Include(c => c.Matricula)
+                    .ThenInclude(m => m.Aluno)
+                .Include(c => c.Matricula)
+                    .ThenInclude(m => m.Curso)
+                        .ThenInclude(cur => cur.Instrutor)
                 .Where(c => c.Matricula.AlunoId == alunoId)
                 .ToList();
         }
 
-        public Certificado? BuscarPorCodigo(string codigoCertificado)
+        public Certificado? BuscarPorCodigo(string codigo)
         {
             return _context.Certificados
                 .Include(c => c.Matricula)
                     .ThenInclude(m => m.Aluno)
                 .Include(c => c.Matricula)
                     .ThenInclude(m => m.Curso)
-                .FirstOrDefault(c => c.CodigoCertificado == codigoCertificado);
+                        .ThenInclude(cur => cur.Instrutor)
+                .FirstOrDefault(c => c.CodigoCertificado == codigo);
         }
 
         public bool ExisteCertificado(int matriculaId)
         {
-            return _context.Certificados
-                .Any(c => c.MatriculaId == matriculaId);
+            return _context.Certificados.Any(c => c.MatriculaId == matriculaId);
         }
     }
 }
