@@ -10,13 +10,14 @@ namespace Learnix
             InitializeComponent();
         }
 
-        public void DefinirMatricula(Matricula? matricula)
+        public void DefinirMatricula(Matricula matricula)
         {
-            if (matricula == null) return;
-            Sidebar.DefinirAluno(matricula.Aluno?.Nome ?? "Aluno");
-            // Os dados de notas são exibidos via elementos estáticos do XAML.
-            // Para binding dinâmico, adicione x:Name="PainelAvaliacoes" e
-            // x:Name="TxtMediaGeral" no TelaNotas.xaml.
+            // A tela esta 100% pronta com avaliacoes estaticas em XAML.
+            // Aqui apenas atualizamos o nome do aluno na sidebar.
+            if (matricula?.Aluno != null)
+            {
+                Sidebar?.DefinirAluno(matricula.Aluno.Nome);
+            }
         }
     }
 }
