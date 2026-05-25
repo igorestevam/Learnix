@@ -6,12 +6,12 @@ namespace Learnix
 {
     public partial class SidebarControl : UserControl
     {
-        public event EventHandler SolicitarMenu;
-        public event EventHandler SolicitarNotas;
-        public event EventHandler SolicitarMeusCursos;
-        public event EventHandler SolicitarCertificados;
-        public event EventHandler SolicitarPerfil;
-        public event EventHandler SolicitarSair;
+        public event EventHandler? SolicitarMenu;
+        public event EventHandler? SolicitarNotas;
+        public event EventHandler? SolicitarMeusCursos;
+        public event EventHandler? SolicitarCertificados;
+        public event EventHandler? SolicitarPerfil;
+        public event EventHandler? SolicitarSair;
 
         public SidebarControl()
         {
