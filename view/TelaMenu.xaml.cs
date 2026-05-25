@@ -1,7 +1,11 @@
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Learnix.data;
+using Learnix.model;
+using Learnix.Services;
 
 namespace Learnix
 {
@@ -9,13 +13,22 @@ namespace Learnix
     {
         private string _categoriaAtiva = "Todos";
         private const string PlaceholderBusca = "Buscar curso...";
+        private Aluno? _alunoLogado;
 
         public TelaMenu()
         {
             InitializeComponent();
         }
 
-        // ── Busca ────────────────────────────────────────────────────────────
+        /// <summary>
+        /// Recebe o aluno logado para que possa ser matriculado em cursos reais.
+        /// </summary>
+        public void DefinirAluno(Aluno aluno)
+        {
+            _alunoLogado = aluno;
+        }
+
+        // -- Busca --
 
         private void TxtBusca_GotFocus(object sender, RoutedEventArgs e)
         {
@@ -42,7 +55,7 @@ namespace Learnix
             AplicarFiltros();
         }
 
-        // ── Filtros de categoria ─────────────────────────────────────────────
+        // -- Filtros de categoria --
 
         private void FiltroTodos_Click(object sender, MouseButtonEventArgs e)
             => AtivarCategoria("Todos");
@@ -61,18 +74,18 @@ namespace Learnix
             _categoriaAtiva = categoria;
 
             var corInativa = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2A2040"));
-            var corAtiva   = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4E3A7A"));
+            var corAtiva = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4E3A7A"));
 
-            BtnTodos.Background      = corInativa;
-            BtnExatas.Background     = corInativa;
-            BtnHumanas.Background    = corInativa;
+            BtnTodos.Background = corInativa;
+            BtnExatas.Background = corInativa;
+            BtnHumanas.Background = corInativa;
             BtnTecnologia.Background = corInativa;
 
             switch (categoria)
             {
-                case "Todos":      BtnTodos.Background      = corAtiva; break;
-                case "Exatas":     BtnExatas.Background     = corAtiva; break;
-                case "Humanas":    BtnHumanas.Background    = corAtiva; break;
+                case "Todos": BtnTodos.Background = corAtiva; break;
+                case "Exatas": BtnExatas.Background = corAtiva; break;
+                case "Humanas": BtnHumanas.Background = corAtiva; break;
                 case "Tecnologia": BtnTecnologia.Background = corAtiva; break;
             }
 
@@ -121,12 +134,44 @@ namespace Learnix
 
         private void BtnMatricular_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is Button btn)
+            if (!(sender is Button btn)) return;
+
+            string nomeCurso = btn.Tag?.ToString() ?? "Curso";
+
+            if (_alunoLogado == null)
             {
-                string nomeCurso = btn.Tag?.ToString() ?? "Curso";
-                MessageBox.Show($"Matrícula solicitada para: {nomeCurso}",
-                    "Learnix", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("Voce precisa estar logado para se matricular.",
+                    "Learnix", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
             }
+
+            // Busca o curso no banco pelo titulo (cards estaticos do XAML)
+            using var ctx = new LearnixDbContext();
+            var cursoService = new CursoService(ctx);
+            var cursos = cursoService.BuscarPorTermo(nomeCurso);
+            var curso = cursos.FirstOrDefault(c => c.Titulo == nomeCurso);
+
+            if (curso == null)
+            {
+                // Card estatico nao tem correspondente no banco. Tenta encontrar um curso da mesma categoria
+                var categoria = btn.Tag?.ToString() ?? "";
+                MessageBox.Show($"Curso "{nomeCurso}" ainda nao esta disponivel no banco.\n\nUse os cursos demo disponiveis em "Meus Cursos" após o seed.",
+                    "Learnix", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var matriculaService = new MatriculaService(ctx);
+            var matricula = matriculaService.CriarMatricula(_alunoLogado.Id, curso.Id);
+
+            if (matricula == null)
+            {
+                MessageBox.Show($"Voce ja esta matriculado em "{nomeCurso}" ou houve um erro.",
+                    "Learnix", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            MessageBox.Show($"Matricula realizada com sucesso em: {nomeCurso}",
+                "Learnix", MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }
 }
