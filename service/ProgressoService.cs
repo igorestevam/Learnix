@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Learnix.data;
@@ -17,15 +17,15 @@ namespace Learnix.Services
 
         public bool RegistrarConclusaoAula(int matriculaId, int aulaId)
         {
-            // Carrega a matrícula trazendo o progresso e a estrutura de aulas do curso
-            Matricula matricula = _context.Matriculas
+            // Carrega a matricula trazendo o progresso e a estrutura de aulas do curso
+            Matricula? matricula = _context.Matriculas
                 .Include(m => m.Progresso)
                 .Include(m => m.Curso)
                     .ThenInclude(c => c.Modulos)
                         .ThenInclude(mod => mod.Aulas)
                 .FirstOrDefault(m => m.Id == matriculaId);
 
-            if (matricula == null || matricula.Progresso == null)
+            if (matricula == null || matricula.Progresso == null || matricula.Curso == null)
             {
                 return false;
             }
@@ -42,7 +42,7 @@ namespace Learnix.Services
                 return false;
             }
 
-            // Incrementa a quantidade de aulas feitas respeitando o limite máximo
+            // Incrementa a quantidade de aulas feitas respeitando o limite maximo
             if (matricula.Progresso.AulasConcluidas < totalAulas)
             {
                 matricula.Progresso.AulasConcluidas += 1;
@@ -53,16 +53,20 @@ namespace Learnix.Services
             matricula.Progresso.PercentualConcluido = percentual;
             matricula.Progresso.UltimaAtualizacao = DateTime.Now;
 
-            // Regra de Negócio: Se concluiu 100%, finaliza a matrícula e emite o certificado
-            if (percentual >= 100.0)
+            // Regra de Negocio: Se concluiu 100%, finaliza a matricula e emite o certificado
+            if (percentual >= 100.0 && matricula.Certificado == null)
             {
                 matricula.Status = StatusMatricula.Concluida;
 
-                int proximoCertificadoId = _context.Certificados.Count() + 1;
-                string codigoUnico = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
+                string codigoUnico = "LX-" + Guid.NewGuid().ToString().Substring(0, 6).ToUpper();
 
-                Certificado novoCertificado = new Certificado(proximoCertificadoId, codigoUnico);
-                matricula.Certificado = novoCertificado;
+                Certificado novoCertificado = new Certificado
+                {
+                    CodigoCertificado = codigoUnico,
+                    DataEmissao = DateTime.Now,
+                    MatriculaId = matricula.Id
+                };
+                _context.Certificados.Add(novoCertificado);
             }
 
             _context.SaveChanges();
