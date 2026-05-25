@@ -1751,3 +1751,375 @@ public class CursoRepository : ICursoRepository
     // BuscarTodos, BuscarPorId, BuscarCursosPorNome, BuscarPorCategoria
 }
 ```
+
+
+---
+
+## ITEM 31 — Criação de `service/ICadastroService.cs` (NOVO)
+
+### ANTES
+Arquivo não existia. TelaCadastro tinha apenas um `// TODO: salvar usuário no banco de dados` — cadastro não persistia nada. Sem isso, nenhum aluno conseguia se cadastrar e fazer login.
+
+### DEPOIS
+Criado o contrato com três métodos: `CadastrarAluno`, `CadastrarInstrutor` e `EmailExiste`. Retornam tipos nullable para indicar falha (e-mail duplicado ou matrícula duplicada). Namespace: `Learnix.Services`.
+
+---
+
+## ITEM 32 — Criação de `service/CadastroService.cs` (NOVO)
+
+### ANTES
+Não existia implementação para cadastrar Aluno ou Instrutor no banco.
+
+### DEPOIS
+Implementação completa via `LearnixDbContext`. Faz validação de unicidade de e-mail (consulta Alunos e Instrutores) e unicidade de matrícula acadêmica. Usa `DbSet.Add` + `SaveChanges`. Sem geração manual de Id (deixa o EF Identity cuidar).
+
+---
+
+## ITEM 33 — Criação de `control/CadastroController.cs` (NOVO)
+
+### ANTES
+Não existia controller para cadastro.
+
+### DEPOIS
+`CadastroController` recebe `ICadastroService` por injeção, com método `CadastrarAluno(nome, email, senha)` que gera a matrícula acadêmica automaticamente a partir do e-mail (parte antes do @, em uppercase) e `CadastrarInstrutor(nome, email, senha, especialidade)`.
+
+---
+
+## ITEM 34 — Modificação de `view/TelaCadastro.xaml.cs` (PERSISTÊNCIA REAL)
+
+### ANTES
+```csharp
+// TODO: salvar usuário no banco de dados
+MessageBox.Show("Cadastro realizado com sucesso! Faça login.", ...);
+SolicitarLogin?.Invoke(this, new RoutedEventArgs());
+```
+Mostrava sucesso mas não salvava no banco. Banco ficava vazio → login impossível.
+
+### DEPOIS
+Instancia `LearnixDbContext`, `CadastroService` e `CadastroController`, chama `controller.CadastrarAluno(nome, email, senha)`, valida retorno nulo (e-mail/matrícula duplicados) e exibe a matrícula acadêmica gerada para o usuário usar no próximo login. Adicionados `using Learnix.Controllers`, `using Learnix.data`, `using Learnix.model`, `using Learnix.Services`.
+
+---
+
+## ITEM 35 — Criação de `data/LearnixDbInitializer.cs` (NOVO — SeedData)
+
+### ANTES
+Banco era criado vazio pelo migrations. Não havia categorias, instrutor, cursos ou aulas — telas ficavam vazias.
+
+### DEPOIS
+Classe estática `LearnixDbInitializer.Seed(ctx)` idempotente que popula:
+- 3 Categorias: Exatas, Humanas, Tecnologia
+- 4 PerfisDeAprendizagem: Visual/Auditivo/Leitura-Escrita/Cinestésico
+- 1 Instrutor demo: Prof. Ricardo Almeida (ricardo@learnix.com / 123456)
+- 3 Cursos com módulos e aulas: Lógica em C# (Tecnologia), Cálculo I (Exatas), Filosofia (Humanas)
+- 1 Aluno demo: demo@learnix.com / 123456 / matrícula DEMO001
+
+Cada inserção verifica se a tabela está vazia antes (`Any()`) para ser segura em execuções repetidas.
+
+---
+
+## ITEM 36 — Modificação de `App.xaml.cs` (CHAMA O SEED)
+
+### ANTES
+```csharp
+public partial class App : Application { }
+```
+Vazio — não inicializava nada.
+
+### DEPOIS
+Override de `OnStartup` que cria `LearnixDbContext`, chama `LearnixDbInitializer.Seed(ctx)` dentro de try/catch e exibe MessageBox de erro se a inicialização falhar. Garante que o banco está pronto antes da MainWindow abrir.
+
+---
+
+## ITEM 37 — Criação de `repository/ICertificadoRepository.cs` (NOVO — estava faltando)
+
+### ANTES
+Interface não havia sido commitada, apesar de `CertificadoRepository.cs` já existir e referenciar a interface — quebrava a compilação do repository.
+
+### DEPOIS
+Interface com `BuscarPorId`, `BuscarPorAluno(int alunoId)`, `BuscarPorCodigo(string)` e `Adicionar`. Namespace: `Learnix.Repositorio`.
+
+---
+
+## ITEM 38 — Criação de `repository/ProgressoRepository.cs` (NOVO — estava faltando)
+
+### ANTES
+Só a interface `IProgressoRepository.cs` existia, sem implementação.
+
+### DEPOIS
+`ProgressoRepository : IProgressoRepository` com `BuscarPorMatricula` (com Include de Matricula), `Atualizar` e `Adicionar` usando `DbSet.Update/Add` + `SaveChanges`. Namespace `Learnix.Repositorio`.
+
+---
+
+## ITEM 39 — Modificação de `repository/IMatriculaRepository.cs`
+
+### ANTES
+```csharp
+public interface IMatriculaRepository
+{
+    void Adicionar(Matricula matricula);
+    bool ExisteMatriculaAtiva(int alunoId, int cursoId);
+    Matricula BuscarPorId(int id);
+    int ContarTotal();
+}
+```
+
+### DEPOIS
+Adicionado `List<Matricula> BuscarPorAluno(int alunoId)` (essencial para TelaMeusCursos) e `BuscarPorId` agora retorna `Matricula?`. Adicionado `using System.Collections.Generic`.
+
+---
+
+## ITEM 40 — Modificação de `repository/MatriculaRepository.cs`
+
+### ANTES
+`BuscarPorId` retornava `Matricula` (não-nullable) e tinha Include parcial (só Progresso, Curso, Modulos, Aulas). Não havia `BuscarPorAluno`.
+
+### DEPOIS
+`BuscarPorId` retorna `Matricula?` e inclui Aluno, Categoria, Instrutor, Modulos→Aulas, Avaliacoes e Certificado. Novo método `BuscarPorAluno(int alunoId)` com todos os Includes necessários para TelaMeusCursos/TelaNotas/TelaCertificados. Adicionado `using System.Collections.Generic`.
+
+---
+
+## ITEM 41 — Criação de `service/ICursoService.cs` (NOVO)
+
+### ANTES
+Não existia camada de service para Curso — TelaMenu não tinha como buscar cursos do banco por categoria.
+
+### DEPOIS
+Interface com `ListarTodos`, `ListarPorCategoria(string)`, `BuscarPorTermo(string)` e `BuscarPorId(int)` (retornando `Curso?`).
+
+---
+
+## ITEM 42 — Criação de `service/CursoService.cs` (NOVO)
+
+### ANTES
+Não existia.
+
+### DEPOIS
+Implementação com Includes de Categoria e Instrutor em todas as consultas. `BuscarPorId` inclui também Modulos→Aulas para tela de detalhe.
+
+---
+
+## ITEM 43 — Criação de `service/IAvaliacaoService.cs` (NOVO)
+
+### ANTES
+Não existia — TelaNotas não tinha como salvar notas.
+
+### DEPOIS
+Interface com `RegistrarAvaliacao`, `ListarPorMatricula`, `CalcularMedia` e `CalcularMediaGeralDoAluno`.
+
+---
+
+## ITEM 44 — Criação de `service/AvaliacaoService.cs` (NOVO)
+
+### ANTES
+Não existia.
+
+### DEPOIS
+Implementação com clamp de nota (0-10), cálculo de média por matrícula e média geral do aluno (Include de Matricula para filtrar por AlunoId).
+
+---
+
+## ITEM 45 — Criação de `service/ICertificadoService.cs` (NOVO)
+
+### ANTES
+Não existia — TelaCertificados não tinha service específico.
+
+### DEPOIS
+Interface com `ListarPorAluno`, `BuscarPorCodigo` e `ContarPorAluno`.
+
+---
+
+## ITEM 46 — Criação de `service/CertificadoService.cs` (NOVO)
+
+### ANTES
+Não existia.
+
+### DEPOIS
+Implementação com Includes profundos (Matricula → Aluno, Matricula → Curso → Instrutor) ordenando por DataEmissao descendente. Essencial para TelaCertificados.
+
+---
+
+## ITEM 47 — Modificação de `MainWindow.xaml.cs` (RECARGA COM INCLUDES)
+
+### ANTES
+Quando o login retornava o `Aluno`, este vinha sem `HistoricoMatriculas` carregado, então TelaMeusCursos e TelaCertificados ficavam vazias. `MostrarMeusCursos`, `MostrarCertificados` etc. usavam o aluno em cache.
+
+### DEPOIS
+Novo método privado `RecarregarAlunoCompleto(int alunoId)` que faz `Include().ThenInclude()` em todas as cadeias de relacionamento (Perfil, HistoricoMatriculas, Curso, Categoria, Instrutor, Modulos, Aulas, Progresso, Certificado, Avaliacoes). Chamado após login e antes de cada `Mostrar*` que precise dos dados. `MostrarMenu` agora passa o Aluno para `tela.DefinirAluno(aluno)` para que possa matricular. `SolicitarSair` limpa `_usuarioLogado`.
+
+---
+
+## ITEM 48 — Modificação de `view/TelaMenu.xaml.cs` (MATRÍCULA REAL)
+
+### ANTES
+```csharp
+private void BtnMatricular_Click(object sender, RoutedEventArgs e)
+{
+    MessageBox.Show($"Matrícula solicitada para: {nomeCurso}", ...);
+}
+```
+Apenas exibia mensagem — não criava matrícula.
+
+### DEPOIS
+Novo campo `Aluno? _alunoLogado` e método `DefinirAluno(Aluno)`. `BtnMatricular_Click` instancia `CursoService` (busca curso pelo título do card), `MatriculaService` e chama `CriarMatricula(_alunoLogado.Id, curso.Id)`. Valida nulo (e-mail duplicado/matrícula já existe) e exibe sucesso/erro. Adicionados `using Learnix.data`, `using Learnix.model`, `using Learnix.Services`.
+
+---
+
+## ITEM 49 — Modificação de `service/AuthService.cs`
+
+### ANTES
+```csharp
+public Usuario RealizarLogin(string codigoAcesso, string senha)
+{
+    Aluno alunoEncontrado = _context.Alunos
+        .FirstOrDefault(a => a.MatriculaAcademica == codigoAcesso && a.Senha == senha);
+    ...
+}
+```
+- Login de aluno só por matrícula acadêmica.
+- Tipo de retorno `Usuario` (não-nullable) → warnings CS8600/CS8603.
+
+### DEPOIS
+- Retorna `Usuario?`.
+- Aluno aceita matrícula acadêmica OU e-mail (`a.MatriculaAcademica == codigoAcesso || a.Email == codigoAcesso`).
+- Variáveis tipadas como `Aluno?` e `Instrutor?`.
+
+---
+
+## ITEM 50 — Modificação de `service/IAuthService.cs`
+
+### ANTES
+`Usuario RealizarLogin(...);`
+
+### DEPOIS
+`Usuario? RealizarLogin(...);` — alinha com a implementação.
+
+---
+
+## ITEM 51 — Modificação de `service/IMatriculaService.cs`
+
+### ANTES
+`Matricula CriarMatricula(int alunoId, int cursoId);`
+
+### DEPOIS
+`Matricula? CriarMatricula(int alunoId, int cursoId);` — retorno nullable para indicar erro/duplicidade.
+
+---
+
+## ITEM 52 — Modificação de `service/MatriculaService.cs`
+
+### ANTES
+- Gerava Id manualmente: `int proximoId = _context.Matriculas.Count() + 1;`
+- Criava `Matricula(proximoId, aluno, curso)` e setava Progresso antes do SaveChanges (risco de FK).
+
+### DEPOIS
+- Deixa o EF Identity gerar o Id automaticamente.
+- Adiciona a Matrícula e chama SaveChanges PRIMEIRO; só depois cria o Progresso com `MatriculaId = novaMatricula.Id` e salva de novo.
+- Tipagem nullable (`Aluno?`, `Curso?`).
+
+---
+
+## ITEM 53 — Modificação de `service/ProgressoService.cs`
+
+### ANTES
+- `int proximoCertificadoId = _context.Certificados.Count() + 1;`
+- Sempre criava certificado novo, podia duplicar se a aula 100% fosse "concluída" duas vezes.
+
+### DEPOIS
+- Verifica `matricula.Certificado == null` antes de emitir → idempotente.
+- Adiciona o Certificado via `_context.Certificados.Add(...)` (sem Id manual).
+- Tipagem nullable (`Matricula?`).
+- Código único agora tem prefixo "LX-".
+
+---
+
+## ITEM 54 — Modificação de `view/SidebarControl.xaml.cs`
+
+### ANTES
+```csharp
+public event EventHandler SolicitarMenu;
+public event EventHandler SolicitarNotas;
+public event EventHandler SolicitarMeusCursos;
+public event EventHandler SolicitarCertificados;
+public event EventHandler SolicitarPerfil;
+public event EventHandler SolicitarSair;
+```
+Geravam 6 warnings CS8618 ("evento não anulável precisa conter valor não nulo ao sair do construtor").
+
+### DEPOIS
+Todos declarados como `event EventHandler?` (nullable). Handlers continuam usando `?.Invoke(this, EventArgs.Empty)`. Zero warnings.
+
+---
+
+## ITEM 55 — Criação de `control/AvaliacaoController.cs` (NOVO)
+
+### ANTES
+TelaNotas não tinha controller para registrar/listar notas no banco.
+
+### DEPOIS
+`AvaliacaoController` injeta `IAvaliacaoService` e expõe `Registrar`, `Listar`, `Media`, `MediaGeralDoAluno`.
+
+---
+
+## ITEM 56 — Criação de `control/CertificadoController.cs` (NOVO)
+
+### ANTES
+TelaCertificados não tinha controller específico.
+
+### DEPOIS
+`CertificadoController` injeta `ICertificadoService` e expõe `ListarDoAluno`, `Validar(codigo)` e `ContarDoAluno`.
+
+---
+
+## RESUMO DOS ITENS 31–56
+
+| # | Arquivo | Ação |
+|---|---------|------|
+| 31 | service/ICadastroService.cs | NOVO |
+| 32 | service/CadastroService.cs | NOVO |
+| 33 | control/CadastroController.cs | NOVO |
+| 34 | view/TelaCadastro.xaml.cs | EDITADO (persistência real) |
+| 35 | data/LearnixDbInitializer.cs | NOVO (SeedData) |
+| 36 | App.xaml.cs | EDITADO (chama Seed no startup) |
+| 37 | repository/ICertificadoRepository.cs | NOVO (estava faltando) |
+| 38 | repository/ProgressoRepository.cs | NOVO (estava faltando) |
+| 39 | repository/IMatriculaRepository.cs | EDITADO (BuscarPorAluno + nulabilidade) |
+| 40 | repository/MatriculaRepository.cs | EDITADO (BuscarPorAluno + Includes) |
+| 41 | service/ICursoService.cs | NOVO |
+| 42 | service/CursoService.cs | NOVO |
+| 43 | service/IAvaliacaoService.cs | NOVO |
+| 44 | service/AvaliacaoService.cs | NOVO |
+| 45 | service/ICertificadoService.cs | NOVO |
+| 46 | service/CertificadoService.cs | NOVO |
+| 47 | MainWindow.xaml.cs | EDITADO (recarga com Includes) |
+| 48 | view/TelaMenu.xaml.cs | EDITADO (matrícula real) |
+| 49 | service/AuthService.cs | EDITADO (nulabilidade + email/matrícula) |
+| 50 | service/IAuthService.cs | EDITADO (nulabilidade) |
+| 51 | service/IMatriculaService.cs | EDITADO (nulabilidade) |
+| 52 | service/MatriculaService.cs | EDITADO (Identity + Progresso correto) |
+| 53 | service/ProgressoService.cs | EDITADO (Identity + idempotência) |
+| 54 | view/SidebarControl.xaml.cs | EDITADO (eventos nullable) |
+| 55 | control/AvaliacaoController.cs | NOVO |
+| 56 | control/CertificadoController.cs | NOVO |
+
+### Fluxo agora 100% funcional:
+
+1. **App.xaml.cs** chama `LearnixDbInitializer.Seed` → garante categorias, perfis, instrutor, 3 cursos com módulos/aulas e aluno demo.
+2. **TelaCadastro** persiste novos alunos via `CadastroController` → matrícula acadêmica gerada automaticamente.
+3. **TelaLogin** aceita matrícula OU e-mail (AuthService).
+4. **MainWindow** recarrega o Aluno do banco com todos os Includes antes de mostrar cada tela.
+5. **TelaMenu** matricula o aluno em cursos reais (MatriculaService) e cria o Progresso inicial.
+6. **TelaMeusCursos** lê `aluno.HistoricoMatriculas` (carregado com Includes).
+7. **TelaPlayer/Aulas** chama `ProgressoService.RegistrarConclusaoAula` → 100% → emite Certificado.
+8. **TelaCertificados** lê `aluno.HistoricoMatriculas.Where(m => m.Certificado != null)`.
+9. **TelaNotas** pode usar `AvaliacaoService.ListarPorMatricula` e `CalcularMedia`.
+
+### Credenciais de teste (após primeiro `F5`):
+- **Aluno demo:** `demo@learnix.com` ou `DEMO001` / senha `123456`
+- **Instrutor demo:** `ricardo@learnix.com` / senha `123456`
+
+### Comandos para puxar e rodar:
+```bash
+git pull origin master
+dotnet ef database update
+```
+Depois `Ctrl+Shift+B` para compilar e `F5` para rodar.
