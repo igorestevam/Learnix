@@ -1,9 +1,9 @@
-﻿using Learnix.model;
+using Learnix.model;
 
 namespace Learnix.Services
 {
     public interface IMatriculaService
     {
-        Matricula CriarMatricula(int alunoId, int cursoId);
+        Matricula? CriarMatricula(int alunoId, int cursoId);
     }
 }
