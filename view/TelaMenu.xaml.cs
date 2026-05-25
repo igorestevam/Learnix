@@ -1,8 +1,9 @@
+using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Media;
+using Microsoft.EntityFrameworkCore;
 using Learnix.data;
 using Learnix.model;
 using Learnix.Services;
@@ -12,166 +13,147 @@ namespace Learnix
     public partial class TelaMenu : UserControl
     {
         private string _categoriaAtiva = "Todos";
-        private const string PlaceholderBusca = "Buscar curso...";
         private Aluno? _alunoLogado;
+
+        // Mapeia o nome do Border do card para o titulo do curso seedado no banco.
+        // Permite localizar o curso correto ao clicar em Matricular sem depender de Tag no botao.
+        private static readonly System.Collections.Generic.Dictionary<string, string> MapCardCursoParaTitulo = new()
+        {
+            { "CardCurso1", "Algoritmos e Estrutura de Dados" },
+            { "CardCurso2", "Calculo I - Limites e Derivadas" },
+            { "CardCurso3", "Engenharia de Software" },
+            { "CardCurso4", "Banco de Dados Relacional" },
+            { "CardCurso5", "Programacao Orientada a Objetos em C#" }
+        };
 
         public TelaMenu()
         {
             InitializeComponent();
         }
 
-        /// <summary>
-        /// Recebe o aluno logado para que possa ser matriculado em cursos reais.
-        /// </summary>
         public void DefinirAluno(Aluno aluno)
         {
             _alunoLogado = aluno;
+            Sidebar?.DefinirAluno(aluno.Nome);
         }
-
-        // -- Busca --
 
         private void TxtBusca_GotFocus(object sender, RoutedEventArgs e)
         {
-            if (TxtBusca.Text == PlaceholderBusca)
-            {
-                TxtBusca.Text = "";
-                TxtBusca.Foreground = new SolidColorBrush(Colors.White);
-            }
+            // Placeholder opcional - tela esta 100% pronta sem PlaceholderBusca
         }
 
         private void TxtBusca_LostFocus(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(TxtBusca.Text))
-            {
-                TxtBusca.Text = PlaceholderBusca;
-                TxtBusca.Foreground = new SolidColorBrush(
-                    (Color)ColorConverter.ConvertFromString("#9E8FC0"));
-            }
+            // Placeholder opcional
         }
 
         private void TxtBusca_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (TxtBusca.Text == PlaceholderBusca) return;
             AplicarFiltros();
         }
 
-        // -- Filtros de categoria --
-
-        private void FiltroTodos_Click(object sender, MouseButtonEventArgs e)
-            => AtivarCategoria("Todos");
-
-        private void FiltroExatas_Click(object sender, MouseButtonEventArgs e)
-            => AtivarCategoria("Exatas");
-
-        private void FiltroHumanas_Click(object sender, MouseButtonEventArgs e)
-            => AtivarCategoria("Humanas");
-
-        private void FiltroTecnologia_Click(object sender, MouseButtonEventArgs e)
-            => AtivarCategoria("Tecnologia");
+        private void FiltroTodos_Click(object sender, RoutedEventArgs e) => AtivarCategoria("Todos");
+        private void FiltroExatas_Click(object sender, RoutedEventArgs e) => AtivarCategoria("Exatas");
+        private void FiltroHumanas_Click(object sender, RoutedEventArgs e) => AtivarCategoria("Humanas");
+        private void FiltroTecnologia_Click(object sender, RoutedEventArgs e) => AtivarCategoria("Tecnologia");
 
         private void AtivarCategoria(string categoria)
         {
             _categoriaAtiva = categoria;
+            var brushAtivo = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#7B5BA6"));
+            var brushInativo = new SolidColorBrush(Colors.Transparent);
 
-            var corInativa = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2A2040"));
-            var corAtiva = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4E3A7A"));
-
-            BtnTodos.Background = corInativa;
-            BtnExatas.Background = corInativa;
-            BtnHumanas.Background = corInativa;
-            BtnTecnologia.Background = corInativa;
-
-            switch (categoria)
-            {
-                case "Todos": BtnTodos.Background = corAtiva; break;
-                case "Exatas": BtnExatas.Background = corAtiva; break;
-                case "Humanas": BtnHumanas.Background = corAtiva; break;
-                case "Tecnologia": BtnTecnologia.Background = corAtiva; break;
-            }
+            BtnTodos.Background = (categoria == "Todos") ? brushAtivo : brushInativo;
+            BtnExatas.Background = (categoria == "Exatas") ? brushAtivo : brushInativo;
+            BtnHumanas.Background = (categoria == "Humanas") ? brushAtivo : brushInativo;
+            BtnTecnologia.Background = (categoria == "Tecnologia") ? brushAtivo : brushInativo;
 
             AplicarFiltros();
         }
 
         private void AplicarFiltros()
         {
-            string busca = TxtBusca.Text == PlaceholderBusca
-                ? "" : TxtBusca.Text.ToLower().Trim();
+            string busca = (TxtBusca?.Text ?? string.Empty).Trim().ToLower();
 
-            foreach (var card in new[] { CardCurso1, CardCurso2, CardCurso3, CardCurso4, CardCurso5 })
+            if (PainelCursos == null) return;
+            foreach (var child in PainelCursos.Children)
             {
-                string categoria = card.Tag?.ToString() ?? "";
-                bool passaCategoria = _categoriaAtiva == "Todos" || categoria == _categoriaAtiva;
-
-                bool passaBusca = true;
-                if (!string.IsNullOrEmpty(busca))
+                if (child is FrameworkElement fe)
                 {
-                    var titulo = EncontrarTitulo(card);
-                    passaBusca = titulo != null && titulo.ToLower().Contains(busca);
+                    string tag = fe.Tag?.ToString() ?? string.Empty;
+                    string titulo = EncontrarTitulo(fe);
+                    bool matchCategoria = _categoriaAtiva == "Todos" || tag.Contains(_categoriaAtiva, StringComparison.OrdinalIgnoreCase);
+                    bool matchBusca = string.IsNullOrEmpty(busca) || titulo.ToLower().Contains(busca);
+                    fe.Visibility = (matchCategoria && matchBusca) ? Visibility.Visible : Visibility.Collapsed;
                 }
-
-                card.Visibility = (passaCategoria && passaBusca)
-                    ? Visibility.Visible
-                    : Visibility.Collapsed;
             }
         }
 
-        private string? EncontrarTitulo(Border card)
+        private string EncontrarTitulo(DependencyObject card)
         {
-            if (card.Child is Grid grid &&
-                grid.Children.Count > 0 &&
-                grid.Children[0] is StackPanel sp)
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(card); i++)
             {
-                foreach (var child in sp.Children)
-                {
-                    if (child is TextBlock tb &&
-                        tb.FontWeight == FontWeights.Bold &&
-                        tb.FontSize == 15)
-                        return tb.Text;
-                }
+                var c = VisualTreeHelper.GetChild(card, i);
+                if (c is TextBlock tb && tb.FontWeight == FontWeights.Bold && !string.IsNullOrWhiteSpace(tb.Text))
+                    return tb.Text;
+                string sub = EncontrarTitulo(c);
+                if (!string.IsNullOrEmpty(sub)) return sub;
             }
-            return null;
+            return string.Empty;
         }
 
         private void BtnMatricular_Click(object sender, RoutedEventArgs e)
         {
-            if (!(sender is Button btn)) return;
-
-            string nomeCurso = btn.Tag?.ToString() ?? "Curso";
-
             if (_alunoLogado == null)
             {
-                MessageBox.Show("Voce precisa estar logado para se matricular.",
-                    "Learnix", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Voce precisa estar logado para se matricular.", "Atencao", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            // Busca o curso no banco pelo titulo (cards estaticos do XAML)
-            using var ctx = new LearnixDbContext();
-            var cursoService = new CursoService(ctx);
-            var cursos = cursoService.BuscarPorTermo(nomeCurso);
-            var curso = cursos.FirstOrDefault(c => c.Titulo == nomeCurso);
-
-            if (curso == null)
+            // Sobe a arvore visual ate achar o Border do card (CardCursoN)
+            DependencyObject? atual = sender as DependencyObject;
+            string nomeCard = string.Empty;
+            while (atual != null)
             {
-                // Card estatico nao tem correspondente no banco. Tenta encontrar um curso da mesma categoria
-                var categoria = btn.Tag?.ToString() ?? "";
-                MessageBox.Show($"Curso "{nomeCurso}" ainda nao esta disponivel no banco.\n\nUse os cursos demo disponiveis em "Meus Cursos" após o seed.",
-                    "Learnix", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
+                if (atual is FrameworkElement fe && !string.IsNullOrEmpty(fe.Name) && fe.Name.StartsWith("CardCurso"))
+                {
+                    nomeCard = fe.Name;
+                    break;
+                }
+                atual = VisualTreeHelper.GetParent(atual);
             }
 
-            var matriculaService = new MatriculaService(ctx);
-            var matricula = matriculaService.CriarMatricula(_alunoLogado.Id, curso.Id);
-
-            if (matricula == null)
+            if (string.IsNullOrEmpty(nomeCard) || !MapCardCursoParaTitulo.TryGetValue(nomeCard, out string? titulo))
             {
-                MessageBox.Show($"Voce ja esta matriculado em "{nomeCurso}" ou houve um erro.",
-                    "Learnix", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Nao foi possivel identificar o curso.", "Erro", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            MessageBox.Show($"Matricula realizada com sucesso em: {nomeCurso}",
-                "Learnix", MessageBoxButton.OK, MessageBoxImage.Information);
+            try
+            {
+                using var ctx = new LearnixDbContext();
+                var curso = ctx.Cursos.FirstOrDefault(c => c.Titulo == titulo);
+                if (curso == null)
+                {
+                    MessageBox.Show("Curso ainda nao disponivel para matricula.", "Aviso", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                var matriculaSvc = new MatriculaService(ctx);
+                var matricula = matriculaSvc.CriarMatricula(_alunoLogado.Id, curso.Id);
+                if (matricula != null)
+                {
+                    MessageBox.Show($"Matricula em \"{curso.Titulo}\" realizada com sucesso!", "Sucesso", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBox.Show("Voce ja esta matriculado neste curso.", "Aviso", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Erro ao realizar matricula: {ex.Message}", "Erro", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
         }
     }
 }
