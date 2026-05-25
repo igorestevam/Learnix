@@ -1,6 +1,9 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using Microsoft.EntityFrameworkCore;
 using Learnix.data;
 using Learnix.model;
 using Learnix.Services;
@@ -9,8 +12,9 @@ namespace Learnix
 {
     public partial class TelaMeusCursos : UserControl
     {
-        private string _nomeAluno = "Aluno";
+        private string _nomeAluno = string.Empty;
         private List<Matricula> _matriculas = new();
+        private Aluno? _alunoLogado;
 
         public TelaMeusCursos()
         {
@@ -19,69 +23,96 @@ namespace Learnix
 
         public void DefinirAluno(Aluno aluno)
         {
+            _alunoLogado = aluno;
             _nomeAluno = aluno.Nome;
-            _matriculas = aluno.HistoricoMatriculas ?? new List<Matricula>();
-            Sidebar.DefinirAluno(aluno.Nome);
+            _matriculas = aluno.HistoricoMatriculas?.ToList() ?? new List<Matricula>();
+            Sidebar?.DefinirAluno(aluno.Nome);
         }
 
         private void BtnContinuar_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is Button btn && btn.Tag is string dados)
+            if (sender is not Button btn || btn.Tag == null) return;
+
+            // Tenta interpretar Tag como ID de matricula ou nome do curso
+            string tag = btn.Tag.ToString() ?? string.Empty;
+            Matricula? matricula = null;
+
+            if (int.TryParse(tag, out int matriculaId))
             {
-                var p = dados.Split('|');
-                var main = Application.Current.MainWindow as MainWindow;
-
-                // Tenta encontrar a matricula correspondente pelo nome do curso
-                string nomeCurso = p.Length > 0 ? p[0] : "";
-                var matricula = _matriculas.Find(m => m.Curso?.Titulo == nomeCurso);
-
-                if (matricula != null)
-                {
-                    main?.MostrarAulas(matricula);
-                }
-                else
-                {
-                    // Fallback: navega com os dados da string (cards estáticos)
-                    MessageBox.Show("Curso não encontrado no banco de dados.",
-                        "Learnix", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
+                matricula = _matriculas.Find(m => m.Id == matriculaId);
             }
+
+            if (matricula == null)
+            {
+                // Fallback: busca por nome do curso
+                matricula = _matriculas.Find(m => m.Curso != null && m.Curso.Titulo.Contains(tag, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (matricula == null)
+            {
+                MessageBox.Show("Voce ainda nao esta matriculado nesse curso.", "Aviso", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var main = Application.Current.MainWindow as MainWindow;
+            main?.MostrarAulas(matricula);
         }
 
         private void BtnConcluir_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is Button btn && btn.Tag is string dados)
-            {
-                var p = dados.Split('|');
-                string nomeCurso    = p.Length > 0 ? p[0] : "";
-                string professor    = p.Length > 1 ? p[1] : "";
-                string cargaHoraria = p.Length > 3 ? p[3] : "";
+            if (sender is not Button btn || btn.Tag == null) return;
 
-                // Tenta registrar via ProgressoService se houver matricula no banco
-                var matricula = _matriculas.Find(m => m.Curso?.Titulo == nomeCurso);
-                if (matricula != null)
+            string tag = btn.Tag.ToString() ?? string.Empty;
+            Matricula? matricula = null;
+
+            if (int.TryParse(tag, out int matriculaId))
+            {
+                matricula = _matriculas.Find(m => m.Id == matriculaId);
+            }
+            if (matricula == null)
+            {
+                matricula = _matriculas.Find(m => m.Curso != null && m.Curso.Titulo.Contains(tag, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (matricula == null)
+            {
+                MessageBox.Show("Voce ainda nao esta matriculado nesse curso.", "Aviso", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            try
+            {
+                using var ctx = new LearnixDbContext();
+                var matriculaCompleta = ctx.Matriculas
+                    .Include(m => m.Curso)
+                    .ThenInclude(c => c.Modulos)
+                    .ThenInclude(mo => mo.Aulas)
+                    .FirstOrDefault(m => m.Id == matricula.Id);
+
+                if (matriculaCompleta?.Curso == null)
                 {
-                    var progressoService = new ProgressoService(new LearnixDbContext());
-                    foreach (var modulo in matricula.Curso?.Modulos ?? new List<Modulo>())
-                        foreach (var aula in modulo.Aulas)
-                            progressoService.RegistrarConclusaoAula(matricula.Id, aula.Id);
+                    MessageBox.Show("Matricula nao encontrada.", "Erro", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                var progSvc = new ProgressoService(ctx);
+                int concluidas = 0;
+                foreach (var modulo in matriculaCompleta.Curso.Modulos)
+                {
+                    foreach (var aula in modulo.Aulas)
+                    {
+                        progSvc.RegistrarConclusaoAula(matriculaCompleta.Id, aula.Id);
+                        concluidas++;
+                    }
                 }
 
                 btn.IsEnabled = false;
-                btn.Content = "\u2714 Concluído";
-
-                string msg = "Parabéns! Você concluiu o curso \"" + nomeCurso + "\"!\n\n"
-                    + "Seu certificado já está disponível em \"Meus Certificados\".\n\n"
-                    + "Deseja ver o certificado agora?";
-
-                var resultado = MessageBox.Show(msg,
-                    "Learnix", MessageBoxButton.YesNo, MessageBoxImage.Information);
-
-                if (resultado == MessageBoxResult.Yes)
-                {
-                    var main = Application.Current.MainWindow as MainWindow;
-                    main?.MostrarCertificados(_nomeAluno);
-                }
+                btn.Content = "Concluido";
+                MessageBox.Show($"Parabens! Voce concluiu o curso. {concluidas} aula(s) marcadas como concluidas.", "Sucesso", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Erro ao concluir curso: {ex.Message}", "Erro", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
     }
