@@ -1,4 +1,3 @@
-﻿using System;
 using System.Linq;
 using Learnix.data;
 using Learnix.model;
@@ -14,17 +13,17 @@ namespace Learnix.Services
             _context = context;
         }
 
-        public Matricula CriarMatricula(int alunoId, int cursoId)
+        public Matricula? CriarMatricula(int alunoId, int cursoId)
         {
-            Aluno aluno = _context.Alunos.FirstOrDefault(a => a.Id == alunoId);
-            Curso curso = _context.Cursos.FirstOrDefault(c => c.Id == cursoId);
+            Aluno? aluno = _context.Alunos.FirstOrDefault(a => a.Id == alunoId);
+            Curso? curso = _context.Cursos.FirstOrDefault(c => c.Id == cursoId);
 
             if (aluno == null || curso == null)
             {
                 return null;
             }
 
-            // Regra de Negócio: Evita duplicidade de matrículas ativas no mesmo curso
+            // Regra de Negocio: Evita duplicidade de matriculas ativas no mesmo curso
             bool jaMatriculado = _context.Matriculas
                 .Any(m => m.AlunoId == alunoId && m.CursoId == cursoId && m.Status == StatusMatricula.Ativa);
 
@@ -33,14 +32,26 @@ namespace Learnix.Services
                 return null;
             }
 
-            int proximoId = _context.Matriculas.Count() + 1;
-            Matricula novaMatricula = new Matricula(proximoId, aluno, curso);
-
-            // Cria e vincula o registro de progresso inicial
-            Progresso novoProgresso = new Progresso(proximoId);
-            novaMatricula.Progresso = novoProgresso;
+            // Deixa o EF gerar o Id automaticamente (Identity)
+            Matricula novaMatricula = new Matricula
+            {
+                AlunoId = alunoId,
+                CursoId = cursoId,
+                Status = StatusMatricula.Ativa
+            };
 
             _context.Matriculas.Add(novaMatricula);
+            _context.SaveChanges();
+
+            // Cria e vincula o registro de progresso inicial (apos ter o Id da matricula)
+            Progresso novoProgresso = new Progresso
+            {
+                MatriculaId = novaMatricula.Id,
+                AulasConcluidas = 0,
+                PercentualConcluido = 0.0
+            };
+
+            _context.Progressos.Add(novoProgresso);
             _context.SaveChanges();
 
             return novaMatricula;
