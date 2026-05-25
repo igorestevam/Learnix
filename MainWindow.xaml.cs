@@ -47,7 +47,7 @@ namespace Learnix
                 .FirstOrDefault(a => a.Id == alunoId);
         }
 
-        // -- Telas de autenticacao --
+        // ── Telas de autenticacao ────────────────────────────────────────────
 
         private void MostrarLogin()
         {
@@ -85,14 +85,20 @@ namespace Learnix
             conteudoPrincipal.Content = tela;
         }
 
-        // -- Telas principais --
+        // ── Telas principais ─────────────────────────────────────────────────
 
-        public void MostrarHome(Usuario usuario)
+        public void MostrarHome(Usuario? usuario)
         {
             AjustarJanela(1280, 720);
             string nome = usuario?.Nome ?? "Aluno";
             var tela = new TelaHome();
-            tela.DefinirAluno(nome);
+
+            // Se for Aluno, passa o objeto completo para popular os cards com dados reais
+            if (usuario is Aluno aluno)
+                tela.DefinirAluno(aluno);
+            else
+                tela.DefinirAluno(nome);
+
             ConectarSidebar(tela.Sidebar, nome);
             conteudoPrincipal.Content = tela;
         }
@@ -102,7 +108,7 @@ namespace Learnix
             AjustarJanela(1280, 720);
             var tela = new TelaNotas();
             tela.DefinirMatricula(matricula);
-            ConectarSidebar(tela.Sidebar, matricula?.Aluno?.Nome ?? "Aluno");
+            ConectarSidebar(tela.Sidebar, matricula?.Aluno?.Nome ?? _usuarioLogado?.Nome ?? "Aluno");
             conteudoPrincipal.Content = tela;
         }
 
@@ -170,6 +176,7 @@ namespace Learnix
         public void MostrarAulas(Matricula matricula)
         {
             AjustarJanela(1280, 720);
+            // Nome vem do _usuarioLogado (fonte confiavel) em vez de matricula.Aluno
             string nome = _usuarioLogado?.Nome ?? "Aluno";
             var tela = new TelaAulas();
             tela.DefinirMatricula(matricula, nome);
@@ -177,16 +184,21 @@ namespace Learnix
             conteudoPrincipal.Content = tela;
         }
 
-        public void MostrarTela(UserControl tela, string nomeAluno = "Aluno")
+        public void MostrarTela(UserControl tela, string nomeAluno = "")
         {
             AjustarJanela(1280, 720);
+            // Se nomeAluno nao foi passado, usa o do usuario logado
+            string nome = string.IsNullOrWhiteSpace(nomeAluno)
+                ? (_usuarioLogado?.Nome ?? "Aluno")
+                : nomeAluno;
+
             var sidebarProp = tela.GetType().GetProperty("Sidebar");
             if (sidebarProp?.GetValue(tela) is SidebarControl sidebar)
-                ConectarSidebar(sidebar, nomeAluno);
+                ConectarSidebar(sidebar, nome);
             conteudoPrincipal.Content = tela;
         }
 
-        // -- Sidebar centralizada --
+        // ── Sidebar centralizada ─────────────────────────────────────────────
 
         private void ConectarSidebar(SidebarControl sidebar, string nomeAluno)
         {
@@ -194,10 +206,13 @@ namespace Learnix
             sidebar.SolicitarMeusCursos += (s, e) => MostrarMeusCursos(nomeAluno);
             sidebar.SolicitarNotas += (s, e) =>
             {
-                // Pega a primeira matricula ativa para exibir notas
-                if (_usuarioLogado is Aluno aluno && aluno.HistoricoMatriculas != null && aluno.HistoricoMatriculas.Count > 0)
+                if (_usuarioLogado is Aluno aluno)
                 {
-                    var primeira = aluno.HistoricoMatriculas.FirstOrDefault();
+                    // Recarrega para garantir avaliacoes atualizadas
+                    var alunoAtualizado = RecarregarAlunoCompleto(aluno.Id) ?? aluno;
+                    _usuarioLogado = alunoAtualizado;
+
+                    var primeira = alunoAtualizado.HistoricoMatriculas?.FirstOrDefault();
                     if (primeira != null) MostrarNotas(primeira);
                 }
             };

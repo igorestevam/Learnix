@@ -9,14 +9,14 @@ namespace Learnix.data
         // DbSets — uma entrada por entidade concreta mapeada no banco
         // ──────────────────────────────────────────────────────────────
 
-        // Hierarquia de Usuário (TPH → tabela única "Usuarios" + coluna discriminador)
+        // Hierarquia de Usuario (TPH → tabela unica "Usuarios" + coluna discriminador)
         public DbSet<Usuario> Usuarios { get; set; } = null!;
         public DbSet<Aluno> Alunos { get; set; } = null!;
         public DbSet<Instrutor> Instrutores { get; set; } = null!;
 
         public DbSet<PerfilDeAprendizagem> PerfisDeAprendizagem { get; set; } = null!;
 
-        // Hierarquia de Curso (TPH → tabela única "Cursos" + coluna discriminador)
+        // Hierarquia de Curso (TPH → tabela unica "Cursos" + coluna discriminador)
         public DbSet<Curso> Cursos { get; set; } = null!;
         public DbSet<CursoExatas> CursosExatas { get; set; } = null!;
         public DbSet<CursoHumanas> CursosHumanas { get; set; } = null!;
@@ -29,6 +29,9 @@ namespace Learnix.data
         public DbSet<Progresso> Progressos { get; set; } = null!;
         public DbSet<Certificado> Certificados { get; set; } = null!;
 
+        // Tabela de juncao para registrar conclusoes unicas de aula por matricula
+        public DbSet<AulaConcluida> AulasConcluidas { get; set; } = null!;
+
         // ──────────────────────────────────────────────────────────────
         // Construtores
         // ──────────────────────────────────────────────────────────────
@@ -38,15 +41,17 @@ namespace Learnix.data
         public LearnixDbContext(DbContextOptions<LearnixDbContext> options) : base(options) { }
 
         // ──────────────────────────────────────────────────────────────
-        // Configuração da conexão (fallback quando não há DI configurada)
+        // Configuracao da conexao (fallback quando nao ha DI configurada)
         // ──────────────────────────────────────────────────────────────
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
             {
+                // TrustServerCertificate=True evita erro de certificado com
+                // Microsoft.Data.SqlClient 4.x+ em ambiente de desenvolvimento local
                 optionsBuilder.UseSqlServer(
-                    "Server=(localdb)\\mssqllocaldb;Database=Learnix;Trusted_Connection=True;");
+                    "Server=(localdb)\\mssqllocaldb;Database=Learnix;Trusted_Connection=True;TrustServerCertificate=True;");
             }
         }
 
@@ -57,21 +62,21 @@ namespace Learnix.data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // ── 1. TPH: hierarquia Usuario (Aluno / Instrutor) ────────
-            // Tabela única "Usuarios"; coluna "TipoUsuario" diferencia os tipos.
+            // Tabela unica "Usuarios"; coluna "TipoUsuario" diferencia os tipos.
             modelBuilder.Entity<Usuario>()
                 .HasDiscriminator<string>("TipoUsuario")
                 .HasValue<Aluno>("Aluno")
                 .HasValue<Instrutor>("Instrutor");
 
             // ── 2. TPH: hierarquia Curso (CursoExatas / CursoHumanas) ─
-            // Tabela única "Cursos"; coluna "TipoCurso" diferencia os tipos.
+            // Tabela unica "Cursos"; coluna "TipoCurso" diferencia os tipos.
             modelBuilder.Entity<Curso>()
                 .HasDiscriminator<string>("TipoCurso")
                 .HasValue<CursoExatas>("Exatas")
                 .HasValue<CursoHumanas>("Humanas");
 
-            // ── 3. Propriedade calculada — não persiste no banco ──────
-            // Matricula.NotaFinal é calculada em memória; sem coluna no BD.
+            // ── 3. Propriedade calculada — nao persiste no banco ──────
+            // Matricula.NotaFinal e calculada em memoria; sem coluna no BD.
             modelBuilder.Entity<Matricula>()
                 .Ignore(m => m.NotaFinal);
 
@@ -88,7 +93,7 @@ namespace Learnix.data
                 .HasForeignKey(c => c.InstrutorId);
 
             // ── 6. Aluno → Matricula (1 para Muitos) ─────────────────
-            // Restrict: impede excluir um aluno que tenha histórico de matrículas.
+            // Restrict: impede excluir um aluno que tenha historico de matriculas.
             modelBuilder.Entity<Matricula>()
                 .HasOne(m => m.Aluno)
                 .WithMany(a => a.HistoricoMatriculas)
@@ -110,7 +115,7 @@ namespace Learnix.data
                 .HasForeignKey(c => c.CategoriaId);
 
             // ── 9. Curso → Modulo (1 para Muitos) ────────────────────
-            // Cascade: excluir o curso remove os módulos automaticamente.
+            // Cascade: excluir o curso remove os modulos automaticamente.
             modelBuilder.Entity<Curso>()
                 .HasMany(c => c.Modulos)
                 .WithOne(m => m.Curso)
@@ -118,7 +123,7 @@ namespace Learnix.data
                 .OnDelete(DeleteBehavior.Cascade);
 
             // ── 10. Modulo → Aula (1 para Muitos) ────────────────────
-            // Cascade: excluir o módulo remove as aulas automaticamente.
+            // Cascade: excluir o modulo remove as aulas automaticamente.
             modelBuilder.Entity<Modulo>()
                 .HasMany(m => m.Aulas)
                 .WithOne(a => a.Modulo)
@@ -126,7 +131,7 @@ namespace Learnix.data
                 .OnDelete(DeleteBehavior.Cascade);
 
             // ── 11. Matricula → Avaliacao (1 para Muitos) ────────────
-            // Cascade: excluir a matrícula remove as avaliações.
+            // Cascade: excluir a matricula remove as avaliacoes.
             modelBuilder.Entity<Matricula>()
                 .HasMany(m => m.Avaliacoes)
                 .WithOne(a => a.Matricula)
@@ -144,6 +149,25 @@ namespace Learnix.data
                 .HasOne(m => m.Certificado)
                 .WithOne(c => c.Matricula)
                 .HasForeignKey<Certificado>(c => c.MatriculaId);
+
+            // ── 14. AulaConcluida — PK composta (MatriculaId + AulaId) ──
+            // Garante que a mesma aula so pode ser concluida uma vez por matricula.
+            modelBuilder.Entity<AulaConcluida>()
+                .HasKey(ac => new { ac.MatriculaId, ac.AulaId });
+
+            // AulaConcluida → Matricula (Restrict: historico nao e apagado com a matricula)
+            modelBuilder.Entity<AulaConcluida>()
+                .HasOne(ac => ac.Matricula)
+                .WithMany()
+                .HasForeignKey(ac => ac.MatriculaId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // AulaConcluida → Aula (Restrict: historico nao e apagado ao remover aula)
+            modelBuilder.Entity<AulaConcluida>()
+                .HasOne(ac => ac.Aula)
+                .WithMany()
+                .HasForeignKey(ac => ac.AulaId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

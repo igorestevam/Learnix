@@ -12,13 +12,6 @@
             <Setter Property="Padding" Value="20,16"/>
         </Style>
 
-        <Style x:Key="CardCursoStyle" TargetType="Border">
-            <Setter Property="Background" Value="#2A2040"/>
-            <Setter Property="CornerRadius" Value="10"/>
-            <Setter Property="Padding" Value="18,14"/>
-            <Setter Property="Margin" Value="0,0,0,10"/>
-        </Style>
-
         <Style x:Key="BtnAcessarStyle" TargetType="Button">
             <Setter Property="Background" Value="#4E3A7A"/>
             <Setter Property="Foreground" Value="White"/>
@@ -38,9 +31,6 @@
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="borda" Property="Background" Value="#3A2860"/>
                             </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="borda" Property="Background" Value="#2C1F4A"/>
-                            </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
@@ -55,10 +45,8 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <!-- Sidebar reutilizável -->
         <local:SidebarControl x:Name="Sidebar" Grid.Column="0"/>
 
-        <!-- Conteúdo principal -->
         <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto"
                       HorizontalScrollBarVisibility="Disabled">
             <StackPanel Margin="36,32,36,32">
@@ -74,14 +62,15 @@
                            Foreground="#9E8FC0" FontSize="12"
                            FontFamily="Segoe UI" Margin="0,0,0,26"/>
 
-                <!-- Cards de resumo -->
+                <!-- Cards de resumo — x:Name para popular do banco -->
                 <UniformGrid Columns="3" Margin="0,0,0,28">
                     <Border Style="{StaticResource CardResumoStyle}" Margin="0,0,14,0">
                         <StackPanel>
                             <TextBlock Text="&#x1F4DA;  Cursos Ativos"
                                        Foreground="#D8CCF0" FontSize="12"
                                        FontFamily="Segoe UI" Opacity="0.75"/>
-                            <TextBlock Text="4" Foreground="White" FontSize="28"
+                            <TextBlock x:Name="TxtCursosAtivos" Text="—"
+                                       Foreground="White" FontSize="28"
                                        FontWeight="Bold" FontFamily="Segoe UI" Margin="0,6,0,2"/>
                             <TextBlock Text="em andamento" Foreground="#9E8FC0"
                                        FontSize="11" FontFamily="Segoe UI"/>
@@ -92,7 +81,8 @@
                             <TextBlock Text="&#x1F4CB;  M&#xE9;dia Geral"
                                        Foreground="#D8CCF0" FontSize="12"
                                        FontFamily="Segoe UI" Opacity="0.75"/>
-                            <TextBlock Text="8,4" Foreground="White" FontSize="28"
+                            <TextBlock x:Name="TxtMediaGeralHome" Text="—"
+                                       Foreground="White" FontSize="28"
                                        FontWeight="Bold" FontFamily="Segoe UI" Margin="0,6,0,2"/>
                             <TextBlock Text="pontos" Foreground="#9E8FC0"
                                        FontSize="11" FontFamily="Segoe UI"/>
@@ -100,12 +90,13 @@
                     </Border>
                     <Border Style="{StaticResource CardResumoStyle}">
                         <StackPanel>
-                            <TextBlock Text="&#x23F0;  Pendentes"
+                            <TextBlock Text="&#x1F3C6;  Certificados"
                                        Foreground="#D8CCF0" FontSize="12"
                                        FontFamily="Segoe UI" Opacity="0.75"/>
-                            <TextBlock Text="2" Foreground="White" FontSize="28"
+                            <TextBlock x:Name="TxtTotalCertificados" Text="—"
+                                       Foreground="White" FontSize="28"
                                        FontWeight="Bold" FontFamily="Segoe UI" Margin="0,6,0,2"/>
-                            <TextBlock Text="atividades" Foreground="#9E8FC0"
+                            <TextBlock Text="obtidos" Foreground="#9E8FC0"
                                        FontSize="11" FontFamily="Segoe UI"/>
                         </StackPanel>
                     </Border>
@@ -117,91 +108,12 @@
                            FontFamily="Segoe UI"/>
                 <Separator Background="#9E8FC0" Opacity="0.25" Margin="0,8,0,14"/>
 
-                <!-- Curso 1 -->
-                <Border Style="{StaticResource CardCursoStyle}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0">
-                            <TextBlock Text="Algoritmos e Estrutura de Dados"
-                                       Foreground="White" FontSize="14" FontWeight="SemiBold"
-                                       FontFamily="Segoe UI"/>
-                            <TextBlock Text="Prof. Carlos Lima  •  Exatas"
-                                       Foreground="#9E8FC0" FontSize="12"
-                                       FontFamily="Segoe UI" Margin="0,4,0,10"/>
-                            <!-- Barra de progresso manual (compatível com WPF sem converters) -->
-                            <Grid Height="6">
-                                <Border Background="#3A2860" CornerRadius="3"/>
-                                <Border Background="#7E6BAC" CornerRadius="3"
-                                        HorizontalAlignment="Left" Width="200"/>
-                            </Grid>
-                            <TextBlock Text="68% conclu&#xED;do" Foreground="#9E8FC0"
-                                       FontSize="11" FontFamily="Segoe UI" Margin="0,4,0,0"/>
-                        </StackPanel>
-                        <Button Grid.Column="1" Content="Continuar &#x2192;"
-                                Style="{StaticResource BtnAcessarStyle}"
-                                VerticalAlignment="Center"/>
-                    </Grid>
-                </Border>
-
-                <!-- Curso 2 -->
-                <Border Style="{StaticResource CardCursoStyle}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0">
-                            <TextBlock Text="C&#xE1;lculo I"
-                                       Foreground="White" FontSize="14" FontWeight="SemiBold"
-                                       FontFamily="Segoe UI"/>
-                            <TextBlock Text="Prof. Ana Souza  •  Exatas"
-                                       Foreground="#9E8FC0" FontSize="12"
-                                       FontFamily="Segoe UI" Margin="0,4,0,10"/>
-                            <Grid Height="6">
-                                <Border Background="#3A2860" CornerRadius="3"/>
-                                <Border Background="#7E6BAC" CornerRadius="3"
-                                        HorizontalAlignment="Left" Width="120"/>
-                            </Grid>
-                            <TextBlock Text="40% conclu&#xED;do" Foreground="#9E8FC0"
-                                       FontSize="11" FontFamily="Segoe UI" Margin="0,4,0,0"/>
-                        </StackPanel>
-                        <Button Grid.Column="1" Content="Continuar &#x2192;"
-                                Style="{StaticResource BtnAcessarStyle}"
-                                VerticalAlignment="Center"/>
-                    </Grid>
-                </Border>
-
-                <!-- Seção: Próximas atividades -->
-                <TextBlock Text="Pr&#xF3;ximas Atividades"
-                           Foreground="White" FontSize="16" FontWeight="SemiBold"
-                           FontFamily="Segoe UI" Margin="0,14,0,0"/>
-                <Separator Background="#9E8FC0" Opacity="0.25" Margin="0,8,0,14"/>
-
-                <Border Style="{StaticResource CardCursoStyle}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Border Grid.Column="0" Background="#4E3A7A" CornerRadius="10"
-                                Width="46" Height="46" Margin="0,0,16,0">
-                            <TextBlock Text="27" Foreground="White" FontSize="15"
-                                       FontWeight="Bold" FontFamily="Segoe UI"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="Entrega: Atividade Avaliativa"
-                                       Foreground="White" FontSize="14" FontWeight="SemiBold"
-                                       FontFamily="Segoe UI"/>
-                            <TextBlock Text="Algoritmos e Estrutura de Dados  •  27/05/2026"
-                                       Foreground="#9E8FC0" FontSize="12"
-                                       FontFamily="Segoe UI" Margin="0,3,0,0"/>
-                        </StackPanel>
-                    </Grid>
-                </Border>
+                <!-- Cards de cursos populados dinamicamente -->
+                <StackPanel x:Name="PainelCursos">
+                    <TextBlock Text="Carregando cursos..."
+                               Foreground="#9E8FC0" FontSize="13"
+                               FontFamily="Segoe UI"/>
+                </StackPanel>
 
             </StackPanel>
         </ScrollViewer>

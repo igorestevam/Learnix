@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Learnix.Migrations
 {
     [DbContext(typeof(LearnixDbContext))]
-    [Migration("20260524203511_LearnixMigration")]
-    partial class LearnixMigration
+    [Migration("20260525223807_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -55,6 +55,24 @@ namespace Learnix.Migrations
                     b.HasIndex("ModuloId");
 
                     b.ToTable("Aulas");
+                });
+
+            modelBuilder.Entity("Learnix.model.AulaConcluida", b =>
+                {
+                    b.Property<int>("MatriculaId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AulaId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DataConclusao")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("MatriculaId", "AulaId");
+
+                    b.HasIndex("AulaId");
+
+                    b.ToTable("AulasConcluidas");
                 });
 
             modelBuilder.Entity("Learnix.model.Avaliacao", b =>
@@ -387,6 +405,25 @@ namespace Learnix.Migrations
                         .IsRequired();
 
                     b.Navigation("Modulo");
+                });
+
+            modelBuilder.Entity("Learnix.model.AulaConcluida", b =>
+                {
+                    b.HasOne("Learnix.model.Aula", "Aula")
+                        .WithMany()
+                        .HasForeignKey("AulaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Learnix.model.Matricula", "Matricula")
+                        .WithMany()
+                        .HasForeignKey("MatriculaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Aula");
+
+                    b.Navigation("Matricula");
                 });
 
             modelBuilder.Entity("Learnix.model.Avaliacao", b =>

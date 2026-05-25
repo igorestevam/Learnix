@@ -47,7 +47,7 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- Logo (mesmo estilo TelaLogin) -->
+            <!-- Logo -->
             <StackPanel Grid.Row="0" HorizontalAlignment="Left"
                         Orientation="Horizontal" Margin="20,28,20,20">
                 <TextBlock Text="&#x1F393;" FontSize="26" VerticalAlignment="Center" Foreground="White"/>

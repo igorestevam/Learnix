@@ -42,9 +42,12 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="220"/>  <!-- Sidebar -->
-            <ColumnDefinition Width="*"/>    <!-- Player + conteúdo -->
-            <ColumnDefinition Width="300"/>  <!-- Lista de aulas -->
+            <ColumnDefinition Width="220"/>
+            <!-- Sidebar -->
+            <ColumnDefinition Width="*"/>
+            <!-- Player + conteúdo -->
+            <ColumnDefinition Width="300"/>
+            <!-- Lista de aulas -->
         </Grid.ColumnDefinitions>
 
         <!-- Sidebar -->
@@ -53,10 +56,14 @@
         <!-- Área central: player + abas -->
         <Grid Grid.Column="1" Margin="24,24,12,24">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>  <!-- Voltar + título -->
-                <RowDefinition Height="Auto"/>  <!-- Vídeo -->
-                <RowDefinition Height="Auto"/>  <!-- Controles -->
-                <RowDefinition Height="*"/>     <!-- Abas: materiais / transcrição / anotações -->
+                <RowDefinition Height="Auto"/>
+                <!-- Voltar + título -->
+                <RowDefinition Height="Auto"/>
+                <!-- Vídeo -->
+                <RowDefinition Height="Auto"/>
+                <!-- Controles -->
+                <RowDefinition Height="*"/>
+                <!-- Abas: materiais / transcrição / anotações -->
             </Grid.RowDefinitions>
 
             <!-- Voltar + título da aula -->
@@ -114,14 +121,21 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <!-- Barra de progresso do vídeo -->
+                    <!-- Barra de progresso do vídeo — com DragStarted/DragCompleted no Thumb -->
                     <Slider x:Name="SliderVideo" Grid.Row="0"
                             Minimum="0" Maximum="100" Value="0"
                             Margin="0,0,0,8"
                             Foreground="#7E6BAC"
                             Background="#3A2860"
                             ValueChanged="SliderVideo_ValueChanged"
-                            IsMoveToPointEnabled="True"/>
+                            IsMoveToPointEnabled="True">
+                        <Slider.Resources>
+                            <Style TargetType="Thumb">
+                                <EventSetter Event="DragStarted"   Handler="SliderVideo_DragStarted"/>
+                                <EventSetter Event="DragCompleted" Handler="SliderVideo_DragCompleted"/>
+                            </Style>
+                        </Slider.Resources>
+                    </Slider>
 
                     <!-- Botões e tempo -->
                     <Grid Grid.Row="1">
@@ -216,52 +230,52 @@
                                   VerticalScrollBarVisibility="Auto">
                         <Grid>
 
-                        <!-- Aba Materiais -->
-                        <StackPanel x:Name="AbaMateriais">
-                            <TextBlock Text="Material de Apoio"
+                            <!-- Aba Materiais -->
+                            <StackPanel x:Name="AbaMateriais">
+                                <TextBlock Text="Material de Apoio"
                                        Foreground="White" FontSize="14" FontWeight="SemiBold"
                                        FontFamily="Segoe UI" Margin="0,0,0,12"/>
-                            <Border Background="#3A2860" CornerRadius="8" Padding="14,10" Margin="0,0,0,8" Cursor="Hand">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="&#x1F4C4;" FontSize="18" Margin="0,0,10,0" VerticalAlignment="Center"/>
-                                    <StackPanel>
-                                        <TextBlock Text="Slides — Listas Encadeadas.pdf"
+                                <Border Background="#3A2860" CornerRadius="8" Padding="14,10" Margin="0,0,0,8" Cursor="Hand">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="&#x1F4C4;" FontSize="18" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                        <StackPanel>
+                                            <TextBlock Text="Slides — Listas Encadeadas.pdf"
                                                    Foreground="White" FontSize="13" FontFamily="Segoe UI"/>
-                                        <TextBlock Text="2,4 MB" Foreground="#9E8FC0"
+                                            <TextBlock Text="2,4 MB" Foreground="#9E8FC0"
                                                    FontSize="11" FontFamily="Segoe UI"/>
+                                        </StackPanel>
                                     </StackPanel>
-                                </StackPanel>
-                            </Border>
-                            <Border Background="#3A2860" CornerRadius="8" Padding="14,10" Margin="0,0,0,8" Cursor="Hand">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="&#x1F4C4;" FontSize="18" Margin="0,0,10,0" VerticalAlignment="Center"/>
-                                    <StackPanel>
-                                        <TextBlock Text="Exerc&#xED;cios — Aula 03.pdf"
+                                </Border>
+                                <Border Background="#3A2860" CornerRadius="8" Padding="14,10" Margin="0,0,0,8" Cursor="Hand">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="&#x1F4C4;" FontSize="18" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                        <StackPanel>
+                                            <TextBlock Text="Exerc&#xED;cios — Aula 03.pdf"
                                                    Foreground="White" FontSize="13" FontFamily="Segoe UI"/>
-                                        <TextBlock Text="1,1 MB" Foreground="#9E8FC0"
+                                            <TextBlock Text="1,1 MB" Foreground="#9E8FC0"
                                                    FontSize="11" FontFamily="Segoe UI"/>
+                                        </StackPanel>
                                     </StackPanel>
-                                </StackPanel>
-                            </Border>
-                            <Border Background="#3A2860" CornerRadius="8" Padding="14,10" Cursor="Hand">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="&#x1F517;" FontSize="18" Margin="0,0,10,0" VerticalAlignment="Center"/>
-                                    <StackPanel>
-                                        <TextBlock Text="C&#xF3;digo-fonte no GitHub"
+                                </Border>
+                                <Border Background="#3A2860" CornerRadius="8" Padding="14,10" Cursor="Hand">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="&#x1F517;" FontSize="18" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                        <StackPanel>
+                                            <TextBlock Text="C&#xF3;digo-fonte no GitHub"
                                                    Foreground="#D8CCF0" FontSize="13" FontFamily="Segoe UI"/>
-                                        <TextBlock Text="github.com/learnix/aula03"
+                                            <TextBlock Text="github.com/learnix/aula03"
                                                    Foreground="#9E8FC0" FontSize="11" FontFamily="Segoe UI"/>
+                                        </StackPanel>
                                     </StackPanel>
-                                </StackPanel>
-                            </Border>
-                        </StackPanel>
+                                </Border>
+                            </StackPanel>
 
-                        <!-- Aba Transcrição (oculta inicialmente) -->
-                        <StackPanel x:Name="AbaTranscricao" Visibility="Collapsed">
-                            <TextBlock Text="Transcri&#xE7;&#xE3;o da Aula"
+                            <!-- Aba Transcrição (oculta inicialmente) -->
+                            <StackPanel x:Name="AbaTranscricao" Visibility="Collapsed">
+                                <TextBlock Text="Transcri&#xE7;&#xE3;o da Aula"
                                        Foreground="White" FontSize="14" FontWeight="SemiBold"
                                        FontFamily="Segoe UI" Margin="0,0,0,12"/>
-                            <TextBlock TextWrapping="Wrap" Foreground="#D8CCF0"
+                                <TextBlock TextWrapping="Wrap" Foreground="#D8CCF0"
                                        FontSize="13" FontFamily="Segoe UI" LineHeight="22">
                                 <Run Foreground="#9E8FC0" FontWeight="SemiBold">00:00</Run>
                                 <Run> Ol&#xE1; pessoal! Hoje vamos falar sobre listas encadeadas, uma das estruturas de dados mais importantes da programa&#xE7;&#xE3;o.</Run>
@@ -271,57 +285,57 @@
                                 <LineBreak/><LineBreak/>
                                 <Run Foreground="#9E8FC0" FontWeight="SemiBold">03:45</Run>
                                 <Run> Diferente dos arrays, as listas encadeadas n&#xE3;o precisam de mem&#xF3;ria cont&#xED;gua, o que traz vantagens em inser&#xE7;&#xF5;es e remo&#xE7;&#xF5;es.</Run>
-                            </TextBlock>
-                        </StackPanel>
+                                </TextBlock>
+                            </StackPanel>
 
-                        <!-- Aba Anotações (oculta inicialmente) -->
-                        <StackPanel x:Name="AbaAnotacoes" Visibility="Collapsed">
-                            <TextBlock Text="Minhas Anota&#xE7;&#xF5;es"
+                            <!-- Aba Anotações (oculta inicialmente) -->
+                            <StackPanel x:Name="AbaAnotacoes" Visibility="Collapsed">
+                                <TextBlock Text="Minhas Anota&#xE7;&#xF5;es"
                                        Foreground="White" FontSize="14" FontWeight="SemiBold"
                                        FontFamily="Segoe UI" Margin="0,0,0,12"/>
-                            <TextBox x:Name="TxtAnotacoes"
+                                <TextBox x:Name="TxtAnotacoes"
                                      AcceptsReturn="True" TextWrapping="Wrap"
                                      MinHeight="120" Background="#3A2860"
                                      Foreground="White" BorderThickness="0"
                                      FontFamily="Segoe UI" FontSize="13"
                                      Padding="12" CaretBrush="White"
                                      Text="Digite suas anota&#xE7;&#xF5;es aqui...">
-                                <TextBox.Style>
-                                    <Style TargetType="TextBox">
-                                        <Setter Property="Template">
-                                            <Setter.Value>
-                                                <ControlTemplate TargetType="TextBox">
-                                                    <Border Background="{TemplateBinding Background}"
+                                    <TextBox.Style>
+                                        <Style TargetType="TextBox">
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="TextBox">
+                                                        <Border Background="{TemplateBinding Background}"
                                                             CornerRadius="8" Padding="{TemplateBinding Padding}">
-                                                        <ScrollViewer x:Name="PART_ContentHost"/>
-                                                    </Border>
-                                                </ControlTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </Style>
-                                </TextBox.Style>
-                            </TextBox>
-                            <Button Content="&#x1F4BE; Salvar Anota&#xE7;&#xF5;es"
+                                                            <ScrollViewer x:Name="PART_ContentHost"/>
+                                                        </Border>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </TextBox.Style>
+                                </TextBox>
+                                <Button Content="&#x1F4BE; Salvar Anota&#xE7;&#xF5;es"
                                     Margin="0,10,0,0" HorizontalAlignment="Right"
                                     Background="#4E3A7A" Foreground="White"
                                     BorderThickness="0" Padding="16,8"
                                     FontFamily="Segoe UI" FontSize="13" Cursor="Hand"
                                     Click="BtnSalvarAnotacoes_Click">
-                                <Button.Template>
-                                    <ControlTemplate TargetType="Button">
-                                        <Border x:Name="b" Background="{TemplateBinding Background}"
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="b" Background="{TemplateBinding Background}"
                                                 CornerRadius="8" Padding="{TemplateBinding Padding}">
-                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        </Border>
-                                        <ControlTemplate.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter TargetName="b" Property="Background" Value="#3A2860"/>
-                                            </Trigger>
-                                        </ControlTemplate.Triggers>
-                                    </ControlTemplate>
-                                </Button.Template>
-                            </Button>
-                        </StackPanel>
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="b" Property="Background" Value="#3A2860"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </StackPanel>
 
                         </Grid>
                     </ScrollViewer>

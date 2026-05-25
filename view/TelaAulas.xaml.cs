@@ -19,26 +19,51 @@ namespace Learnix
             InitializeComponent();
         }
 
+        /// <summary>
+        /// Sobrecarga compatibilizada com MainWindow.MostrarAulas (que passa nome do aluno
+        /// extraido de _usuarioLogado em vez de depender de matricula.Aluno).
+        /// </summary>
+        public void DefinirMatricula(Matricula matricula, string nomeAluno)
+        {
+            _matricula = matricula;
+            _nomeAluno = string.IsNullOrWhiteSpace(nomeAluno)
+                ? (matricula?.Aluno?.Nome ?? "Aluno")
+                : nomeAluno;
+
+            Sidebar?.DefinirAluno(_nomeAluno);
+
+            PopularDadosCurso();
+        }
+
+        /// <summary>
+        /// Mantida por compatibilidade. Usa o nome contido em matricula.Aluno (se carregado).
+        /// </summary>
         public void DefinirMatricula(Matricula matricula)
         {
             _matricula = matricula;
-            if (matricula?.Aluno != null)
+            _nomeAluno = matricula?.Aluno?.Nome ?? "Aluno";
+
+            Sidebar?.DefinirAluno(_nomeAluno);
+
+            PopularDadosCurso();
+        }
+
+        private void PopularDadosCurso()
+        {
+            if (_matricula?.Curso != null)
             {
-                _nomeAluno = matricula.Aluno.Nome;
-                Sidebar?.DefinirAluno(matricula.Aluno.Nome);
+                TxtNomeCurso.Text = _matricula.Curso.Titulo;
+                if (_matricula.Curso.Instrutor != null)
+                    TxtProfessor.Text = "Prof. " + _matricula.Curso.Instrutor.Nome;
+                if (_matricula.Curso.Categoria != null)
+                    TxtCategoria.Text = _matricula.Curso.Categoria.Nome;
+                TxtCargaHoraria.Text = _matricula.Curso.CargaHoraria + "h";
+                TxtDescricao.Text = _matricula.Curso.Descricao ?? string.Empty;
             }
 
-            if (matricula?.Curso != null)
-            {
-                TxtNomeCurso.Text = matricula.Curso.Titulo;
-                if (matricula.Curso.Instrutor != null)
-                    TxtProfessor.Text = "Prof. " + matricula.Curso.Instrutor.Nome;
-                if (matricula.Curso.Categoria != null)
-                    TxtCategoria.Text = matricula.Curso.Categoria.Nome;
-                TxtCargaHoraria.Text = matricula.Curso.CargaHoraria + "h";
-                TxtDescricao.Text = matricula.Curso.Descricao ?? string.Empty;
-            }
-            TxtProgresso.Text = ((int)Math.Round(matricula?.PercentualConcluido ?? 0)) + "%";
+            // Le o percentual do Progresso vinculado a matricula (nao do model Matricula direto)
+            double percentual = _matricula?.Progresso?.PercentualConcluido ?? 0.0;
+            TxtProgresso.Text = ((int)Math.Round(percentual)) + "%";
         }
 
         private void AulaCard_Click(object sender, MouseButtonEventArgs e)
@@ -57,7 +82,7 @@ namespace Learnix
             {
                 var player = new TelaPlayer();
                 player.DefinirAula(_matricula, aula);
-                main.MostrarTela(player);
+                main.MostrarTela(player, _nomeAluno);
             }
         }
 
@@ -80,7 +105,7 @@ namespace Learnix
             {
                 var player = new TelaPlayer();
                 player.DefinirAula(_matricula, aula);
-                main.MostrarTela(player);
+                main.MostrarTela(player, _nomeAluno);
             }
         }
 

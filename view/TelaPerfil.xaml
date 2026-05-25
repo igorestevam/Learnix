@@ -199,10 +199,10 @@
                                    FontFamily="Segoe UI" Margin="0,0,0,16"/>
 
                         <UniformGrid Columns="2">
-                            <!-- Matrícula -->
+                            <!-- Matrícula — agora com x:Name para o code-behind popular do banco -->
                             <StackPanel Margin="0,0,16,0">
                                 <TextBlock Text="MATR&#xCD;CULA" Style="{StaticResource LabelStyle}"/>
-                                <TextBox Text="2024001234"
+                                <TextBox x:Name="TxtMatricula" Text="—"
                                          Style="{StaticResource InputEditStyle}"
                                          IsReadOnly="True"
                                          Opacity="0.7"/>
@@ -230,6 +230,24 @@
                             <StackPanel>
                                 <TextBlock Text="TURNO" Style="{StaticResource LabelStyle}"/>
                                 <TextBox Text="Noturno"
+                                         Style="{StaticResource InputEditStyle}"
+                                         IsReadOnly="True"
+                                         Opacity="0.7"/>
+                            </StackPanel>
+
+                            <!-- Estilo de Aprendizagem — novo campo populado pelo code-behind -->
+                            <StackPanel Margin="0,0,16,0">
+                                <TextBlock Text="ESTILO DE APRENDIZAGEM" Style="{StaticResource LabelStyle}"/>
+                                <TextBox x:Name="TxtEstilo" Text="—"
+                                         Style="{StaticResource InputEditStyle}"
+                                         IsReadOnly="True"
+                                         Opacity="0.7"/>
+                            </StackPanel>
+
+                            <!-- Ritmo Sugerido — novo campo populado pelo code-behind -->
+                            <StackPanel>
+                                <TextBlock Text="RITMO SUGERIDO" Style="{StaticResource LabelStyle}"/>
+                                <TextBox x:Name="TxtRitmo" Text="—"
                                          Style="{StaticResource InputEditStyle}"
                                          IsReadOnly="True"
                                          Opacity="0.7"/>

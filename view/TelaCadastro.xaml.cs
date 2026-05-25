@@ -40,7 +40,8 @@ namespace Learnix
             }
 
             // Persistencia real no banco de dados via CadastroController
-            var dbContext = new LearnixDbContext();
+            // DbContext em using para liberar a conexao apos o cadastro
+            using var dbContext = new LearnixDbContext();
             var cadastroService = new CadastroService(dbContext);
             var controller = new CadastroController(cadastroService);
 
@@ -48,7 +49,8 @@ namespace Learnix
 
             if (alunoCriado == null)
             {
-                MessageBox.Show("E-mail ou matricula academica ja cadastrados. Tente outro e-mail.",
+                MessageBox.Show(
+                    "E-mail ou matricula academica ja cadastrados. Tente outro e-mail.",
                     "Learnix", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }

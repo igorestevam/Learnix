@@ -26,30 +26,43 @@ namespace Learnix.Services
                 .FirstOrDefault(m => m.Id == matriculaId);
 
             if (matricula == null || matricula.Progresso == null || matricula.Curso == null)
-            {
                 return false;
-            }
 
-            // Calcula o total de aulas existentes no curso
-            int totalAulas = 0;
-            foreach (Modulo modulo in matricula.Curso.Modulos)
-            {
-                totalAulas += modulo.Aulas.Count;
-            }
+            // Idempotencia: verifica se esta aula ja foi concluida nesta matricula.
+            // A PK composta (MatriculaId + AulaId) impede duplicatas no banco,
+            // mas verificamos antes para evitar excecao de constraint desnecessaria.
+            bool jaRegistrada = _context.AulasConcluidas
+                .Any(ac => ac.MatriculaId == matriculaId && ac.AulaId == aulaId);
+
+            if (jaRegistrada)
+                return false;
+
+            // Verifica se a aula pertence de fato a este curso
+            bool aulaExisteNoCurso = matricula.Curso.Modulos
+                .SelectMany(m => m.Aulas)
+                .Any(a => a.Id == aulaId);
+
+            if (!aulaExisteNoCurso)
+                return false;
+
+            // Registra a conclusao desta aula especifica
+            _context.AulasConcluidas.Add(new AulaConcluida(matriculaId, aulaId));
+
+            // Recalcula o progresso com base nas aulas efetivamente concluidas
+            int totalAulas = matricula.Curso.Modulos.Sum(m => m.Aulas.Count);
 
             if (totalAulas == 0)
-            {
                 return false;
-            }
 
-            // Incrementa a quantidade de aulas feitas respeitando o limite maximo
-            if (matricula.Progresso.AulasConcluidas < totalAulas)
-            {
-                matricula.Progresso.AulasConcluidas += 1;
-            }
+            // Conta diretamente do banco para garantir consistencia
+            int aulasConcluidas = _context.AulasConcluidas
+                .Count(ac => ac.MatriculaId == matriculaId);
 
-            // Atualiza os indicadores de progresso
-            double percentual = ((double)matricula.Progresso.AulasConcluidas / totalAulas) * 100.0;
+            // +1 porque o Add acima ainda nao foi salvo (SaveChanges ainda nao foi chamado)
+            int totalConcluidas = aulasConcluidas + 1;
+
+            double percentual = ((double)totalConcluidas / totalAulas) * 100.0;
+            matricula.Progresso.AulasConcluidas = totalConcluidas;
             matricula.Progresso.PercentualConcluido = percentual;
             matricula.Progresso.UltimaAtualizacao = DateTime.Now;
 

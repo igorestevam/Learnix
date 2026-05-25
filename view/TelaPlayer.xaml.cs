@@ -1,11 +1,9 @@
 using System;
-using System.IO;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Threading;
-using Microsoft.EntityFrameworkCore;
 using Learnix.data;
 using Learnix.model;
 using Learnix.Services;
@@ -40,11 +38,13 @@ namespace Learnix
             _matriculaId = matricula.Id;
             _aulaId = aula.Id;
             _nomeCurso = matricula.Curso?.Titulo ?? string.Empty;
+
             if (matricula.Aluno != null)
             {
                 _nomeAluno = matricula.Aluno.Nome;
                 Sidebar?.DefinirAluno(matricula.Aluno.Nome);
             }
+
             TxtTituloAula.Text = aula.Titulo ?? "Aula";
             TxtNomeCurso.Text = _nomeCurso;
 
@@ -78,7 +78,9 @@ namespace Learnix
 
         private void Timer_Tick(object? sender, EventArgs e)
         {
+            // Nao atualiza o slider enquanto o usuario esta arrastando
             if (VideoPlayer == null || _arrastando) return;
+
             if (VideoPlayer.NaturalDuration.HasTimeSpan)
             {
                 SliderVideo.Maximum = VideoPlayer.NaturalDuration.TimeSpan.TotalSeconds;
@@ -129,12 +131,38 @@ namespace Learnix
             VideoPlayer.Position = TimeSpan.FromSeconds(VideoPlayer.Position.TotalSeconds + 10);
         }
 
+        // ── Slider de progresso do video ─────────────────────────────────────
+
+        /// <summary>
+        /// Disparado quando o usuario COMECA a arrastar o slider.
+        /// Seta _arrastando = true para pausar as atualizacoes do timer.
+        /// Conectar no XAML: Thumb.DragStarted="SliderVideo_DragStarted"
+        /// </summary>
+        private void SliderVideo_DragStarted(object sender, DragStartedEventArgs e)
+        {
+            _arrastando = true;
+        }
+
+        /// <summary>
+        /// Disparado quando o usuario SOLTA o slider.
+        /// Aplica a nova posicao no video e libera o timer.
+        /// Conectar no XAML: Thumb.DragCompleted="SliderVideo_DragCompleted"
+        /// </summary>
+        private void SliderVideo_DragCompleted(object sender, DragCompletedEventArgs e)
+        {
+            if (VideoPlayer != null)
+                VideoPlayer.Position = TimeSpan.FromSeconds(SliderVideo.Value);
+            _arrastando = false;
+        }
+
+        /// <summary>
+        /// Disparado a cada mudanca de valor do slider.
+        /// So aplica a posicao enquanto o usuario esta arrastando (evita loop com o timer).
+        /// </summary>
         private void SliderVideo_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             if (VideoPlayer != null && _arrastando)
-            {
                 VideoPlayer.Position = TimeSpan.FromSeconds(e.NewValue);
-            }
         }
 
         private void SliderVolume_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -145,9 +173,8 @@ namespace Learnix
         private void VideoPlayer_MediaOpened(object sender, RoutedEventArgs e)
         {
             if (VideoPlayer.NaturalDuration.HasTimeSpan)
-            {
                 SliderVideo.Maximum = VideoPlayer.NaturalDuration.TimeSpan.TotalSeconds;
-            }
+
             OverlaySemVideo.Visibility = Visibility.Collapsed;
         }
 
@@ -156,14 +183,14 @@ namespace Learnix
             _isPlaying = false;
             BtnPlayPause.Content = "Play";
 
-            // Marca aula como concluida
+            // Marca aula como concluida via ProgressoService (idempotente)
             try
             {
                 using var ctx = new LearnixDbContext();
                 var progSvc = new ProgressoService(ctx);
                 progSvc.RegistrarConclusaoAula(_matriculaId, _aulaId);
             }
-            catch { /* silencioso */ }
+            catch { /* silencioso — nao interrompe a UX */ }
         }
 
         private void VideoPlayer_MediaFailed(object sender, ExceptionRoutedEventArgs e)
@@ -189,16 +216,19 @@ namespace Learnix
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Falha ao abrir video: {ex.Message}", "Erro", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show($"Falha ao abrir video: {ex.Message}", "Erro",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             }
         }
 
-        private void BtnVoltar_Click(object sender, MouseButtonEventArgs e)
+        private void BtnVoltar_Click(object sender, RoutedEventArgs e)
         {
             var main = Application.Current.MainWindow as MainWindow;
             main?.MostrarMeusCursos();
         }
+
+        // ── Abas laterais ────────────────────────────────────────────────────
 
         private void AbaMateriaisClick(object sender, MouseButtonEventArgs e)
         {
