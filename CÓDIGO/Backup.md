@@ -2123,3 +2123,128 @@ git pull origin master
 dotnet ef database update
 ```
 Depois `Ctrl+Shift+B` para compilar e `F5` para rodar.
+
+
+---
+
+## Rodada 4 — Erros pós-pull (CS1061, CS0103, CS0535, CS0246)
+
+Após o pull com os itens 31-56 aplicados, novos erros de compilação apareceram porque o code-behind referenciava elementos que não existem nas telas 100% prontas. A regra adotada foi **manter o XAML intacto e conformar o .cs aos x:Name e eventos REAIS de cada tela**.
+
+### Item 57 — view/TelaMenu.xaml.cs  (fix)
+
+**Antes (problemas):**
+- Referenciava `ListaCursos` (inexistente — XAML só tem `PainelCursos`).
+- `BtnMatricular_Click` dependia de `btn.Tag` para identificar o curso, mas o XAML não coloca Tag no botão.
+- Chamava `MatriculaService.RealizarMatricula` (nome errado — método real é `CriarMatricula`).
+
+**Depois (correções):**
+- Removida toda referência a `ListaCursos`. Filtros agora iteram `PainelCursos.Children`.
+- `BtnMatricular_Click` sobe a árvore visual com `VisualTreeHelper.GetParent` até achar o Border `CardCursoN` e usa um `Dictionary<string,string>` mapeando `CardCurso1..5` → título do curso seedado no banco.
+- Passou a chamar `new MatriculaService(ctx).CriarMatricula(_alunoLogado.Id, curso.Id)`.
+- `AplicarFiltros()` agora usa `VisualTreeHelper` para encontrar o título dentro de cada card (TextBlock em FontWeight Bold) para a busca textual.
+
+### Item 58 — view/TelaMeusCursos.xaml.cs  (fix)
+
+**Antes (problemas):**
+- Referenciava `PainelCursos` (não existe nessa XAML — só há `borda` e `Sidebar`).
+- Chamava `ProgressoService.ConcluirAula` (nome errado — método real é `RegistrarConclusaoAula`).
+
+**Depois (correções):**
+- Removida criação dinâmica de cards. `BtnContinuar_Click` e `BtnConcluir_Click` agora trabalham com a Tag do Button (id da matrícula ou nome do curso como fallback) e buscam em `_matriculas` (carregada em `DefinirAluno`).
+- `BtnConcluir_Click` percorre todos os módulos/aulas do curso e chama `progSvc.RegistrarConclusaoAula(matriculaId, aulaId)`.
+- Adicionado campo nullable `_alunoLogado` e inicialização `_matriculas = new()`.
+
+### Item 59 — view/TelaNotas.xaml.cs  (fix)
+
+**Antes (problemas):**
+- Referenciava `PainelAvaliacoes` e `TxtMediaGeral` (não existem na XAML — a tela é estática mostrando avaliações pré-renderizadas).
+
+**Depois (correções):**
+- Arquivo simplificado a apenas `DefinirMatricula(Matricula matricula)` que atualiza `Sidebar` com o nome do aluno. As avaliações exibidas vêm direto do XAML (tela já pronta).
+
+### Item 60 — view/TelaPerfil.xaml.cs  (fix)
+
+**Antes (problemas):**
+- Referenciava `TxtMatricula`, `TxtEstilo`, `TxtRitmo` (não existem na XAML).
+- Campos não nuláveis sem inicialização (`_aluno`).
+
+**Depois (correções):**
+- Removidas referências a `TxtMatricula/Estilo/Ritmo`. Os campos reais usados agora são: `TxtIniciais`, `TxtNomePerfil`, `TxtEmailPerfil`, `BtnEditar`, `BtnSalvar`, `TxtEditNome`, `TxtEditEmail`, `TxtEditTelefone`, `TxtEditNascimento`.
+- `_aluno` declarado como `Aluno?` resolvendo CS8618.
+- `BtnSalvar_Click` persiste alterações de nome/email no banco via `LearnixDbContext.Alunos.SaveChanges()` e atualiza a UI alternando `Visibility` entre Editar/Salvar e `IsReadOnly` dos TextBoxes.
+
+### Item 61 — view/TelaAulas.xaml.cs  (fix)
+
+**Antes (problemas):**
+- Referenciava `PainelModulos` (não existe na XAML).
+- `_matricula` não nullable causando CS8618.
+
+**Depois (correções):**
+- Removida toda criação dinâmica de cards (`PainelModulos`). A XAML já tem 3 cards estáticos com `MouseLeftButtonDown="AulaCard_Click"` e `Tag="1"/"2"/"3"` (ordem da aula).
+- `AulaCard_Click` e `BtnAssistir_Click` agora resolvem a ordem (int 1..N) via `fe.Tag`/`btn.Tag`, ordenam todas as aulas de todos os módulos por `Id`, e selecionam a N-ésima.
+- `_matricula` declarado `Matricula?` resolvendo o warning.
+
+### Item 62 — view/TelaPlayer.xaml.cs  (fix)
+
+**Antes (problemas):**
+- Referenciava `PainelMateriais`, `PainelTranscricao`, `PainelAnotacoes` (XAML usa `AbaMateriais`, `AbaTranscricao`, `AbaAnotacoes`).
+- `_timer` não nullable causando CS8618.
+- `Timer_Tick` com assinatura `(object sender, EventArgs e)` em vez de `(object?, EventArgs)`.
+- Chamava `progSvc.ConcluirAula` (método real é `RegistrarConclusaoAula`).
+
+**Depois (correções):**
+- Trocadas todas as referências a `Painel*` por `Aba*` correspondentes.
+- `_timer` declarado `DispatcherTimer?` e `Timer_Tick` com `object? sender` resolvendo CS8618 e CS8622.
+- `VideoPlayer_MediaEnded` chama `new ProgressoService(ctx).RegistrarConclusaoAula(_matriculaId, _aulaId)` para marcar a aula como concluída ao final do vídeo.
+- `BtnVoltar_Click` recebe `MouseButtonEventArgs` (pois XAML usa `MouseLeftButtonDown`).
+- `AbaMateriaisClick`, `AbaTranscricaoClick`, `AbaAnotacoesClick` agora apenas alternam `Visibility` dos 3 painéis (em vez de tentar acessar inexistentes).
+- `AulaLista_Click` mantido como handler vazio (placeholder).
+
+### Item 63 — repository/CertificadoRepository.cs  (fix CS0535)
+
+**Antes:**
+A classe não implementava `BuscarPorId(int id)` declarado em `ICertificadoRepository`, gerando `CS0535: 'CertificadoRepository' não implementa membro de interface 'ICertificadoRepository.BuscarPorId(int)'`.
+
+**Depois:**
+Adicionado método público:
+```csharp
+public Certificado? BuscarPorId(int id)
+{
+    return _context.Certificados
+        .Include(c => c.Matricula).ThenInclude(m => m.Aluno)
+        .Include(c => c.Matricula).ThenInclude(m => m.Curso).ThenInclude(cur => cur.Instrutor)
+        .FirstOrDefault(c => c.Id == id);
+}
+```
+Os demais métodos (`Adicionar`, `BuscarPorAluno`, `BuscarPorCodigo`, `ExisteCertificado`) foram preservados com seus `Include`/`ThenInclude` para garantir navegação profunda do grafo.
+
+### Item 64 — data/LearnixDbInitializer.cs  (feat)
+
+**Antes:**
+Seedava apenas 3 cursos (`Logica de Programacao com C#`, `Calculo I - Limites e Derivadas`, `Introducao a Filosofia`), com títulos que **não casavam** com os 5 cards estáticos exibidos em `TelaMenu.xaml`.
+
+**Depois:**
+Seed atualizado para criar **5 cursos** exatamente com os títulos exibidos nos cards:
+
+| Card        | Categoria  | Título no banco (idêntico ao XAML) |
+| ----------- | ---------- | ---------------------------------- |
+| CardCurso1  | Exatas     | `Algoritmos e Estrutura de Dados` |
+| CardCurso2  | Exatas     | `Calculo I - Limites e Derivadas` |
+| CardCurso3  | Humanas    | `Engenharia de Software`          |
+| CardCurso4  | Tecnologia | `Banco de Dados Relacional`       |
+| CardCurso5  | Tecnologia | `Programacao Orientada a Objetos em C#` |
+
+Cada curso recebe também módulos e aulas via `SeedModulosCurso` (helper que aceita tuplas `(tituloMod, (tituloAula, videoUrl, minutos)[])`).
+
+Resultado: agora `TelaMenu.BtnMatricular_Click` consegue localizar o curso correto via mapeamento `CardCursoN → Título` e a tela "Meus Cursos" pode mostrar progresso real após matrícula.
+
+---
+
+### Resumo Rodada 4 (Itens 57-64)
+
+- **6 telas** (.xaml.cs) conformadas exatamente ao XAML pronto.
+- **1 repository** com método ausente da interface implementado.
+- **1 seed** atualizado para casar com a UI das telas.
+- **Erros eliminados**: CS1061 (BtnMatricular_Click, AulaCard_Click, BtnPdf_Click, BtnBaixarPdf_Click, VideoPlayer_*, Aba*Click, BtnSalvarAnotacoes_Click), CS0103 (ListaCursos, PainelCursos, PainelAvaliacoes, PainelModulos, PainelMateriais/Transcricao/Anotacoes, TxtMediaGeral, TxtMatricula, TxtEstilo, TxtRitmo), CS0535 (BuscarPorId), e os warnings CS8618 dos campos `_timer`, `_aluno`, `_matricula`.
+
