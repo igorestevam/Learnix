@@ -1,7 +1,7 @@
-using Learnix.service;
+using Learnix.Services;
 using Learnix.model;
 
-namespace Learnix.controller
+namespace Learnix.Controllers
 {
     public class LoginController
     {
