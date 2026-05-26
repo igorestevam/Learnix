@@ -20,7 +20,6 @@ namespace Learnix.view
         public void DefinirAluno(Aluno aluno)
         {
             _aluno = aluno;
-            Sidebar.DefinirUsuario(aluno);
         }
 
         private void BtnContinuar_Click(object sender, RoutedEventArgs e)
