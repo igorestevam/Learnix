@@ -4,10 +4,6 @@ using Learnix.model;
 
 namespace Learnix.Services
 {
-    /// <summary>
-    /// Servico responsavel por persistir novos usuarios (Aluno/Instrutor) no banco.
-    /// Contem regra de negocio de unicidade de e-mail.
-    /// </summary>
     public class CadastroService : ICadastroService
     {
         private readonly LearnixDbContext _context;
@@ -19,10 +15,7 @@ namespace Learnix.Services
 
         public bool EmailExiste(string email)
         {
-            // Verifica em Alunos e Instrutores (mesma tabela TPH 'Usuarios')
-            bool existeAluno    = _context.Alunos.Any(a => a.Email == email);
-            bool existeInstrutor = _context.Instrutores.Any(i => i.Email == email);
-            return existeAluno || existeInstrutor;
+            return _context.Usuarios.Any(u => u.Email == email);
         }
 
         public Aluno? CadastrarAluno(string nome, string email, string senha, string matriculaAcademica)
@@ -36,23 +29,15 @@ namespace Learnix.Services
             if (matriculaJaExiste)
                 return null;
 
-            // Cria o perfil de aprendizagem padrao (obrigatorio pelo model — FK nao-nullable)
-            // O aluno pode personalizar depois na TelaPerfil
-            var perfil = new PerfilDeAprendizagem
-            {
-                EstiloPredominante = "Nao definido",
-                RitmoSugerido      = "Nao definido"
-            };
-            _context.PerfisDeAprendizagem.Add(perfil);
-            _context.SaveChanges(); // Salva o perfil primeiro para obter o Id gerado
-
+            // Cria o aluno LIMPO - sem perfil, sem matriculas, sem historico
+            // Cada dado (perfil, matriculas, progresso) sera adicionado conforme o aluno usa o sistema
             Aluno novoAluno = new Aluno
             {
-                Nome                    = nome,
-                Email                   = email,
-                Senha                   = senha,
-                MatriculaAcademica      = matriculaAcademica,
-                PerfilDeAprendizagemId  = perfil.Id
+                Nome                = nome,
+                Email               = email,
+                Senha               = senha,
+                MatriculaAcademica  = matriculaAcademica,
+                DataCadastro        = System.DateTime.Now,
             };
 
             _context.Alunos.Add(novoAluno);
@@ -68,11 +53,12 @@ namespace Learnix.Services
 
             Instrutor novoInstrutor = new Instrutor
             {
-                Nome         = nome,
-                Email        = email,
-                Senha        = senha,
+                Nome          = nome,
+                Email         = email,
+                Senha         = senha,
+                DataCadastro  = System.DateTime.Now,
                 Especialidade = especialidade,
-                Biografia    = string.Empty
+                Biografia     = string.Empty,
             };
 
             _context.Instrutores.Add(novoInstrutor);
