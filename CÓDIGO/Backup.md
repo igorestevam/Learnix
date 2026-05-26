@@ -2687,3 +2687,109 @@ public SidebarControl? SidebarNav => Sidebar;
 ---
 
 *Rodada 5, 6 e 7 concluidas. Total de 13 arquivos entregues.*
+
+---
+
+## Rodada 5 — Aluno nasce limpo (sem perfil/matriculas pré-criados)
+
+**Problema relatado:** ao cadastrar um aluno (ou ao fazer login com o aluno demo), ele já aparecia com informações (perfil de aprendizagem, estilo, ritmo). O aluno devia nascer sem dados — só o cadastro básico (nome, e-mail, matrícula acadêmica).
+
+**Causa raiz identificada:**
+1. `CadastroService.CadastrarAluno` criava automaticamente um `PerfilDeAprendizagem` com `EstiloPredominante = "Nao definido"` e `RitmoSugerido = "Nao definido"` e vinculava ao aluno via FK.
+2. `LearnixDbInitializer.SeedAlunoDemo` fazia o mesmo para o aluno demo.
+3. `Aluno.PerfilDeAprendizagemId` era `int` (não-nullable) — obrigando sempre a criação do perfil.
+
+---
+
+### Item 65 — model/Aluno.cs  (fix)
+
+**Antes:**
+```csharp
+public int PerfilDeAprendizagemId { get; set; }
+public PerfilDeAprendizagem Perfil { get; set; } = null!;
+```
+
+**Depois:**
+```csharp
+public int? PerfilDeAprendizagemId { get; set; }
+public PerfilDeAprendizagem? Perfil { get; set; }
+```
+Agora o perfil é opcional — o aluno pode existir sem ele.
+
+---
+
+### Item 66 — service/CadastroService.cs  (fix)
+
+**Antes:** `CadastrarAluno` criava um `PerfilDeAprendizagem` na hora do cadastro:
+```csharp
+var perfil = new PerfilDeAprendizagem { EstiloPredominante = "Nao definido", RitmoSugerido = "Nao definido" };
+_context.PerfisDeAprendizagem.Add(perfil);
+_context.SaveChanges();
+// ... new Aluno { ..., PerfilDeAprendizagemId = perfil.Id }
+```
+
+**Depois:** aluno é criado limpo — sem perfil, sem matrículas, sem histórico:
+```csharp
+Aluno novoAluno = new Aluno
+{
+    Nome               = nome,
+    Email              = email,
+    Senha              = senha,
+    MatriculaAcademica = matriculaAcademica,
+    DataCadastro       = DateTime.Now,
+};
+_context.Alunos.Add(novoAluno);
+_context.SaveChanges();
+```
+Perfil, matrículas e progresso são adicionados conforme o aluno usa o sistema.
+
+---
+
+### Item 67 — data/LearnixDbInitializer.cs  (fix)
+
+**Antes:** `SeedAlunoDemo` criava o aluno demo com `PerfilDeAprendizagem` pré-preenchido.
+
+**Depois:** Aluno demo criado limpo — apenas dados de cadastro básicos:
+```csharp
+ctx.Alunos.Add(new Aluno
+{
+    Nome               = "Aluno Demo",
+    Email              = "demo@learnix.com",
+    Senha              = "123456",
+    DataCadastro       = DateTime.Now,
+    MatriculaAcademica = "DEMO001"
+});
+```
+
+---
+
+### Item 68 — Migrations/20260525210240_PerfilNullable.cs  (feat/migration)
+
+Nova migration que altera o banco de dados:
+- `PerfilDeAprendizagemId` na tabela `Alunos` passa de `int NOT NULL` para `int NULL`.
+- O índice único é recriado com filtro `WHERE PerfilDeAprendizagemId IS NOT NULL` (garante unicidade só para perfis existentes).
+
+---
+
+### Item 69 — Migrations/LearnixDbContextModelSnapshot.cs  (fix)
+
+Snapshot atualizado para refletir:
+- `b.Property<int?>("PerfilDeAprendizagemId")` (era `int`).
+- FK com `.IsRequired(false)` e `.OnDelete(DeleteBehavior.SetNull)` (era `IsRequired()` + `Cascade`).
+
+---
+
+### Como aplicar no banco
+
+Após fazer `git pull origin master` no Windows, rode:
+```bash
+dotnet ef database drop -f      # apaga DB antigo (que tinha alunos com perfil obrigatório)
+dotnet ef database update       # recria com o schema novo (PerfilDeAprendizagemId nullable)
+```
+Ou, se quiser manter os dados existentes:
+```bash
+dotnet ef database update       # aplica só a nova migration PerfilNullable
+```
+
+**Resultado:** Novo aluno cadastrado → aparece sem perfil de aprendizagem, sem cursos, sem notas. Cada informação é adicionada à medida que o aluno usa o sistema (matricula-se em curso → aparece em Meus Cursos; assiste aula → progresso registrado; etc.).
+
