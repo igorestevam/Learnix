@@ -2,13 +2,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Media;
 using Learnix.data;
 using Learnix.model;
 using Microsoft.EntityFrameworkCore;
 
-namespace Learnix
+namespace Learnix.view
 {
     public partial class TelaMenu : UserControl
     {
@@ -110,20 +109,27 @@ namespace Learnix
 
         private void TxtBusca_GotFocus(object sender, RoutedEventArgs e)
         {
-            if (TxtBusca.Text == PlaceholderBusca)
-            {
-                TxtBusca.Text = "";
-                TxtBusca.Foreground = new SolidColorBrush(Colors.White);
-            }
+            _aluno = aluno;
+            // Sidebar is set by MainWindow via ConectarSidebar
         }
 
-        private void TxtBusca_LostFocus(object sender, RoutedEventArgs e)
+        private void FiltrarCards(string busca)
         {
-            if (string.IsNullOrWhiteSpace(TxtBusca.Text))
+            var cards = new[] { CardCurso1, CardCurso2, CardCurso3, CardCurso4, CardCurso5 };
+            var nomes = new[] {
+                "algoritmos e estrutura de dados",
+                "calculo i - limites e derivadas",
+                "engenharia de software",
+                "banco de dados relacional",
+                "programacao orientada a objetos em c#"
+            };
+            var categorias = new[] { "Exatas", "Exatas", "Humanas", "Tecnologia", "Tecnologia" };
+
+            for (int i = 0; i < cards.Length; i++)
             {
-                TxtBusca.Text = PlaceholderBusca;
-                TxtBusca.Foreground = new SolidColorBrush(
-                    (Color)ColorConverter.ConvertFromString("#9E8FC0"));
+                bool matchBusca = string.IsNullOrEmpty(busca) || nomes[i].Contains(busca);
+                bool matchFiltro = _filtroAtivo == "Todos" || categorias[i] == _filtroAtivo;
+                cards[i].Visibility = (matchBusca && matchFiltro) ? Visibility.Visible : Visibility.Collapsed;
             }
         }
 
@@ -145,7 +151,7 @@ namespace Learnix
         private void FiltroTecnologia_Click(object sender, MouseButtonEventArgs e)
             => AtivarCategoria("Tecnologia");
 
-        private void AtivarCategoria(string categoria)
+        private void BtnMatricular_Click(object sender, RoutedEventArgs e)
         {
             _categoriaAtiva = categoria;
             var inativa = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2A2040"));

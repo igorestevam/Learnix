@@ -8,7 +8,7 @@ using Learnix.data;
 using Learnix.model;
 using Microsoft.EntityFrameworkCore;
 
-namespace Learnix
+namespace Learnix.view
 {
     public partial class TelaMeusCursos : UserControl
     {
@@ -124,6 +124,9 @@ namespace Learnix
                     main?.MostrarAulas(matricula);
                 }
             }
+
+            if (Window.GetWindow(this) is MainWindow mw)
+                mw.MostrarAulas(matricula);
         }
     }
 

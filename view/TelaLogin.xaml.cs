@@ -1,9 +1,9 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Learnix.Controllers;
 using Learnix.data;
 using Learnix.model;
-using Learnix.Controllers;
 using Learnix.Services;
 
 namespace Learnix
@@ -13,7 +13,7 @@ namespace Learnix
         public event RoutedEventHandler? SolicitarCadastro;
         public event RoutedEventHandler? SolicitarRecuperacaoSenha;
 
-        // Passa o objeto Usuario autenticado após login bem-sucedido
+        // Passa o objeto Usuario autenticado apos login bem-sucedido
         public delegate void HomeHandler(object sender, RoutedEventArgs e, Usuario usuario);
         public event HomeHandler? SolicitarHome;
 
@@ -30,22 +30,25 @@ namespace Learnix
             if (string.IsNullOrEmpty(codigoAcesso) || string.IsNullOrEmpty(senha))
             {
                 MessageBox.Show("Por favor, preencha todos os campos.",
-                    "Atenção", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    "Atencao", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            var dbContext = new LearnixDbContext();
+            // DbContext em using para liberar a conexao apos o login
+            using var dbContext = new LearnixDbContext();
             var authService = new AuthService(dbContext);
             var controller = new LoginController(authService);
 
-            Usuario usuarioAutenticado = authService.RealizarLogin(codigoAcesso, senha);
+            // Agora usamos o controller (e nao mais o service direto) — padrao MVC
+            Usuario? usuarioAutenticado = controller.AutenticarUsuario(codigoAcesso, senha);
+
             if (usuarioAutenticado != null)
             {
                 SolicitarHome?.Invoke(this, new RoutedEventArgs(), usuarioAutenticado);
             }
             else
             {
-                MessageBox.Show("Usuário ou senha inválidos.",
+                MessageBox.Show("Usuario ou senha invalidos.",
                     "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }

@@ -25,6 +25,9 @@ namespace Learnix
         // Mantido por compatibilidade
         public void DefinirMatricula(Matricula? matricula)
         {
+            if (matricula?.Aluno != null)
+                Sidebar?.DefinirAluno(matricula.Aluno.Nome);
+
             if (matricula == null) return;
             Sidebar.DefinirAluno(matricula.Aluno?.Nome ?? "Aluno");
             CarregarNotas(matricula.AlunoId);

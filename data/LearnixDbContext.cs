@@ -8,12 +8,16 @@ namespace Learnix.data
         public DbSet<Usuario> Usuarios { get; set; } = null!;
         public DbSet<Aluno> Alunos { get; set; } = null!;
         public DbSet<Instrutor> Instrutores { get; set; } = null!;
+
         public DbSet<PerfilDeAprendizagem> PerfisDeAprendizagem { get; set; } = null!;
+
+        // Hierarquia de Curso (TPH → tabela unica "Cursos" + coluna discriminador)
         public DbSet<Curso> Cursos { get; set; } = null!;
         public DbSet<CursoExatas> CursosExatas { get; set; } = null!;
         public DbSet<CursoHumanas> CursosHumanas { get; set; } = null!;
-        public DbSet<Matricula> Matriculas { get; set; } = null!;
+
         public DbSet<Categoria> Categorias { get; set; } = null!;
+        public DbSet<Matricula> Matriculas { get; set; } = null!;
         public DbSet<Modulo> Modulos { get; set; } = null!;
         public DbSet<Aula> Aulas { get; set; } = null!;
         public DbSet<Avaliacao> Avaliacoes { get; set; } = null!;
@@ -32,6 +36,10 @@ namespace Learnix.data
                     "Server=(localdb)\\mssqllocaldb;Database=MyDatabase;Trusted_Connection=True;");
             }
         }
+
+        // ──────────────────────────────────────────────────────────────
+        // Mapeamento do modelo
+        // ──────────────────────────────────────────────────────────────
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -100,6 +108,25 @@ namespace Learnix.data
                 .HasOne(m => m.Certificado)
                 .WithOne(c => c.Matricula)
                 .HasForeignKey<Certificado>(c => c.MatriculaId);
+
+            // ── 14. AulaConcluida — PK composta (MatriculaId + AulaId) ──
+            // Garante que a mesma aula so pode ser concluida uma vez por matricula.
+            modelBuilder.Entity<AulaConcluida>()
+                .HasKey(ac => new { ac.MatriculaId, ac.AulaId });
+
+            // AulaConcluida → Matricula (Restrict: historico nao e apagado com a matricula)
+            modelBuilder.Entity<AulaConcluida>()
+                .HasOne(ac => ac.Matricula)
+                .WithMany()
+                .HasForeignKey(ac => ac.MatriculaId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // AulaConcluida → Aula (Restrict: historico nao e apagado ao remover aula)
+            modelBuilder.Entity<AulaConcluida>()
+                .HasOne(ac => ac.Aula)
+                .WithMany()
+                .HasForeignKey(ac => ac.AulaId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

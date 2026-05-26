@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -46,7 +46,7 @@ namespace Learnix
             if (string.IsNullOrEmpty(nome) || string.IsNullOrEmpty(email) ||
                 string.IsNullOrEmpty(senha) || string.IsNullOrEmpty(confirmar))
             {
-                MessageBox.Show("Preencha todos os campos.", "Atenção",
+                MessageBox.Show("Preencha todos os campos.", "Atencao",
                     MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
@@ -60,7 +60,7 @@ namespace Learnix
 
             if (senha != confirmar)
             {
-                MessageBox.Show("As senhas não coincidem.", "Atenção",
+                MessageBox.Show("As senhas nao coincidem.", "Atencao",
                     MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }

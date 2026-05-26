@@ -2,12 +2,11 @@ using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using Learnix.data;
 using Learnix.model;
 using Microsoft.EntityFrameworkCore;
 
-namespace Learnix
+namespace Learnix.view
 {
     public partial class TelaPerfil : UserControl
     {
@@ -70,7 +69,7 @@ namespace Learnix
             TxtAprovados.Text = aprovados.ToString();
         }
 
-        private void BtnEditar_Click(object sender, RoutedEventArgs e)
+        private void CarregarDados()
         {
             var corEdicao = new SolidColorBrush(
                 (Color)ColorConverter.ConvertFromString("#4E3A7A"));

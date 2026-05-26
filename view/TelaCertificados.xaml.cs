@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -7,14 +6,14 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
-// Alias para não conflitar com Learnix.model.Certificado
+// Alias para nao conflitar com Learnix.model.Certificado
 using CertModel = Learnix.model.Certificado;
 
 namespace Learnix
 {
     /// <summary>
-    /// DTO de exibição do certificado na UI.
-    /// Separado do model para não conflitar com Learnix.model.Certificado.
+    /// DTO de exibicao do certificado na UI.
+    /// Separado do model para nao conflitar com Learnix.model.Certificado.
     /// </summary>
     public class CertificadoVM
     {
@@ -32,8 +31,8 @@ namespace Learnix
         private CertificadoVM? _certAtual;
         private string _nomeAluno = "Aluno";
 
-        // Expõe a Sidebar para a MainWindow conectar os eventos de navegação
-        public SidebarControl? SidebarNav => FindName("Sidebar") as SidebarControl;
+        // Acessa Sidebar diretamente (x:Name no XAML) em vez de FindName — mais simples e consistente
+        public SidebarControl? SidebarNav => Sidebar;
 
         public TelaCertificados()
         {
@@ -44,12 +43,11 @@ namespace Learnix
 
         /// <summary>
         /// Define o aluno logado e carrega seus certificados reais do banco.
-        /// Substitui a lista em memória (CertificadosSessao) pelo banco de dados.
         /// </summary>
         public void DefinirAluno(Learnix.model.Aluno aluno)
         {
             _nomeAluno = aluno.Nome;
-            SidebarNav?.DefinirAluno(aluno.Nome);
+            Sidebar?.DefinirAluno(aluno.Nome);
 
             var certs = aluno.HistoricoMatriculas?
                 .Where(m => m.Certificado != null)
@@ -61,6 +59,7 @@ namespace Learnix
         }
 
         // ── Carregar certificados reais vindos do banco ──────────────────────
+
         public void CarregarDoBanco(List<CertModel> certs)
         {
             _certificados.Clear();
@@ -68,12 +67,12 @@ namespace Learnix
             {
                 _certificados.Add(new CertificadoVM
                 {
-                    NomeAluno  = c.Matricula?.Aluno?.Nome ?? "Aluno",
-                    NomeCurso  = c.Matricula?.Curso?.Titulo ?? "Curso",
-                    Professor  = c.Matricula?.Curso?.Instrutor?.Nome ?? "Instrutor",
+                    NomeAluno = c.Matricula?.Aluno?.Nome ?? "Aluno",
+                    NomeCurso = c.Matricula?.Curso?.Titulo ?? "Curso",
+                    Professor = c.Matricula?.Curso?.Instrutor?.Nome ?? "Instrutor",
                     CargaHoraria = (c.Matricula?.Curso?.CargaHoraria.ToString() ?? "0") + "h",
                     DataConclusao = c.DataEmissao.ToString("dd/MM/yyyy"),
-                    Codigo     = c.CodigoCertificado ?? "LX-000000"
+                    Codigo = c.CodigoCertificado ?? "LX-000000"
                 });
             }
         }
@@ -81,7 +80,7 @@ namespace Learnix
         private void AtualizarEstado()
         {
             bool vazio = _certificados.Count == 0;
-            PainelVazio.Visibility   = vazio ? Visibility.Visible  : Visibility.Collapsed;
+            PainelVazio.Visibility = vazio ? Visibility.Visible : Visibility.Collapsed;
             ListaCertificados.Visibility = vazio ? Visibility.Collapsed : Visibility.Visible;
             TxtTotalCerts.Text = _certificados.Count.ToString();
         }
@@ -97,21 +96,22 @@ namespace Learnix
         private void MostrarCertificado(CertificadoVM cert)
         {
             _certAtual = cert;
-            CertNomeAluno.Text   = cert.NomeAluno;
-            CertNomeCurso.Text   = cert.NomeCurso;
-            CertProfessor.Text   = cert.Professor;
-            CertCargaHoraria.Text = "com carga horária de " + cert.CargaHoraria;
-            CertData.Text        = cert.DataConclusao;
-            CertCodigo.Text      = cert.Codigo;
 
-            PainelLista.Visibility        = Visibility.Collapsed;
-            PainelCertificado.Visibility  = Visibility.Visible;
+            CertNomeAluno.Text = cert.NomeAluno;
+            CertNomeCurso.Text = cert.NomeCurso;
+            CertProfessor.Text = cert.Professor;
+            CertCargaHoraria.Text = "com carga horaria de " + cert.CargaHoraria;
+            CertData.Text = cert.DataConclusao;
+            CertCodigo.Text = cert.Codigo;
+
+            PainelLista.Visibility = Visibility.Collapsed;
+            PainelCertificado.Visibility = Visibility.Visible;
         }
 
         private void BtnVoltarLista_Click(object sender, MouseButtonEventArgs e)
         {
             PainelCertificado.Visibility = Visibility.Collapsed;
-            PainelLista.Visibility       = Visibility.Visible;
+            PainelLista.Visibility = Visibility.Visible;
         }
 
         // ── Imprimir / salvar como PDF ───────────────────────────────────────
@@ -133,7 +133,7 @@ namespace Learnix
 
         private void BtnBaixarPdf_Click(object sender, RoutedEventArgs e)
         {
-            // Mesmo comportamento: imprimir/salvar como PDF
+            // Mesmo comportamento: imprimir / salvar como PDF
             BtnPdf_Click(sender, e);
         }
     }

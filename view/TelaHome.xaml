@@ -35,9 +35,6 @@
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="borda" Property="Background" Value="#3A2860"/>
                             </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="borda" Property="Background" Value="#2C1F4A"/>
-                            </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
@@ -67,7 +64,7 @@
                            Foreground="#9E8FC0" FontSize="12"
                            FontFamily="Segoe UI" Margin="0,0,0,26"/>
 
-                <!-- Cards de resumo -->
+                <!-- Cards de resumo — x:Name para popular do banco -->
                 <UniformGrid Columns="3" Margin="0,0,0,28">
                     <Border Style="{StaticResource CardResumoStyle}" Margin="0,0,14,0">
                         <StackPanel>

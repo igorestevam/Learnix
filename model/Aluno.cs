@@ -13,8 +13,8 @@ namespace Learnix.model
         public string MatriculaAcademica { get; set; } = null!;
 
         // Exibido na TelaPerfil — estilo de aprendizagem do aluno (1 para 1)
-        public int PerfilDeAprendizagemId { get; set; }
-        public PerfilDeAprendizagem Perfil { get; set; } = null!;
+        public int? PerfilDeAprendizagemId { get; set; }
+        public PerfilDeAprendizagem? Perfil { get; set; }
 
         // Histórico completo de matrículas — base para TelaMeusCursos, TelaNotas e TelaCertificados
         public List<Matricula> HistoricoMatriculas { get; set; } = null!;

@@ -44,7 +44,7 @@
                            Foreground="#9E8FC0" FontSize="12"
                            FontFamily="Segoe UI" Margin="0,6,0,24"/>
 
-                <!-- Cards resumo -->
+                <!-- Cards resumo — x:Name para popular do banco -->
                 <UniformGrid Columns="3" Margin="0,0,0,28">
                     <Border Background="#2A2040" CornerRadius="12" Padding="20,16" Margin="0,0,14,0">
                         <StackPanel>

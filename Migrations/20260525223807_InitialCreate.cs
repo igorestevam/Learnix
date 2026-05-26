@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Learnix.Migrations
 {
     /// <inheritdoc />
-    public partial class Inicial_Learnix : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -49,7 +49,7 @@ namespace Learnix.Migrations
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Senha = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     DataCadastro = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Discriminator = table.Column<string>(type: "nvarchar(13)", maxLength: 13, nullable: false),
+                    TipoUsuario = table.Column<string>(type: "nvarchar(13)", maxLength: 13, nullable: false),
                     MatriculaAcademica = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     PerfilDeAprendizagemId = table.Column<int>(type: "int", nullable: true),
                     Especialidade = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -78,7 +78,7 @@ namespace Learnix.Migrations
                     Preco = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     CategoriaId = table.Column<int>(type: "int", nullable: false),
                     InstrutorId = table.Column<int>(type: "int", nullable: false),
-                    Discriminator = table.Column<string>(type: "nvarchar(13)", maxLength: 13, nullable: false),
+                    TipoCurso = table.Column<string>(type: "nvarchar(8)", maxLength: 8, nullable: false),
                     PossuiLaboratorioVirtual = table.Column<bool>(type: "bit", nullable: true),
                     FerramentaSoftwareSugerida = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ExigeMonografia = table.Column<bool>(type: "bit", nullable: true),
@@ -238,10 +238,40 @@ namespace Learnix.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "AulasConcluidas",
+                columns: table => new
+                {
+                    MatriculaId = table.Column<int>(type: "int", nullable: false),
+                    AulaId = table.Column<int>(type: "int", nullable: false),
+                    DataConclusao = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AulasConcluidas", x => new { x.MatriculaId, x.AulaId });
+                    table.ForeignKey(
+                        name: "FK_AulasConcluidas_Aulas_AulaId",
+                        column: x => x.AulaId,
+                        principalTable: "Aulas",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_AulasConcluidas_Matriculas_MatriculaId",
+                        column: x => x.MatriculaId,
+                        principalTable: "Matriculas",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_Aulas_ModuloId",
                 table: "Aulas",
                 column: "ModuloId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AulasConcluidas_AulaId",
+                table: "AulasConcluidas",
+                column: "AulaId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Avaliacoes_MatriculaId",
@@ -297,7 +327,7 @@ namespace Learnix.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Aulas");
+                name: "AulasConcluidas");
 
             migrationBuilder.DropTable(
                 name: "Avaliacoes");
@@ -309,10 +339,13 @@ namespace Learnix.Migrations
                 name: "Progressos");
 
             migrationBuilder.DropTable(
-                name: "Modulos");
+                name: "Aulas");
 
             migrationBuilder.DropTable(
                 name: "Matriculas");
+
+            migrationBuilder.DropTable(
+                name: "Modulos");
 
             migrationBuilder.DropTable(
                 name: "Cursos");

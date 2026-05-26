@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Learnix.Migrations
 {
     [DbContext(typeof(LearnixDbContext))]
-    [Migration("20260522111459_Inicial_Learnix")]
-    partial class Inicial_Learnix
+    [Migration("20260525223807_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -55,6 +55,24 @@ namespace Learnix.Migrations
                     b.HasIndex("ModuloId");
 
                     b.ToTable("Aulas");
+                });
+
+            modelBuilder.Entity("Learnix.model.AulaConcluida", b =>
+                {
+                    b.Property<int>("MatriculaId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AulaId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DataConclusao")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("MatriculaId", "AulaId");
+
+                    b.HasIndex("AulaId");
+
+                    b.ToTable("AulasConcluidas");
                 });
 
             modelBuilder.Entity("Learnix.model.Avaliacao", b =>
@@ -150,16 +168,16 @@ namespace Learnix.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Discriminator")
-                        .IsRequired()
-                        .HasMaxLength(13)
-                        .HasColumnType("nvarchar(13)");
-
                     b.Property<int>("InstrutorId")
                         .HasColumnType("int");
 
                     b.Property<decimal>("Preco")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("TipoCurso")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
 
                     b.Property<string>("Titulo")
                         .IsRequired()
@@ -173,7 +191,7 @@ namespace Learnix.Migrations
 
                     b.ToTable("Cursos");
 
-                    b.HasDiscriminator<string>("Discriminator").HasValue("Curso");
+                    b.HasDiscriminator<string>("TipoCurso").HasValue("Curso");
 
                     b.UseTphMappingStrategy();
                 });
@@ -292,11 +310,6 @@ namespace Learnix.Migrations
                     b.Property<DateTime>("DataCadastro")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Discriminator")
-                        .IsRequired()
-                        .HasMaxLength(13)
-                        .HasColumnType("nvarchar(13)");
-
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -309,11 +322,16 @@ namespace Learnix.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("TipoUsuario")
+                        .IsRequired()
+                        .HasMaxLength(13)
+                        .HasColumnType("nvarchar(13)");
+
                     b.HasKey("Id");
 
                     b.ToTable("Usuarios");
 
-                    b.HasDiscriminator<string>("Discriminator").HasValue("Usuario");
+                    b.HasDiscriminator<string>("TipoUsuario").HasValue("Usuario");
 
                     b.UseTphMappingStrategy();
                 });
@@ -329,7 +347,7 @@ namespace Learnix.Migrations
                     b.Property<bool>("PossuiLaboratorioVirtual")
                         .HasColumnType("bit");
 
-                    b.HasDiscriminator().HasValue("CursoExatas");
+                    b.HasDiscriminator().HasValue("Exatas");
                 });
 
             modelBuilder.Entity("Learnix.model.CursoHumanas", b =>
@@ -342,7 +360,7 @@ namespace Learnix.Migrations
                     b.Property<int>("QuantidadeLivrosObrigatorios")
                         .HasColumnType("int");
 
-                    b.HasDiscriminator().HasValue("CursoHumanas");
+                    b.HasDiscriminator().HasValue("Humanas");
                 });
 
             modelBuilder.Entity("Learnix.model.Aluno", b =>
@@ -387,6 +405,25 @@ namespace Learnix.Migrations
                         .IsRequired();
 
                     b.Navigation("Modulo");
+                });
+
+            modelBuilder.Entity("Learnix.model.AulaConcluida", b =>
+                {
+                    b.HasOne("Learnix.model.Aula", "Aula")
+                        .WithMany()
+                        .HasForeignKey("AulaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Learnix.model.Matricula", "Matricula")
+                        .WithMany()
+                        .HasForeignKey("MatriculaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Aula");
+
+                    b.Navigation("Matricula");
                 });
 
             modelBuilder.Entity("Learnix.model.Avaliacao", b =>

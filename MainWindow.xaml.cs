@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using Learnix.data;
@@ -128,6 +130,13 @@ namespace Learnix
 
             string nome = aluno?.Nome ?? _usuarioLogado?.Nome ?? nomeAluno;
             tela.Sidebar.DefinirAluno(nome);
+
+            // Passa o usuario para que a TelaMenu possa criar matriculas em nome dele
+            if (_usuarioLogado is Aluno aluno)
+            {
+                tela.DefinirAluno(aluno);
+            }
+
             ConectarSidebar(tela.Sidebar, nome);
             conteudoPrincipal.Content = tela;
         }
@@ -217,14 +226,23 @@ namespace Learnix
             sidebar.SolicitarPerfil += (s, e) => MostrarPerfil(nomeAluno);
             sidebar.SolicitarSair += (s, e) =>
             {
-                var r = MessageBox.Show("Deseja sair da sua conta?", "Learnix",
-                    MessageBoxButton.YesNo, MessageBoxImage.Question);
-                if (r == MessageBoxResult.Yes)
+                if (_usuarioLogado is Aluno aluno)
                 {
-                    _usuarioLogado = null;
-                    AjustarJanela(500, 480, false);
-                    MostrarLogin();
+                    // Recarrega para garantir avaliacoes atualizadas
+                    var alunoAtualizado = RecarregarAlunoCompleto(aluno.Id) ?? aluno;
+                    _usuarioLogado = alunoAtualizado;
+
+                    var primeira = alunoAtualizado.HistoricoMatriculas?.FirstOrDefault();
+                    if (primeira != null) MostrarNotas(primeira);
                 }
+            };
+            sidebar.SolicitarCertificados += (s, e) => MostrarCertificados(nomeAluno);
+            sidebar.SolicitarPerfil += (s, e) => MostrarPerfil(nomeAluno);
+            sidebar.SolicitarSair += (s, e) =>
+            {
+                _usuarioLogado = null;
+                AjustarJanela(500, 480, false);
+                MostrarLogin();
             };
         }
 
@@ -273,10 +291,14 @@ namespace Learnix
 
         private void AjustarJanela(double width, double height, bool comMinimo = true)
         {
-            Width = width;
-            Height = height;
-            if (comMinimo) { MinWidth = 900; MinHeight = 600; }
-            else { MinWidth = 0; MinHeight = 0; }
+            this.Width = width;
+            this.Height = height;
+            if (comMinimo)
+            {
+                this.MinWidth = width;
+                this.MinHeight = height;
+            }
+            this.WindowState = WindowState.Normal;
         }
     }
 }
