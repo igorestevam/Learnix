@@ -6,12 +6,16 @@ namespace Learnix
 {
     public partial class SidebarControl : UserControl
     {
-        public event EventHandler SolicitarMenu;
+        public event EventHandler SolicitarHome;
+        public event EventHandler SolicitarBuscarCursos;
         public event EventHandler SolicitarNotas;
         public event EventHandler SolicitarMeusCursos;
         public event EventHandler SolicitarCertificados;
         public event EventHandler SolicitarPerfil;
         public event EventHandler SolicitarSair;
+
+        // Mantido por compatibilidade com código antigo que usa SolicitarMenu
+        public event EventHandler SolicitarMenu;
 
         public SidebarControl()
         {
@@ -23,8 +27,13 @@ namespace Learnix
             TxtNomeAluno.Text = nome;
         }
 
-        private void BtnMenu_Click(object sender, RoutedEventArgs e)
-            => SolicitarMenu?.Invoke(this, EventArgs.Empty);
+        private void BtnHome_Click(object sender, RoutedEventArgs e)
+        {
+            SolicitarHome?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void BtnBuscarCursos_Click(object sender, RoutedEventArgs e)
+            => SolicitarBuscarCursos?.Invoke(this, EventArgs.Empty);
 
         private void BtnNotas_Click(object sender, RoutedEventArgs e)
             => SolicitarNotas?.Invoke(this, EventArgs.Empty);

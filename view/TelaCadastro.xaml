@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d"
-             d:DesignHeight="480" d:DesignWidth="500">
+             d:DesignHeight="560" d:DesignWidth="500">
 
     <UserControl.Resources>
 
@@ -73,11 +73,18 @@
             </Setter>
         </Style>
 
+        <Style x:Key="TipoBtnStyle" TargetType="Border">
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="16,8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+        </Style>
+
     </UserControl.Resources>
 
     <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
         <Border Background="#7E6BAC" CornerRadius="8"
-                Width="400" Height="400" Padding="20">
+                Width="400" Padding="20">
 
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
 
@@ -89,13 +96,39 @@
 
                 <TextBlock Text="Criar conta" FontSize="15" FontWeight="Bold"
                            Foreground="White" HorizontalAlignment="Center"
-                           Margin="0,0,0,8"/>
+                           Margin="0,0,0,12"/>
+
+                <!-- Seletor de tipo -->
+                <TextBlock Text="Tipo de conta:" Foreground="WhiteSmoke"
+                           FontSize="12" Margin="0,0,0,6"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,10">
+                    <Border x:Name="BtnTipoAluno" Style="{StaticResource TipoBtnStyle}"
+                            Background="#4E3A7A"
+                            MouseLeftButtonDown="TipoAluno_Click">
+                        <TextBlock Text="&#x1F393; Aluno" Foreground="White"
+                                   FontFamily="Segoe UI" FontSize="12"/>
+                    </Border>
+                    <Border x:Name="BtnTipoInstrutor" Style="{StaticResource TipoBtnStyle}"
+                            Background="#3A2060"
+                            MouseLeftButtonDown="TipoInstrutor_Click">
+                        <TextBlock Text="&#x1F4DA; Instrutor" Foreground="#D8CCF0"
+                                   FontFamily="Segoe UI" FontSize="12"/>
+                    </Border>
+                </StackPanel>
 
                 <TextBlock Text="Nome completo:" Foreground="WhiteSmoke" FontSize="12" Margin="0,0,0,4"/>
                 <TextBox x:Name="txtNome" Style="{StaticResource InputStyle}" Margin="0,0,0,6"/>
 
                 <TextBlock Text="E-mail:" Foreground="WhiteSmoke" FontSize="12" Margin="0,8,0,4"/>
                 <TextBox x:Name="txtEmail" Style="{StaticResource InputStyle}" Margin="0,0,0,6"/>
+
+                <!-- Campo especialidade — só aparece para Instrutor -->
+                <StackPanel x:Name="PainelEspecialidade" Visibility="Collapsed">
+                    <TextBlock Text="Especialidade:" Foreground="WhiteSmoke"
+                               FontSize="12" Margin="0,8,0,4"/>
+                    <TextBox x:Name="txtEspecialidade" Style="{StaticResource InputStyle}"
+                             Margin="0,0,0,6"/>
+                </StackPanel>
 
                 <TextBlock Text="Senha:" Foreground="WhiteSmoke" FontSize="12" Margin="0,8,0,4"/>
                 <PasswordBox x:Name="txtSenha" Style="{StaticResource PasswordStyle}" Margin="0,0,0,6"/>
@@ -113,7 +146,6 @@
                            MouseLeftButtonDown="LnkVoltar_Click"/>
 
             </StackPanel>
-
         </Border>
     </Grid>
 </UserControl>
