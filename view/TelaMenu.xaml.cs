@@ -5,7 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using Learnix.data;
 using Learnix.model;
-using Learnix.service;
+using Learnix.Services;
 
 namespace Learnix.view
 {
