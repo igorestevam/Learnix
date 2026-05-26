@@ -49,27 +49,17 @@ namespace Learnix.data
         {
             if (ctx.Alunos.Any(a => a.MatriculaAcademica == "DEMO001")) return;
 
-            // Cria o perfil de aprendizagem padrao antes do aluno (FK nao-nullable)
-            var perfil = new PerfilDeAprendizagem
-            {
-                EstiloPredominante = "Visual",
-                RitmoSugerido      = "Regular"
-            };
-            ctx.PerfisDeAprendizagem.Add(perfil);
-            ctx.SaveChanges();
-
+            // Cria o aluno demo LIMPO - sem perfil, sem matriculas, sem historico pre-preenchido
             ctx.Alunos.Add(new Aluno
             {
-                Nome                   = "Aluno Demo",
-                Email                  = "demo@learnix.com",
-                Senha                  = "123456",
-                DataCadastro           = DateTime.Now,
-                MatriculaAcademica     = "DEMO001",
-                PerfilDeAprendizagemId = perfil.Id
+                Nome               = "Aluno Demo",
+                Email              = "demo@learnix.com",
+                Senha              = "123456",
+                DataCadastro       = DateTime.Now,
+                MatriculaAcademica = "DEMO001"
             });
             ctx.SaveChanges();
         }
-
         private static void SeedCursos(LearnixDbContext ctx)
         {
             if (ctx.Cursos.Any()) return;
