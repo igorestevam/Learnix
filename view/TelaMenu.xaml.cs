@@ -14,26 +14,15 @@ namespace Learnix.view
         private Aluno? _aluno;
         private string _filtroAtivo = "Todos";
 
-        public TelaMenu(Aluno aluno)
+        public TelaMenu()
         {
             InitializeComponent();
+        }
+
+        public void DefinirAluno(Aluno aluno)
+        {
             _aluno = aluno;
-            Sidebar.DefinirUsuario(aluno);
-            AtualizarBotoesFiltro();
-        }
-
-        private void AtualizarBotoesFiltro()
-        {
-            BtnTodos.Tag = (_filtroAtivo == "Todos") ? "ativo" : null;
-            BtnExatas.Tag = (_filtroAtivo == "Exatas") ? "ativo" : null;
-            BtnHumanas.Tag = (_filtroAtivo == "Humanas") ? "ativo" : null;
-            BtnTecnologia.Tag = (_filtroAtivo == "Tecnologia") ? "ativo" : null;
-        }
-
-        private void TxtBusca_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            string busca = TxtBusca.Text.ToLower();
-            FiltrarCards(busca);
+            // Sidebar is set by MainWindow via ConectarSidebar
         }
 
         private void FiltrarCards(string busca)
@@ -54,6 +43,35 @@ namespace Learnix.view
                 bool matchFiltro = _filtroAtivo == "Todos" || categorias[i] == _filtroAtivo;
                 cards[i].Visibility = (matchBusca && matchFiltro) ? Visibility.Visible : Visibility.Collapsed;
             }
+        }
+
+        private void TxtBusca_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            FiltrarCards(TxtBusca.Text.ToLower());
+        }
+
+        private void FiltroTodos_Click(object sender, RoutedEventArgs e)
+        {
+            _filtroAtivo = "Todos";
+            FiltrarCards(TxtBusca.Text.ToLower());
+        }
+
+        private void FiltroExatas_Click(object sender, RoutedEventArgs e)
+        {
+            _filtroAtivo = "Exatas";
+            FiltrarCards(TxtBusca.Text.ToLower());
+        }
+
+        private void FiltroHumanas_Click(object sender, RoutedEventArgs e)
+        {
+            _filtroAtivo = "Humanas";
+            FiltrarCards(TxtBusca.Text.ToLower());
+        }
+
+        private void FiltroTecnologia_Click(object sender, RoutedEventArgs e)
+        {
+            _filtroAtivo = "Tecnologia";
+            FiltrarCards(TxtBusca.Text.ToLower());
         }
 
         private void BtnMatricular_Click(object sender, RoutedEventArgs e)
