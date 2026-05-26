@@ -2,15 +2,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using Microsoft.EntityFrameworkCore;
 using Learnix.data;
 using Learnix.model;
+using Microsoft.EntityFrameworkCore;
 
 namespace Learnix
 {
     public partial class MainWindow : Window
     {
-        // Armazena o usuario logado para propagar entre telas
         private Usuario? _usuarioLogado;
 
         public MainWindow()
@@ -19,35 +18,28 @@ namespace Learnix
             MostrarLogin();
         }
 
-        /// <summary>
-        /// Recarrega o Aluno do banco com HistoricoMatriculas e relacionamentos completos.
-        /// Centralizado aqui para evitar repeticao em cada tela.
-        /// </summary>
-        private Aluno? RecarregarAlunoCompleto(int alunoId)
+        // ── Recarrega o aluno do banco ───────────────────────────────────────
+
+        private Aluno? AlunoAtual()
         {
-            using var ctx = new LearnixDbContext();
-            return ctx.Alunos
-                .Include(a => a.Perfil)
+            if (_usuarioLogado is not Aluno aluno) return null;
+            using var db = new LearnixDbContext();
+            return db.Alunos
                 .Include(a => a.HistoricoMatriculas)
                     .ThenInclude(m => m.Curso)
-                        .ThenInclude(c => c.Instrutor)
-                .Include(a => a.HistoricoMatriculas)
-                    .ThenInclude(m => m.Curso)
-                        .ThenInclude(c => c.Categoria)
-                .Include(a => a.HistoricoMatriculas)
-                    .ThenInclude(m => m.Curso)
-                        .ThenInclude(c => c.Modulos)
-                            .ThenInclude(mod => mod.Aulas)
-                .Include(a => a.HistoricoMatriculas)
-                    .ThenInclude(m => m.Progresso)
-                .Include(a => a.HistoricoMatriculas)
-                    .ThenInclude(m => m.Certificado)
-                .Include(a => a.HistoricoMatriculas)
-                    .ThenInclude(m => m.Avaliacoes)
-                .FirstOrDefault(a => a.Id == alunoId);
+                .FirstOrDefault(a => a.Id == aluno.Id);
         }
 
-        // ── Telas de autenticacao ────────────────────────────────────────────
+        private Instrutor? InstrutorAtual()
+        {
+            if (_usuarioLogado is not Instrutor instrutor) return null;
+            using var db = new LearnixDbContext();
+            return db.Instrutores
+                .Include(i => i.Cursos)
+                .FirstOrDefault(i => i.Id == instrutor.Id);
+        }
+
+        // ── Telas de autenticação ────────────────────────────────────────────
 
         private void MostrarLogin()
         {
@@ -56,17 +48,11 @@ namespace Learnix
             tela.SolicitarRecuperacaoSenha += (s, e) => MostrarEsqueceuSenha();
             tela.SolicitarHome += (s, e, usuario) =>
             {
-                // Se for aluno, recarrega com todos os relacionamentos
-                if (usuario is Aluno alunoLogin)
-                {
-                    var alunoCompleto = RecarregarAlunoCompleto(alunoLogin.Id);
-                    _usuarioLogado = alunoCompleto ?? usuario;
-                }
+                _usuarioLogado = usuario;
+                if (usuario is Instrutor instrutor)
+                    MostrarHomeInstrutor(instrutor);
                 else
-                {
-                    _usuarioLogado = usuario;
-                }
-                MostrarHome(_usuarioLogado);
+                    MostrarHome();
             };
             conteudoPrincipal.Content = tela;
         }
@@ -85,54 +71,64 @@ namespace Learnix
             conteudoPrincipal.Content = tela;
         }
 
-        // ── Telas principais ─────────────────────────────────────────────────
+        // ── Telas do Aluno ───────────────────────────────────────────────────
 
-        public void MostrarHome(Usuario? usuario)
+        public void MostrarHome(Usuario? usuario = null)
         {
+            if (usuario != null) _usuarioLogado = usuario;
             AjustarJanela(1280, 720);
-            string nome = usuario?.Nome ?? "Aluno";
+
+            var aluno = AlunoAtual();
             var tela = new TelaHome();
 
-            // Se for Aluno, passa o objeto completo para popular os cards com dados reais
-            if (usuario is Aluno aluno)
+            if (aluno != null)
                 tela.DefinirAluno(aluno);
             else
-                tela.DefinirAluno(nome);
+                tela.DefinirAluno(_usuarioLogado?.Nome ?? "Aluno");
 
-            ConectarSidebar(tela.Sidebar, nome);
+            ConectarSidebar(tela.Sidebar, aluno?.Nome ?? _usuarioLogado?.Nome ?? "Aluno");
             conteudoPrincipal.Content = tela;
         }
 
-        public void MostrarNotas(Matricula matricula)
+        public void MostrarNotas()
         {
             AjustarJanela(1280, 720);
+            var aluno = AlunoAtual();
+            if (aluno == null) return;
+
             var tela = new TelaNotas();
-            tela.DefinirMatricula(matricula);
-            ConectarSidebar(tela.Sidebar, matricula?.Aluno?.Nome ?? _usuarioLogado?.Nome ?? "Aluno");
+            tela.DefinirAluno(aluno);
+            ConectarSidebar(tela.Sidebar, aluno.Nome);
             conteudoPrincipal.Content = tela;
+        }
+
+        public void MostrarNotas(Matricula? matricula)
+        {
+            MostrarNotas();
         }
 
         public void MostrarMeusCursos(string nomeAluno = "Aluno")
         {
             AjustarJanela(1280, 720);
-            if (_usuarioLogado is Aluno aluno)
-            {
-                // Recarrega para garantir dados atualizados
-                var alunoAtualizado = RecarregarAlunoCompleto(aluno.Id) ?? aluno;
-                _usuarioLogado = alunoAtualizado;
+            var aluno = AlunoAtual();
+            if (aluno == null) return;
 
-                var tela = new TelaMeusCursos();
-                tela.DefinirAluno(alunoAtualizado);
-                ConectarSidebar(tela.Sidebar, alunoAtualizado.Nome);
-                conteudoPrincipal.Content = tela;
-            }
+            var tela = new TelaMeusCursos();
+            tela.DefinirAluno(aluno);
+            ConectarSidebar(tela.Sidebar, aluno.Nome);
+            conteudoPrincipal.Content = tela;
         }
 
         public void MostrarMenu(string nomeAluno = "Aluno")
         {
             AjustarJanela(1280, 720);
-            string nome = _usuarioLogado?.Nome ?? nomeAluno;
+            var aluno = AlunoAtual();
             var tela = new TelaMenu();
+
+            if (aluno != null)
+                tela.DefinirAluno(aluno);
+
+            string nome = aluno?.Nome ?? _usuarioLogado?.Nome ?? nomeAluno;
             tela.Sidebar.DefinirAluno(nome);
 
             // Passa o usuario para que a TelaMenu possa criar matriculas em nome dele
@@ -148,63 +144,87 @@ namespace Learnix
         public void MostrarPerfil(string nomeAluno = "Aluno")
         {
             AjustarJanela(1280, 720);
-            if (_usuarioLogado is Aluno aluno)
-            {
-                var tela = new TelaPerfil();
-                tela.DefinirAluno(aluno);
-                ConectarSidebar(tela.Sidebar, aluno.Nome);
-                conteudoPrincipal.Content = tela;
-            }
+            var aluno = AlunoAtual();
+            if (aluno == null) return;
+
+            var tela = new TelaPerfil();
+            tela.DefinirAluno(aluno);
+            ConectarSidebar(tela.Sidebar, aluno.Nome);
+            conteudoPrincipal.Content = tela;
         }
 
         public void MostrarCertificados(string nomeAluno = "Aluno")
         {
             AjustarJanela(1280, 720);
-            if (_usuarioLogado is Aluno aluno)
-            {
-                var alunoAtualizado = RecarregarAlunoCompleto(aluno.Id) ?? aluno;
-                _usuarioLogado = alunoAtualizado;
+            var aluno = AlunoAtual();
+            if (aluno == null) return;
 
-                var tela = new TelaCertificados();
-                tela.DefinirAluno(alunoAtualizado);
-                if (tela.SidebarNav != null)
-                    ConectarSidebar(tela.SidebarNav, alunoAtualizado.Nome);
-                conteudoPrincipal.Content = tela;
-            }
+            var tela = new TelaCertificados();
+            tela.DefinirAluno(aluno);
+            if (tela.SidebarNav != null)
+                ConectarSidebar(tela.SidebarNav, aluno.Nome);
+            conteudoPrincipal.Content = tela;
         }
 
         public void MostrarAulas(Matricula matricula)
         {
             AjustarJanela(1280, 720);
-            // Nome vem do _usuarioLogado (fonte confiavel) em vez de matricula.Aluno
-            string nome = _usuarioLogado?.Nome ?? "Aluno";
+            var aluno = AlunoAtual();
+            string nome = aluno?.Nome ?? _usuarioLogado?.Nome ?? "Aluno";
+
             var tela = new TelaAulas();
             tela.DefinirMatricula(matricula, nome);
             ConectarSidebar(tela.Sidebar, nome);
             conteudoPrincipal.Content = tela;
         }
 
-        public void MostrarTela(UserControl tela, string nomeAluno = "")
+        public void MostrarTela(UserControl tela, string nomeAluno = "Aluno")
         {
             AjustarJanela(1280, 720);
-            // Se nomeAluno nao foi passado, usa o do usuario logado
-            string nome = string.IsNullOrWhiteSpace(nomeAluno)
-                ? (_usuarioLogado?.Nome ?? "Aluno")
-                : nomeAluno;
-
             var sidebarProp = tela.GetType().GetProperty("Sidebar");
             if (sidebarProp?.GetValue(tela) is SidebarControl sidebar)
-                ConectarSidebar(sidebar, nome);
+                ConectarSidebar(sidebar, nomeAluno);
             conteudoPrincipal.Content = tela;
         }
 
-        // ── Sidebar centralizada ─────────────────────────────────────────────
+        // ── Telas do Instrutor ───────────────────────────────────────────────
+
+        public void MostrarHomeInstrutor(Instrutor? instrutor = null)
+        {
+            AjustarJanela(1280, 720);
+            var inst = instrutor ?? InstrutorAtual();
+            if (inst == null) return;
+
+            var tela = new TelaHomeInstrutor();
+            tela.DefinirInstrutor(inst);
+            ConectarSidebarInstrutor(tela.Sidebar, inst);
+            conteudoPrincipal.Content = tela;
+        }
+
+        public void MostrarLancarNotas(Instrutor? instrutor = null)
+        {
+            AjustarJanela(1280, 720);
+            var inst = instrutor ?? InstrutorAtual();
+            if (inst == null) return;
+
+            var tela = new TelaLancarNotas();
+            tela.DefinirInstrutor(inst);
+            ConectarSidebarInstrutor(tela.Sidebar, inst);
+            conteudoPrincipal.Content = tela;
+        }
+
+        // ── Sidebars ─────────────────────────────────────────────────────────
 
         private void ConectarSidebar(SidebarControl sidebar, string nomeAluno)
         {
+            sidebar.SolicitarHome += (s, e) => MostrarHome();
+            sidebar.SolicitarBuscarCursos += (s, e) => MostrarMenu(nomeAluno);
             sidebar.SolicitarMenu += (s, e) => MostrarMenu(nomeAluno);
+            sidebar.SolicitarNotas += (s, e) => MostrarNotas();
             sidebar.SolicitarMeusCursos += (s, e) => MostrarMeusCursos(nomeAluno);
-            sidebar.SolicitarNotas += (s, e) =>
+            sidebar.SolicitarCertificados += (s, e) => MostrarCertificados(nomeAluno);
+            sidebar.SolicitarPerfil += (s, e) => MostrarPerfil(nomeAluno);
+            sidebar.SolicitarSair += (s, e) =>
             {
                 if (_usuarioLogado is Aluno aluno)
                 {
@@ -224,6 +244,49 @@ namespace Learnix
                 AjustarJanela(500, 480, false);
                 MostrarLogin();
             };
+        }
+
+        public void MostrarEscolherCurso(Instrutor? instrutor = null)
+        {
+            AjustarJanela(1280, 720);
+            var inst = instrutor ?? InstrutorAtual();
+            if (inst == null) return;
+
+            var tela = new TelaEscolherCurso();
+            tela.DefinirInstrutor(inst);
+            ConectarSidebarInstrutor(tela.Sidebar, inst);
+            conteudoPrincipal.Content = tela;
+        }
+
+        private void ConectarSidebarInstrutor(SidebarInstrutor sidebar, Instrutor instrutor)
+        {
+            sidebar.SolicitarHome += (s, e) => MostrarHomeInstrutor(instrutor);
+            sidebar.SolicitarMeusCursos += (s, e) => MostrarMeusCursosInstrutor(instrutor);
+            sidebar.SolicitarLancarNotas += (s, e) => MostrarLancarNotas(instrutor);
+            sidebar.SolicitarEscolherCurso += (s, e) => MostrarEscolherCurso(instrutor);
+            sidebar.SolicitarSair += (s, e) =>
+            {
+                var r = MessageBox.Show("Deseja sair da sua conta?", "Learnix",
+                    MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (r == MessageBoxResult.Yes)
+                {
+                    _usuarioLogado = null;
+                    AjustarJanela(500, 480, false);
+                    MostrarLogin();
+                }
+            };
+        }
+
+        public void MostrarMeusCursosInstrutor(Instrutor? instrutor = null)
+        {
+            AjustarJanela(1280, 720);
+            var inst = instrutor ?? InstrutorAtual();
+            if (inst == null) return;
+
+            var tela = new TelaMeusCursosInstrutor();
+            tela.DefinirInstrutor(inst);
+            ConectarSidebarInstrutor(tela.Sidebar, inst);
+            conteudoPrincipal.Content = tela;
         }
 
         private void AjustarJanela(double width, double height, bool comMinimo = true)

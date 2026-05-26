@@ -5,28 +5,18 @@
              Background="#1E1E1E">
 
     <UserControl.Resources>
-
         <Style x:Key="CardStyle" TargetType="Border">
             <Setter Property="Background" Value="#2A2040"/>
             <Setter Property="CornerRadius" Value="14"/>
             <Setter Property="Padding" Value="24,20"/>
             <Setter Property="Margin" Value="0,0,0,16"/>
         </Style>
-
         <Style x:Key="LabelStyle" TargetType="TextBlock">
             <Setter Property="Foreground" Value="#9E8FC0"/>
             <Setter Property="FontSize" Value="11"/>
             <Setter Property="FontFamily" Value="Segoe UI"/>
             <Setter Property="Margin" Value="0,0,0,4"/>
         </Style>
-
-        <Style x:Key="ValorStyle" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="Margin" Value="0,0,0,14"/>
-        </Style>
-
         <Style x:Key="InputEditStyle" TargetType="TextBox">
             <Setter Property="Background" Value="#3A2860"/>
             <Setter Property="Foreground" Value="White"/>
@@ -47,7 +37,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
         <Style x:Key="BtnEditarStyle" TargetType="Button">
             <Setter Property="Background" Value="#4E3A7A"/>
             <Setter Property="Foreground" Value="White"/>
@@ -75,11 +64,9 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
         <Style x:Key="BtnSalvarStyle" TargetType="Button" BasedOn="{StaticResource BtnEditarStyle}">
             <Setter Property="Background" Value="#2E7D32"/>
         </Style>
-
     </UserControl.Resources>
 
     <Grid>
@@ -93,15 +80,14 @@
         <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="36,32,36,32">
 
-                <!-- Título -->
                 <TextBlock Text="&#x1F464;  Meu Perfil"
                            Foreground="White" FontSize="24" FontWeight="Bold"
                            FontFamily="Segoe UI"/>
-                <TextBlock Text="Gerencie suas informa&#xE7;&#xF5;es pessoais e acad&#xEA;micas"
+                <TextBlock Text="Gerencie suas informações pessoais"
                            Foreground="#9E8FC0" FontSize="12"
                            FontFamily="Segoe UI" Margin="0,6,0,28"/>
 
-                <!-- Card: Avatar + nome + botão editar -->
+                <!-- Avatar + nome -->
                 <Border Style="{StaticResource CardStyle}">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -109,130 +95,63 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-
-                        <!-- Avatar circular -->
                         <Border Grid.Column="0" Width="80" Height="80"
                                 CornerRadius="40" Background="#4E3A7A"
                                 Margin="0,0,20,0">
                             <TextBlock x:Name="TxtIniciais" Text="AL"
-                                       Foreground="White" FontSize="26"
-                                       FontWeight="Bold" FontFamily="Segoe UI"
+                                       Foreground="White" FontSize="26" FontWeight="Bold"
+                                       FontFamily="Segoe UI"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"/>
                         </Border>
-
-                        <!-- Nome e email -->
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock x:Name="TxtNomePerfil" Text="Nome do Aluno"
+                            <TextBlock x:Name="TxtNomePerfil" Text="Aluno"
                                        Foreground="White" FontSize="20"
                                        FontWeight="Bold" FontFamily="Segoe UI"/>
-                            <TextBlock x:Name="TxtEmailPerfil" Text="aluno@learnix.com"
+                            <TextBlock x:Name="TxtEmailPerfil" Text=""
                                        Foreground="#9E8FC0" FontSize="13"
                                        FontFamily="Segoe UI" Margin="0,4,0,0"/>
                             <Border Background="#3A2860" CornerRadius="20"
-                                    Padding="12,4" HorizontalAlignment="Left"
-                                    Margin="0,8,0,0">
+                                    Padding="12,4" HorizontalAlignment="Left" Margin="0,8,0,0">
                                 <TextBlock Text="&#x1F393; Aluno" Foreground="#D8CCF0"
                                            FontFamily="Segoe UI" FontSize="12"/>
                             </Border>
                         </StackPanel>
-
-                        <!-- Botões editar / salvar -->
-                        <StackPanel Grid.Column="2" VerticalAlignment="Center"
-                                    Orientation="Horizontal">
+                        <StackPanel Grid.Column="2" VerticalAlignment="Center" Orientation="Horizontal">
                             <Button x:Name="BtnEditar" Content="&#x270F;&#xFE0F; Editar"
                                     Style="{StaticResource BtnEditarStyle}"
-                                    Margin="0,0,8,0"
-                                    Click="BtnEditar_Click"/>
+                                    Margin="0,0,8,0" Click="BtnEditar_Click"/>
                             <Button x:Name="BtnSalvar" Content="&#x2714; Salvar"
                                     Style="{StaticResource BtnSalvarStyle}"
-                                    Visibility="Collapsed"
-                                    Click="BtnSalvar_Click"/>
+                                    Visibility="Collapsed" Click="BtnSalvar_Click"/>
                         </StackPanel>
                     </Grid>
                 </Border>
 
-                <!-- Card: Dados pessoais -->
+                <!-- Dados pessoais -->
                 <Border Style="{StaticResource CardStyle}">
                     <StackPanel>
                         <TextBlock Text="Dados Pessoais"
                                    Foreground="White" FontSize="15" FontWeight="SemiBold"
                                    FontFamily="Segoe UI" Margin="0,0,0,16"/>
-
                         <UniformGrid Columns="2">
-                            <!-- Nome completo -->
                             <StackPanel Margin="0,0,16,0">
                                 <TextBlock Text="NOME COMPLETO" Style="{StaticResource LabelStyle}"/>
-                                <TextBox x:Name="TxtEditNome" Text="Nome do Aluno"
-                                         Style="{StaticResource InputEditStyle}"/>
+                                <TextBox x:Name="TxtEditNome" Style="{StaticResource InputEditStyle}"/>
                             </StackPanel>
-
-                            <!-- Email -->
                             <StackPanel>
                                 <TextBlock Text="E-MAIL" Style="{StaticResource LabelStyle}"/>
-                                <TextBox x:Name="TxtEditEmail" Text="aluno@learnix.com"
-                                         Style="{StaticResource InputEditStyle}"/>
+                                <TextBox x:Name="TxtEditEmail" Style="{StaticResource InputEditStyle}"/>
                             </StackPanel>
-
-                            <!-- Telefone -->
                             <StackPanel Margin="0,0,16,0">
-                                <TextBlock Text="TELEFONE" Style="{StaticResource LabelStyle}"/>
-                                <TextBox x:Name="TxtEditTelefone" Text="(27) 99999-0000"
-                                         Style="{StaticResource InputEditStyle}"/>
+                                <TextBlock Text="MATRÍCULA" Style="{StaticResource LabelStyle}"/>
+                                <TextBox x:Name="TxtMatricula" Style="{StaticResource InputEditStyle}"
+                                         IsReadOnly="True" Opacity="0.7"/>
                             </StackPanel>
-
-                            <!-- Data de nascimento -->
                             <StackPanel>
-                                <TextBlock Text="DATA DE NASCIMENTO" Style="{StaticResource LabelStyle}"/>
-                                <TextBox x:Name="TxtEditNascimento" Text="01/01/2000"
-                                         Style="{StaticResource InputEditStyle}"/>
-                            </StackPanel>
-                        </UniformGrid>
-                    </StackPanel>
-                </Border>
-
-                <!-- Card: Dados acadêmicos -->
-                <Border Style="{StaticResource CardStyle}">
-                    <StackPanel>
-                        <TextBlock Text="Dados Acad&#xEA;micos"
-                                   Foreground="White" FontSize="15" FontWeight="SemiBold"
-                                   FontFamily="Segoe UI" Margin="0,0,0,16"/>
-
-                        <UniformGrid Columns="2">
-                            <!-- Matrícula — agora com x:Name para o code-behind popular do banco -->
-                            <StackPanel Margin="0,0,16,0">
-                                <TextBlock Text="MATR&#xCD;CULA" Style="{StaticResource LabelStyle}"/>
-                                <TextBox x:Name="TxtMatricula" Text="—"
-                                         Style="{StaticResource InputEditStyle}"
-                                         IsReadOnly="True"
-                                         Opacity="0.7"/>
-                            </StackPanel>
-
-                            <!-- Curso -->
-                            <StackPanel>
-                                <TextBlock Text="CURSO" Style="{StaticResource LabelStyle}"/>
-                                <TextBox Text="Ci&#xEA;ncia da Computa&#xE7;&#xE3;o"
-                                         Style="{StaticResource InputEditStyle}"
-                                         IsReadOnly="True"
-                                         Opacity="0.7"/>
-                            </StackPanel>
-
-                            <!-- Semestre -->
-                            <StackPanel Margin="0,0,16,0">
-                                <TextBlock Text="SEMESTRE" Style="{StaticResource LabelStyle}"/>
-                                <TextBox Text="4&#xBA; Semestre"
-                                         Style="{StaticResource InputEditStyle}"
-                                         IsReadOnly="True"
-                                         Opacity="0.7"/>
-                            </StackPanel>
-
-                            <!-- Turno -->
-                            <StackPanel>
-                                <TextBlock Text="TURNO" Style="{StaticResource LabelStyle}"/>
-                                <TextBox Text="Noturno"
-                                         Style="{StaticResource InputEditStyle}"
-                                         IsReadOnly="True"
-                                         Opacity="0.7"/>
+                                <TextBlock Text="MEMBRO DESDE" Style="{StaticResource LabelStyle}"/>
+                                <TextBox x:Name="TxtMembroDesde" Style="{StaticResource InputEditStyle}"
+                                         IsReadOnly="True" Opacity="0.7"/>
                             </StackPanel>
 
                             <!-- Estilo de Aprendizagem — novo campo populado pelo code-behind -->
@@ -253,50 +172,44 @@
                                          Opacity="0.7"/>
                             </StackPanel>
                         </UniformGrid>
-
-                        <TextBlock Text="* Dados acad&#xEA;micos s&#xF3; podem ser alterados pela secretaria."
-                                   Foreground="#9E8FC0" FontSize="11"
-                                   FontFamily="Segoe UI" Margin="0,4,0,0"
-                                   Opacity="0.7"/>
                     </StackPanel>
                 </Border>
 
-                <!-- Card: Estatísticas -->
+                <!-- Resumo acadêmico dinâmico -->
                 <Border Style="{StaticResource CardStyle}">
                     <StackPanel>
-                        <TextBlock Text="Resumo Acad&#xEA;mico"
+                        <TextBlock Text="Resumo Acadêmico"
                                    Foreground="White" FontSize="15" FontWeight="SemiBold"
                                    FontFamily="Segoe UI" Margin="0,0,0,16"/>
-
                         <UniformGrid Columns="4">
                             <StackPanel HorizontalAlignment="Center">
-                                <TextBlock Text="4" Foreground="White" FontSize="28"
-                                           FontWeight="Bold" FontFamily="Segoe UI"
-                                           HorizontalAlignment="Center"/>
+                                <TextBlock x:Name="TxtTotalCursos" Text="0"
+                                           Foreground="White" FontSize="28" FontWeight="Bold"
+                                           FontFamily="Segoe UI" HorizontalAlignment="Center"/>
                                 <TextBlock Text="Cursos" Foreground="#9E8FC0"
                                            FontSize="12" FontFamily="Segoe UI"
                                            HorizontalAlignment="Center"/>
                             </StackPanel>
                             <StackPanel HorizontalAlignment="Center">
-                                <TextBlock Text="8,4" Foreground="#A5D6A7" FontSize="28"
-                                           FontWeight="Bold" FontFamily="Segoe UI"
-                                           HorizontalAlignment="Center"/>
-                                <TextBlock Text="M&#xE9;dia" Foreground="#9E8FC0"
+                                <TextBlock x:Name="TxtMediaGeral" Text="—"
+                                           Foreground="#A5D6A7" FontSize="28" FontWeight="Bold"
+                                           FontFamily="Segoe UI" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Média" Foreground="#9E8FC0"
                                            FontSize="12" FontFamily="Segoe UI"
                                            HorizontalAlignment="Center"/>
                             </StackPanel>
                             <StackPanel HorizontalAlignment="Center">
-                                <TextBlock Text="245h" Foreground="#90CAF9" FontSize="28"
-                                           FontWeight="Bold" FontFamily="Segoe UI"
-                                           HorizontalAlignment="Center"/>
+                                <TextBlock x:Name="TxtHorasEstudadas" Text="0h"
+                                           Foreground="#90CAF9" FontSize="28" FontWeight="Bold"
+                                           FontFamily="Segoe UI" HorizontalAlignment="Center"/>
                                 <TextBlock Text="Estudadas" Foreground="#9E8FC0"
                                            FontSize="12" FontFamily="Segoe UI"
                                            HorizontalAlignment="Center"/>
                             </StackPanel>
                             <StackPanel HorizontalAlignment="Center">
-                                <TextBlock Text="3" Foreground="#FFCC80" FontSize="28"
-                                           FontWeight="Bold" FontFamily="Segoe UI"
-                                           HorizontalAlignment="Center"/>
+                                <TextBlock x:Name="TxtAprovados" Text="0"
+                                           Foreground="#FFCC80" FontSize="28" FontWeight="Bold"
+                                           FontFamily="Segoe UI" HorizontalAlignment="Center"/>
                                 <TextBlock Text="Aprovados" Foreground="#9E8FC0"
                                            FontSize="12" FontFamily="Segoe UI"
                                            HorizontalAlignment="Center"/>

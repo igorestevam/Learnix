@@ -5,7 +5,6 @@
              Background="#1E1E1E">
 
     <UserControl.Resources>
-
         <Style x:Key="HeaderCelula" TargetType="TextBlock">
             <Setter Property="Foreground" Value="#9E8FC0"/>
             <Setter Property="FontSize" Value="11"/>
@@ -13,7 +12,18 @@
             <Setter Property="FontFamily" Value="Segoe UI"/>
             <Setter Property="Padding" Value="0,0,0,8"/>
         </Style>
-
+        <Style x:Key="CelulaTxt" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#D8CCF0"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="LinhaCard" TargetType="Border">
+            <Setter Property="Background" Value="#2A2040"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="18,12"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
     </UserControl.Resources>
 
     <Grid>
@@ -27,7 +37,6 @@
         <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="36,32,36,32">
 
-                <!-- Título -->
                 <TextBlock Text="&#x1F4CB;  Minhas Notas"
                            Foreground="White" FontSize="24" FontWeight="Bold"
                            FontFamily="Segoe UI"/>
@@ -41,8 +50,8 @@
                         <StackPanel>
                             <TextBlock Text="M&#xE9;dia Geral" Foreground="#D8CCF0"
                                        FontSize="12" FontFamily="Segoe UI" Opacity="0.75"/>
-                            <TextBlock x:Name="TxtMediaGeral" Text="—" Foreground="White"
-                                       FontSize="28" FontWeight="Bold"
+                            <TextBlock x:Name="TxtMediaGeral" Text="—"
+                                       Foreground="White" FontSize="28" FontWeight="Bold"
                                        FontFamily="Segoe UI" Margin="0,6,0,0"/>
                         </StackPanel>
                     </Border>
@@ -50,8 +59,8 @@
                         <StackPanel>
                             <TextBlock Text="Disciplinas" Foreground="#D8CCF0"
                                        FontSize="12" FontFamily="Segoe UI" Opacity="0.75"/>
-                            <TextBlock x:Name="TxtTotalCursos" Text="—" Foreground="White"
-                                       FontSize="28" FontWeight="Bold"
+                            <TextBlock x:Name="TxtDisciplinas" Text="0"
+                                       Foreground="White" FontSize="28" FontWeight="Bold"
                                        FontFamily="Segoe UI" Margin="0,6,0,0"/>
                         </StackPanel>
                     </Border>
@@ -59,8 +68,8 @@
                         <StackPanel>
                             <TextBlock Text="Situa&#xE7;&#xE3;o" Foreground="#D8CCF0"
                                        FontSize="12" FontFamily="Segoe UI" Opacity="0.75"/>
-                            <TextBlock Text="Ver tabela" Foreground="#A5D6A7"
-                                       FontSize="16" FontWeight="Bold"
+                            <TextBlock x:Name="TxtSituacao" Text="—"
+                                       FontSize="20" FontWeight="Bold"
                                        FontFamily="Segoe UI" Margin="0,6,0,0"/>
                         </StackPanel>
                     </Border>
@@ -71,7 +80,7 @@
                            FontFamily="Segoe UI"/>
                 <Separator Background="#9E8FC0" Opacity="0.25" Margin="0,8,0,12"/>
 
-                <!-- Cabeçalho da tabela -->
+                <!-- Cabeçalho tabela -->
                 <Grid Margin="18,0,18,4">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="2*"/>
@@ -81,21 +90,65 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="DISCIPLINA"    Style="{StaticResource HeaderCelula}"/>
-                    <TextBlock Grid.Column="1" Text="AV1"           Style="{StaticResource HeaderCelula}" HorizontalAlignment="Center"/>
-                    <TextBlock Grid.Column="2" Text="AV2"           Style="{StaticResource HeaderCelula}" HorizontalAlignment="Center"/>
-                    <TextBlock Grid.Column="3" Text="AV3"           Style="{StaticResource HeaderCelula}" HorizontalAlignment="Center"/>
-                    <TextBlock Grid.Column="4" Text="M&#xC9;DIA"    Style="{StaticResource HeaderCelula}" HorizontalAlignment="Center"/>
-                    <TextBlock Grid.Column="5" Text="STATUS"        Style="{StaticResource HeaderCelula}" HorizontalAlignment="Center"/>
+                    <TextBlock Grid.Column="0" Text="DISCIPLINA" Style="{StaticResource HeaderCelula}"/>
+                    <TextBlock Grid.Column="1" Text="AV1" Style="{StaticResource HeaderCelula}" HorizontalAlignment="Center"/>
+                    <TextBlock Grid.Column="2" Text="AV2" Style="{StaticResource HeaderCelula}" HorizontalAlignment="Center"/>
+                    <TextBlock Grid.Column="3" Text="AV3" Style="{StaticResource HeaderCelula}" HorizontalAlignment="Center"/>
+                    <TextBlock Grid.Column="4" Text="M&#xC9;DIA" Style="{StaticResource HeaderCelula}" HorizontalAlignment="Center"/>
+                    <TextBlock Grid.Column="5" Text="STATUS" Style="{StaticResource HeaderCelula}" HorizontalAlignment="Center"/>
                 </Grid>
 
-                <!-- Linhas populadas dinamicamente pelo code-behind -->
-                <StackPanel x:Name="PainelLinhas">
-                    <!-- Placeholder enquanto carrega -->
-                    <TextBlock Text="Carregando notas..."
-                               Foreground="#9E8FC0" FontSize="13"
-                               FontFamily="Segoe UI" Margin="18,12,0,0"/>
-                </StackPanel>
+                <!-- Painel vazio -->
+                <Border x:Name="PainelVazio" Visibility="Collapsed"
+                        Style="{StaticResource LinhaCard}">
+                    <TextBlock Text="Nenhuma avaliação registrada ainda."
+                               Foreground="#9E8FC0" FontSize="13" FontFamily="Segoe UI"
+                               HorizontalAlignment="Center"/>
+                </Border>
+
+                <!-- Lista dinâmica -->
+                <ItemsControl x:Name="ListaNotas">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource LinhaCard}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="2*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="{Binding NomeCurso}"
+                                                   Foreground="White" FontSize="13" FontWeight="SemiBold"
+                                                   FontFamily="Segoe UI"/>
+                                        <TextBlock Text="{Binding NomeInstrutor}"
+                                                   Foreground="#9E8FC0" FontSize="11"
+                                                   FontFamily="Segoe UI" Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1" Text="{Binding NotaAV1}"
+                                               Style="{StaticResource CelulaTxt}" HorizontalAlignment="Center"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding NotaAV2}"
+                                               Style="{StaticResource CelulaTxt}" HorizontalAlignment="Center"/>
+                                    <TextBlock Grid.Column="3" Text="{Binding NotaAV3}"
+                                               Style="{StaticResource CelulaTxt}" HorizontalAlignment="Center"/>
+                                    <TextBlock Grid.Column="4" Text="{Binding Media}"
+                                               Foreground="{Binding CorMedia}"
+                                               FontSize="14" FontWeight="Bold" FontFamily="Segoe UI"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <Border Grid.Column="5" Background="{Binding CorFundoStatus}" CornerRadius="20"
+                                            Padding="10,4" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding StatusTexto}"
+                                                   Foreground="{Binding CorTextoStatus}"
+                                                   FontSize="11" FontFamily="Segoe UI"/>
+                                    </Border>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
 
             </StackPanel>
         </ScrollViewer>

@@ -54,7 +54,6 @@
         <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="36,32,36,32">
 
-                <!-- Cabeçalho + filtros -->
                 <Grid Margin="0,0,0,24">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -64,238 +63,89 @@
                         <TextBlock Text="&#x1F4DA;  Meus Cursos"
                                    Foreground="White" FontSize="24" FontWeight="Bold"
                                    FontFamily="Segoe UI"/>
-                        <TextBlock Text="Todas as suas matr&#xED;culas em um s&#xF3; lugar"
+                        <TextBlock Text="Todas as suas matrículas em um só lugar"
                                    Foreground="#9E8FC0" FontSize="12"
                                    FontFamily="Segoe UI" Margin="0,6,0,0"/>
-                    </StackPanel>
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom">
-                        <Border Background="#4E3A7A" CornerRadius="20" Padding="14,7" Margin="0,0,8,0">
-                            <TextBlock Text="Todos" Foreground="White"
-                                       FontFamily="Segoe UI" FontSize="12" Cursor="Hand"/>
-                        </Border>
-                        <Border Background="#2A2040" CornerRadius="20" Padding="14,7" Margin="0,0,8,0">
-                            <TextBlock Text="Exatas" Foreground="#D8CCF0"
-                                       FontFamily="Segoe UI" FontSize="12" Cursor="Hand"/>
-                        </Border>
-                        <Border Background="#2A2040" CornerRadius="20" Padding="14,7">
-                            <TextBlock Text="Humanas" Foreground="#D8CCF0"
-                                       FontFamily="Segoe UI" FontSize="12" Cursor="Hand"/>
-                        </Border>
                     </StackPanel>
                 </Grid>
 
                 <Separator Background="#9E8FC0" Opacity="0.25" Margin="0,0,0,18"/>
 
-                <!-- Curso 1 -->
-                <Border Style="{StaticResource CursoCardStyle}">
-                    <StackPanel>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0">
-                                <TextBlock Text="Algoritmos e Estrutura de Dados"
-                                           Foreground="White" FontSize="15" FontWeight="Bold"
-                                           FontFamily="Segoe UI"/>
-                                <TextBlock Text="Prof. Carlos Lima"
-                                           Foreground="#9E8FC0" FontSize="12"
-                                           FontFamily="Segoe UI" Margin="0,4,0,0"/>
-                            </StackPanel>
-                            <Border Grid.Column="1" Background="#3A2860" CornerRadius="20"
-                                    Padding="12,5" VerticalAlignment="Top" Margin="12,0">
-                                <TextBlock Text="Exatas" Foreground="#D8CCF0"
-                                           FontFamily="Segoe UI" FontSize="11"/>
-                            </Border>
-                            <Button Grid.Column="2" Content="Acessar &#x2192;"
-                                    Style="{StaticResource BtnAcessarStyle}"
-                                    VerticalAlignment="Top"
-                                    Click="BtnContinuar_Click"
-                                    Tag="Algoritmos e Estrutura de Dados|Prof. Carlos Lima|Exatas|60h|Aprenda algoritmos e estruturas de dados.|68%"/>
-                        </Grid>
-                        <StackPanel Orientation="Horizontal" Margin="0,12,0,10">
-                            <TextBlock Text="&#x1F4C5; Mar 2026" Foreground="#9E8FC0"
-                                       FontSize="12" FontFamily="Segoe UI" Margin="0,0,18,0"/>
-                            <TextBlock Text="&#x1F551; 60h" Foreground="#9E8FC0"
-                                       FontSize="12" FontFamily="Segoe UI" Margin="0,0,18,0"/>
-                            <TextBlock Text="&#x270F;&#xFE0F; 6 atividades" Foreground="#9E8FC0"
-                                       FontSize="12" FontFamily="Segoe UI"/>
-                        </StackPanel>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <Border Grid.Column="0" Background="#3A2860" CornerRadius="3" Height="6" VerticalAlignment="Center">
-                                <Border Background="#7E6BAC" CornerRadius="3"
-                                        HorizontalAlignment="Left" Width="200"/>
-                            </Border>
-                            <TextBlock Grid.Column="1" Text="68%" Foreground="#D8CCF0"
-                                       FontSize="12" FontWeight="SemiBold"
-                                       FontFamily="Segoe UI" Margin="10,0,0,0" VerticalAlignment="Center"/>
-                        </Grid>
+                <Border x:Name="PainelVazio" Visibility="Collapsed"
+                        Background="#2A2040" CornerRadius="12" Padding="40">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="&#x1F4DA;" FontSize="48" HorizontalAlignment="Center" Margin="0,0,0,12"/>
+                        <TextBlock Text="Você ainda não está matriculado em nenhum curso."
+                                   Foreground="#9E8FC0" FontSize="14" FontFamily="Segoe UI"
+                                   HorizontalAlignment="Center"/>
                     </StackPanel>
                 </Border>
 
-                <!-- Curso 2 -->
-                <Border Style="{StaticResource CursoCardStyle}">
-                    <StackPanel>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0">
-                                <TextBlock Text="C&#xE1;lculo I"
-                                           Foreground="White" FontSize="15" FontWeight="Bold"
-                                           FontFamily="Segoe UI"/>
-                                <TextBlock Text="Prof. Ana Souza"
-                                           Foreground="#9E8FC0" FontSize="12"
-                                           FontFamily="Segoe UI" Margin="0,4,0,0"/>
-                            </StackPanel>
-                            <Border Grid.Column="1" Background="#3A2860" CornerRadius="20"
-                                    Padding="12,5" VerticalAlignment="Top" Margin="12,0">
-                                <TextBlock Text="Exatas" Foreground="#D8CCF0"
-                                           FontFamily="Segoe UI" FontSize="11"/>
-                            </Border>
-                            <Button Grid.Column="2" Content="Acessar &#x2192;"
-                                    Style="{StaticResource BtnAcessarStyle}"
-                                    VerticalAlignment="Top"
-                                    Click="BtnContinuar_Click"
-                                    Tag="Cálculo I|Prof. Ana Souza|Exatas|45h|Limites, derivadas e integrais.|40%"/>
-                        </Grid>
-                        <StackPanel Orientation="Horizontal" Margin="0,12,0,10">
-                            <TextBlock Text="&#x1F4C5; Fev 2026" Foreground="#9E8FC0"
-                                       FontSize="12" FontFamily="Segoe UI" Margin="0,0,18,0"/>
-                            <TextBlock Text="&#x1F551; 45h" Foreground="#9E8FC0"
-                                       FontSize="12" FontFamily="Segoe UI" Margin="0,0,18,0"/>
-                            <TextBlock Text="&#x270F;&#xFE0F; 4 atividades" Foreground="#9E8FC0"
-                                       FontSize="12" FontFamily="Segoe UI"/>
-                        </StackPanel>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <Border Grid.Column="0" Background="#3A2860" CornerRadius="3" Height="6" VerticalAlignment="Center">
-                                <Border Background="#7E6BAC" CornerRadius="3"
-                                        HorizontalAlignment="Left" Width="120"/>
-                            </Border>
-                            <TextBlock Grid.Column="1" Text="40%" Foreground="#D8CCF0"
-                                       FontSize="12" FontWeight="SemiBold"
-                                       FontFamily="Segoe UI" Margin="10,0,0,0" VerticalAlignment="Center"/>
-                        </Grid>
-                    </StackPanel>
-                </Border>
+                <ItemsControl x:Name="ListaCursos">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource CursoCardStyle}">
+                                <StackPanel>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
 
-                <!-- Curso 3 -->
-                <Border Style="{StaticResource CursoCardStyle}">
-                    <StackPanel>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0">
-                                <TextBlock Text="Engenharia de Software"
-                                           Foreground="White" FontSize="15" FontWeight="Bold"
-                                           FontFamily="Segoe UI"/>
-                                <TextBlock Text="Prof. Marcos Freitas"
-                                           Foreground="#9E8FC0" FontSize="12"
-                                           FontFamily="Segoe UI" Margin="0,4,0,0"/>
-                            </StackPanel>
-                            <Border Grid.Column="1" Background="#1A3A2A" CornerRadius="20"
-                                    Padding="12,5" VerticalAlignment="Top" Margin="12,0">
-                                <TextBlock Text="Humanas" Foreground="#A5D6A7"
-                                           FontFamily="Segoe UI" FontSize="11"/>
-                            </Border>
-                            <Button Grid.Column="2" Content="Acessar &#x2192;"
-                                    Style="{StaticResource BtnAcessarStyle}"
-                                    VerticalAlignment="Top"
-                                    Click="BtnContinuar_Click"
-                                    Tag="Engenharia de Software|Prof. Marcos Freitas|Humanas|80h|Metodologias ágeis e padrões de projeto.|87%"/>
-                        </Grid>
-                        <StackPanel Orientation="Horizontal" Margin="0,12,0,10">
-                            <TextBlock Text="&#x1F4C5; Jan 2026" Foreground="#9E8FC0"
-                                       FontSize="12" FontFamily="Segoe UI" Margin="0,0,18,0"/>
-                            <TextBlock Text="&#x1F551; 80h" Foreground="#9E8FC0"
-                                       FontSize="12" FontFamily="Segoe UI" Margin="0,0,18,0"/>
-                            <TextBlock Text="&#x270F;&#xFE0F; 8 atividades" Foreground="#9E8FC0"
-                                       FontSize="12" FontFamily="Segoe UI"/>
-                        </StackPanel>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <Border Grid.Column="0" Background="#3A2860" CornerRadius="3" Height="6" VerticalAlignment="Center">
-                                <Border Background="#7E6BAC" CornerRadius="3"
-                                        HorizontalAlignment="Left" Width="260"/>
-                            </Border>
-                            <TextBlock Grid.Column="1" Text="87%" Foreground="#D8CCF0"
-                                       FontSize="12" FontWeight="SemiBold"
-                                       FontFamily="Segoe UI" Margin="10,0,0,0" VerticalAlignment="Center"/>
-                        </Grid>
-                    </StackPanel>
-                </Border>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="{Binding TituloCurso}"
+                                                       Foreground="White" FontSize="15" FontWeight="Bold"
+                                                       FontFamily="Segoe UI"/>
+                                            <TextBlock Text="{Binding NomeInstrutor}"
+                                                       Foreground="#9E8FC0" FontSize="12"
+                                                       FontFamily="Segoe UI" Margin="0,4,0,0"/>
+                                        </StackPanel>
 
+                                        <Border Grid.Column="1" Background="{Binding CorCategoria}" CornerRadius="20"
+                                                Padding="12,5" VerticalAlignment="Top" Margin="12,0">
+                                            <TextBlock Text="{Binding NomeCategoria}" Foreground="{Binding CorTextoCategoria}"
+                                                       FontFamily="Segoe UI" FontSize="11"/>
+                                        </Border>
 
-                <!-- Curso 4 - 100% concluído -->
-                <Border Style="{StaticResource CursoCardStyle}">
-                    <StackPanel>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0">
-                                <TextBlock Text="Programa&#xE7;&#xE3;o Orientada a Objetos em C#"
-                                           Foreground="White" FontSize="15" FontWeight="Bold"
-                                           FontFamily="Segoe UI"/>
-                                <TextBlock Text="Prof. Roberto Alves"
-                                           Foreground="#9E8FC0" FontSize="12"
-                                           FontFamily="Segoe UI" Margin="0,4,0,0"/>
-                            </StackPanel>
-                            <Border Grid.Column="1" Background="#1A2A3A" CornerRadius="20"
-                                    Padding="12,5" VerticalAlignment="Top" Margin="12,0">
-                                <TextBlock Text="Tecnologia" Foreground="#90CAF9"
-                                           FontFamily="Segoe UI" FontSize="11"/>
+                                        <Button Grid.Column="2"
+                                                Content="{Binding TextoBotao}"
+                                                Background="{Binding CorBotao}"
+                                                Style="{StaticResource BtnAcessarStyle}"
+                                                VerticalAlignment="Top"
+                                                Click="BtnAcao_Click"
+                                                Tag="{Binding MatriculaId}"/>
+                                    </Grid>
+
+                                    <StackPanel Orientation="Horizontal" Margin="0,12,0,10">
+                                        <TextBlock Text="{Binding DataFormatada}" Foreground="#9E8FC0"
+                                                   FontSize="12" FontFamily="Segoe UI" Margin="0,0,18,0"/>
+                                        <TextBlock Text="{Binding CargaHoraria}" Foreground="#9E8FC0"
+                                                   FontSize="12" FontFamily="Segoe UI" Margin="0,0,18,0"/>
+                                        <TextBlock Text="{Binding NumAulas}" Foreground="#9E8FC0"
+                                                   FontSize="12" FontFamily="Segoe UI"/>
+                                    </StackPanel>
+
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0" Background="{Binding CorFundoBarra}" CornerRadius="3" Height="6" VerticalAlignment="Center">
+                                            <Border Background="{Binding CorBarra}" CornerRadius="3"
+                                                    HorizontalAlignment="Left"
+                                                    Width="{Binding LarguraBarra}"/>
+                                        </Border>
+                                        <TextBlock Grid.Column="1" Text="{Binding PercentualTexto}"
+                                                   Foreground="{Binding CorTextoProgresso}"
+                                                   FontSize="12" FontWeight="SemiBold"
+                                                   FontFamily="Segoe UI" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </StackPanel>
                             </Border>
-                            <!-- Botão CONCLUIR (curso 100%) -->
-                            <Button Grid.Column="2" Content="&#x1F3C6; Concluir"
-                                    Style="{StaticResource BtnAcessarStyle}"
-                                    VerticalAlignment="Top"
-                                    Background="#2E7D32"
-                                    Click="BtnConcluir_Click"
-                                    Tag="Programa&#xE7;&#xE3;o Orientada a Objetos em C#|Prof. Roberto Alves|Tecnologia|40h"/>
-                        </Grid>
-                        <StackPanel Orientation="Horizontal" Margin="0,12,0,10">
-                            <TextBlock Text="&#x1F4C5; Dez 2025" Foreground="#9E8FC0"
-                                       FontSize="12" FontFamily="Segoe UI" Margin="0,0,18,0"/>
-                            <TextBlock Text="&#x1F551; 40h" Foreground="#9E8FC0"
-                                       FontSize="12" FontFamily="Segoe UI" Margin="0,0,18,0"/>
-                            <TextBlock Text="&#x270F;&#xFE0F; 5 atividades" Foreground="#9E8FC0"
-                                       FontSize="12" FontFamily="Segoe UI"/>
-                        </StackPanel>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <Border Grid.Column="0" Background="#1B5E20" CornerRadius="3" Height="6" VerticalAlignment="Center">
-                                <Border Background="#A5D6A7" CornerRadius="3"
-                                        HorizontalAlignment="Left" Width="300"/>
-                            </Border>
-                            <TextBlock Grid.Column="1" Text="100% &#x2714;" Foreground="#A5D6A7"
-                                       FontSize="12" FontWeight="SemiBold"
-                                       FontFamily="Segoe UI" Margin="10,0,0,0" VerticalAlignment="Center"/>
-                        </Grid>
-                    </StackPanel>
-                </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
 
             </StackPanel>
         </ScrollViewer>

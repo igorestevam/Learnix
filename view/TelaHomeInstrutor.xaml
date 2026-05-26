@@ -1,0 +1,122 @@
+﻿<UserControl x:Class="Learnix.TelaHomeInstrutor"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:Learnix"
+             Background="#1E1E1E">
+
+    <UserControl.Resources>
+        <Style x:Key="CardStyle" TargetType="Border">
+            <Setter Property="Background" Value="#2A2040"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="20,16"/>
+        </Style>
+        <Style x:Key="CardCursoStyle" TargetType="Border">
+            <Setter Property="Background" Value="#2A2040"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="18,14"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="220"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <local:SidebarInstrutor x:Name="Sidebar" Grid.Column="0"/>
+
+        <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="36,32,36,32">
+
+                <TextBlock Text="Bem-vindo de volta! &#x1F44B;"
+                           Foreground="#D8CCF0" FontSize="13" FontFamily="Segoe UI" Opacity="0.8"/>
+                <TextBlock x:Name="TxtNome" Text="Instrutor"
+                           Foreground="White" FontSize="26" FontWeight="Bold"
+                           FontFamily="Segoe UI" Margin="0,4,0,2"/>
+                <TextBlock x:Name="TxtEspecialidade" Text=""
+                           Foreground="#9E8FC0" FontSize="12"
+                           FontFamily="Segoe UI" Margin="0,0,0,26"/>
+
+                <!-- Cards resumo -->
+                <UniformGrid Columns="3" Margin="0,0,0,28">
+                    <Border Style="{StaticResource CardStyle}" Margin="0,0,14,0">
+                        <StackPanel>
+                            <TextBlock Text="&#x1F4DA;  Cursos" Foreground="#D8CCF0"
+                                       FontSize="12" FontFamily="Segoe UI" Opacity="0.75"/>
+                            <TextBlock x:Name="TxtTotalCursos" Text="0"
+                                       Foreground="White" FontSize="28" FontWeight="Bold"
+                                       FontFamily="Segoe UI" Margin="0,6,0,2"/>
+                            <TextBlock Text="ministrados" Foreground="#9E8FC0"
+                                       FontSize="11" FontFamily="Segoe UI"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource CardStyle}" Margin="0,0,14,0">
+                        <StackPanel>
+                            <TextBlock Text="&#x1F465;  Alunos" Foreground="#D8CCF0"
+                                       FontSize="12" FontFamily="Segoe UI" Opacity="0.75"/>
+                            <TextBlock x:Name="TxtTotalAlunos" Text="0"
+                                       Foreground="White" FontSize="28" FontWeight="Bold"
+                                       FontFamily="Segoe UI" Margin="0,6,0,2"/>
+                            <TextBlock Text="matriculados" Foreground="#9E8FC0"
+                                       FontSize="11" FontFamily="Segoe UI"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource CardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="&#x1F4CB;  Notas" Foreground="#D8CCF0"
+                                       FontSize="12" FontFamily="Segoe UI" Opacity="0.75"/>
+                            <TextBlock x:Name="TxtNotasPendentes" Text="0"
+                                       Foreground="White" FontSize="28" FontWeight="Bold"
+                                       FontFamily="Segoe UI" Margin="0,6,0,2"/>
+                            <TextBlock Text="pendentes" Foreground="#9E8FC0"
+                                       FontSize="11" FontFamily="Segoe UI"/>
+                        </StackPanel>
+                    </Border>
+                </UniformGrid>
+
+                <TextBlock Text="Meus Cursos"
+                           Foreground="White" FontSize="16" FontWeight="SemiBold"
+                           FontFamily="Segoe UI"/>
+                <Separator Background="#9E8FC0" Opacity="0.25" Margin="0,8,0,14"/>
+
+                <Border x:Name="PainelVazio" Visibility="Collapsed"
+                        Style="{StaticResource CardCursoStyle}">
+                    <TextBlock Text="Você ainda não tem cursos cadastrados."
+                               Foreground="#9E8FC0" FontSize="13" FontFamily="Segoe UI"
+                               HorizontalAlignment="Center"/>
+                </Border>
+
+                <ItemsControl x:Name="ListaCursos">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource CardCursoStyle}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="{Binding Titulo}"
+                                                   Foreground="White" FontSize="14" FontWeight="SemiBold"
+                                                   FontFamily="Segoe UI"/>
+                                        <TextBlock Text="{Binding Info}"
+                                                   Foreground="#9E8FC0" FontSize="12"
+                                                   FontFamily="Segoe UI" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                    <Border Grid.Column="1" Background="#3A2860" CornerRadius="20"
+                                            Padding="12,5" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding NumAlunos}"
+                                                   Foreground="#D8CCF0" FontSize="12"
+                                                   FontFamily="Segoe UI"/>
+                                    </Border>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>
