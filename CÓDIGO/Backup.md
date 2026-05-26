@@ -2793,3 +2793,63 @@ dotnet ef database update       # aplica só a nova migration PerfilNullable
 
 **Resultado:** Novo aluno cadastrado → aparece sem perfil de aprendizagem, sem cursos, sem notas. Cada informação é adicionada à medida que o aluno usa o sistema (matricula-se em curso → aparece em Meus Cursos; assiste aula → progresso registrado; etc.).
 
+
+
+---
+
+## Rodada 6 — Correção Geral de Erros de Compilação (25/05/2026)
+
+### Item 70: controller/LoginController.cs (CRIADO)
+
+**ANTES:** Arquivo não existia (404) — causava CS0246 em TelaLogin.xaml.cs
+
+**DEPOIS:**
+```csharp
+using Learnix.Services;
+using Learnix.model;
+
+namespace Learnix.Controllers
+{
+    public class LoginController
+    {
+        private readonly AuthService _authService;
+
+        public LoginController(AuthService authService)
+        {
+            _authService = authService;
+        }
+
+        public Usuario? RealizarLogin(string codigoAcesso, string senha)
+        {
+            return _authService.RealizarLogin(codigoAcesso, senha);
+        }
+    }
+}
+```
+
+---
+
+### Item 71: view/TelaMenu.xaml.cs
+
+**ANTES (problemas):** CS0103 ListaCursos linhas 28,99; CS1061 BtnMatricular_Click; faltavam FiltroTodos_Click, FiltroExatas_Click, FiltroHumanas_Click, FiltroTecnologia_Click; construtor com parâmetro Aluno em vez de vazio
+
+**DEPOIS:** Construtor vazio + DefinirAluno(Aluno) público; FiltroTodos/Exatas/Humanas/Tecnologia_Click; TxtBusca_TextChanged; BtnMatricular_Click com VisualTree walk para EncontrarCard; ObterCursoId via dicionário
+
+---
+
+### Item 72: view/TelaMeusCursos.xaml.cs
+
+**ANTES (problemas):** CS0103 PainelCursos linhas 31,35; Sidebar.DefinirUsuario (método inexistente); construtor com string em vez de vazio
+
+**DEPOIS:** Construtor vazio + DefinirAluno(Aluno) público; BtnContinuar_Click e BtnConcluir_Click lendo Tag do botão; IrParaCurso busca Matricula no banco via Include(Curso)
+
+---
+
+### Item 73: view/TelaPerfil.xaml.cs
+
+**ANTES (problemas):** CS0103 TxtMatricula linhas 29-30; TxtEstilo linhas 32-33; TxtRitmo linhas 35-36 (apesar de estarem no XAML, havia referências erradas); _aluno não inicializado no construtor
+
+**DEPOIS:** Construtor vazio + DefinirAluno(Aluno) público; CarregarDados() preenche TxtMatricula=MatriculaAcademica, TxtEstilo=EstiloPredominante, TxtRitmo=RitmoSugerido; BtnEditar_Click e BtnSalvar_Click para edição de Nome/Email
+
+---
+
