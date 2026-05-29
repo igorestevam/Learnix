@@ -21,6 +21,9 @@ namespace Learnix
         private int _matriculaId;
         private int _aulaId;
 
+        // Expõe a Sidebar para a MainWindow conectar os eventos
+        public SidebarControl SidebarPublic => Sidebar;
+
         public TelaPlayer()
         {
             InitializeComponent();
@@ -33,13 +36,20 @@ namespace Learnix
             if (VideoPlayer != null) VideoPlayer.Volume = 0.7;
         }
 
-        public void DefinirAula(Matricula matricula, Aula aula)
+        public void DefinirAula(Matricula matricula, Aula aula, string nomeAluno = "")
         {
+            // Se nome foi passado diretamente, usa ele (não depende de matricula.Aluno)
+            if (!string.IsNullOrWhiteSpace(nomeAluno))
+            {
+                _nomeAluno = nomeAluno;
+                Sidebar?.DefinirAluno(nomeAluno);
+            }
             _matriculaId = matricula.Id;
             _aulaId = aula.Id;
             _nomeCurso = matricula.Curso?.Titulo ?? string.Empty;
 
-            if (matricula.Aluno != null)
+            // Só usa o nome da matrícula se não foi passado diretamente
+            if (string.IsNullOrWhiteSpace(_nomeAluno) && matricula.Aluno != null)
             {
                 _nomeAluno = matricula.Aluno.Nome;
                 Sidebar?.DefinirAluno(matricula.Aluno.Nome);

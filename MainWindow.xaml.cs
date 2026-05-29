@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -15,28 +14,29 @@ namespace Learnix
         public MainWindow()
         {
             InitializeComponent();
+            using var db = new LearnixDbContext();
+            LearnixDbInitializer.Seed(db);
             MostrarLogin();
         }
 
-        // ── Recarrega o aluno do banco ───────────────────────────────────────
+        // ── Recarregar entidades do banco ────────────────────────────────────
 
         private Aluno? AlunoAtual()
         {
-            if (_usuarioLogado is not Aluno aluno) return null;
+            if (_usuarioLogado is not Aluno a) return null;
             using var db = new LearnixDbContext();
             return db.Alunos
-                .Include(a => a.HistoricoMatriculas)
-                    .ThenInclude(m => m.Curso)
-                .FirstOrDefault(a => a.Id == aluno.Id);
+                .Include(x => x.HistoricoMatriculas).ThenInclude(m => m.Curso)
+                .FirstOrDefault(x => x.Id == a.Id);
         }
 
         private Instrutor? InstrutorAtual()
         {
-            if (_usuarioLogado is not Instrutor instrutor) return null;
+            if (_usuarioLogado is not Instrutor inst) return null;
             using var db = new LearnixDbContext();
             return db.Instrutores
                 .Include(i => i.Cursos)
-                .FirstOrDefault(i => i.Id == instrutor.Id);
+                .FirstOrDefault(i => i.Id == inst.Id);
         }
 
         // ── Telas de autenticação ────────────────────────────────────────────
@@ -49,8 +49,8 @@ namespace Learnix
             tela.SolicitarHome += (s, e, usuario) =>
             {
                 _usuarioLogado = usuario;
-                if (usuario is Instrutor instrutor)
-                    MostrarHomeInstrutor(instrutor);
+                if (usuario is Instrutor inst)
+                    MostrarHomeInstrutor(inst);
                 else
                     MostrarHome();
             };
@@ -102,10 +102,7 @@ namespace Learnix
             conteudoPrincipal.Content = tela;
         }
 
-        public void MostrarNotas(Matricula? matricula)
-        {
-            MostrarNotas();
-        }
+        public void MostrarNotas(Matricula? matricula) => MostrarNotas();
 
         public void MostrarMeusCursos(string nomeAluno = "Aluno")
         {
@@ -124,18 +121,12 @@ namespace Learnix
             AjustarJanela(1280, 720);
             var aluno = AlunoAtual();
             var tela = new TelaMenu();
+            string nome = aluno?.Nome ?? _usuarioLogado?.Nome ?? nomeAluno;
 
             if (aluno != null)
                 tela.DefinirAluno(aluno);
-
-            string nome = aluno?.Nome ?? _usuarioLogado?.Nome ?? nomeAluno;
-            tela.Sidebar.DefinirAluno(nome);
-
-            // Passa o usuario para que a TelaMenu possa criar matriculas em nome dele
-            if (_usuarioLogado is Aluno aluno)
-            {
-                tela.DefinirAluno(aluno);
-            }
+            else
+                tela.Sidebar.DefinirAluno(nome);
 
             ConectarSidebar(tela.Sidebar, nome);
             conteudoPrincipal.Content = tela;
@@ -169,13 +160,18 @@ namespace Learnix
         public void MostrarAulas(Matricula matricula)
         {
             AjustarJanela(1280, 720);
-            var aluno = AlunoAtual();
-            string nome = aluno?.Nome ?? _usuarioLogado?.Nome ?? "Aluno";
+            string nome = AlunoAtual()?.Nome ?? _usuarioLogado?.Nome ?? "Aluno";
 
             var tela = new TelaAulas();
             tela.DefinirMatricula(matricula, nome);
             ConectarSidebar(tela.Sidebar, nome);
             conteudoPrincipal.Content = tela;
+        }
+
+        public void MostrarAulaNoPlayer()
+        {
+            AjustarJanela(1280, 720);
+            conteudoPrincipal.Content = new TelaPlayer();
         }
 
         public void MostrarTela(UserControl tela, string nomeAluno = "Aluno")
@@ -213,39 +209,6 @@ namespace Learnix
             conteudoPrincipal.Content = tela;
         }
 
-        // ── Sidebars ─────────────────────────────────────────────────────────
-
-        private void ConectarSidebar(SidebarControl sidebar, string nomeAluno)
-        {
-            sidebar.SolicitarHome += (s, e) => MostrarHome();
-            sidebar.SolicitarBuscarCursos += (s, e) => MostrarMenu(nomeAluno);
-            sidebar.SolicitarMenu += (s, e) => MostrarMenu(nomeAluno);
-            sidebar.SolicitarNotas += (s, e) => MostrarNotas();
-            sidebar.SolicitarMeusCursos += (s, e) => MostrarMeusCursos(nomeAluno);
-            sidebar.SolicitarCertificados += (s, e) => MostrarCertificados(nomeAluno);
-            sidebar.SolicitarPerfil += (s, e) => MostrarPerfil(nomeAluno);
-            sidebar.SolicitarSair += (s, e) =>
-            {
-                if (_usuarioLogado is Aluno aluno)
-                {
-                    // Recarrega para garantir avaliacoes atualizadas
-                    var alunoAtualizado = RecarregarAlunoCompleto(aluno.Id) ?? aluno;
-                    _usuarioLogado = alunoAtualizado;
-
-                    var primeira = alunoAtualizado.HistoricoMatriculas?.FirstOrDefault();
-                    if (primeira != null) MostrarNotas(primeira);
-                }
-            };
-            sidebar.SolicitarCertificados += (s, e) => MostrarCertificados(nomeAluno);
-            sidebar.SolicitarPerfil += (s, e) => MostrarPerfil(nomeAluno);
-            sidebar.SolicitarSair += (s, e) =>
-            {
-                _usuarioLogado = null;
-                AjustarJanela(500, 480, false);
-                MostrarLogin();
-            };
-        }
-
         public void MostrarEscolherCurso(Instrutor? instrutor = null)
         {
             AjustarJanela(1280, 720);
@@ -256,25 +219,6 @@ namespace Learnix
             tela.DefinirInstrutor(inst);
             ConectarSidebarInstrutor(tela.Sidebar, inst);
             conteudoPrincipal.Content = tela;
-        }
-
-        private void ConectarSidebarInstrutor(SidebarInstrutor sidebar, Instrutor instrutor)
-        {
-            sidebar.SolicitarHome += (s, e) => MostrarHomeInstrutor(instrutor);
-            sidebar.SolicitarMeusCursos += (s, e) => MostrarMeusCursosInstrutor(instrutor);
-            sidebar.SolicitarLancarNotas += (s, e) => MostrarLancarNotas(instrutor);
-            sidebar.SolicitarEscolherCurso += (s, e) => MostrarEscolherCurso(instrutor);
-            sidebar.SolicitarSair += (s, e) =>
-            {
-                var r = MessageBox.Show("Deseja sair da sua conta?", "Learnix",
-                    MessageBoxButton.YesNo, MessageBoxImage.Question);
-                if (r == MessageBoxResult.Yes)
-                {
-                    _usuarioLogado = null;
-                    AjustarJanela(500, 480, false);
-                    MostrarLogin();
-                }
-            };
         }
 
         public void MostrarMeusCursosInstrutor(Instrutor? instrutor = null)
@@ -289,16 +233,55 @@ namespace Learnix
             conteudoPrincipal.Content = tela;
         }
 
+        // ── Sidebars ─────────────────────────────────────────────────────────
+
+        private void ConectarSidebar(SidebarControl sidebar, string nomeAluno)
+        {
+            sidebar.SolicitarHome += (s, e) => MostrarHome();
+            sidebar.SolicitarBuscarCursos += (s, e) => MostrarMenu(nomeAluno);
+            sidebar.SolicitarMenu += (s, e) => MostrarMenu(nomeAluno);
+            sidebar.SolicitarNotas += (s, e) => MostrarNotas();
+            sidebar.SolicitarMeusCursos += (s, e) => MostrarMeusCursos(nomeAluno);
+            sidebar.SolicitarCertificados += (s, e) => MostrarCertificados(nomeAluno);
+            sidebar.SolicitarPerfil += (s, e) => MostrarPerfil(nomeAluno);
+            sidebar.SolicitarSair += (s, e) =>
+            {
+                var r = MessageBox.Show("Deseja sair da sua conta?", "Learnix",
+                    MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (r == MessageBoxResult.Yes)
+                {
+                    _usuarioLogado = null;
+                    AjustarJanela(500, 480, false);
+                    MostrarLogin();
+                }
+            };
+        }
+
+        private void ConectarSidebarInstrutor(SidebarInstrutor sidebar, Instrutor instrutor)
+        {
+            sidebar.SolicitarHome += (s, e) => MostrarHomeInstrutor(instrutor);
+            sidebar.SolicitarMeusCursos += (s, e) => MostrarMeusCursosInstrutor(instrutor);
+            sidebar.SolicitarEscolherCurso += (s, e) => MostrarEscolherCurso(instrutor);
+            sidebar.SolicitarSair += (s, e) =>
+            {
+                var r = MessageBox.Show("Deseja sair da sua conta?", "Learnix",
+                    MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (r == MessageBoxResult.Yes)
+                {
+                    _usuarioLogado = null;
+                    AjustarJanela(500, 480, false);
+                    MostrarLogin();
+                }
+            };
+        }
+
         private void AjustarJanela(double width, double height, bool comMinimo = true)
         {
-            this.Width = width;
-            this.Height = height;
-            if (comMinimo)
-            {
-                this.MinWidth = width;
-                this.MinHeight = height;
-            }
-            this.WindowState = WindowState.Normal;
+            Width = width;
+            Height = height;
+            MinWidth = comMinimo ? width : 0;
+            MinHeight = comMinimo ? height : 0;
+            WindowState = WindowState.Normal;
         }
     }
 }

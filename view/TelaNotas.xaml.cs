@@ -68,10 +68,12 @@ namespace Learnix
                 double av3 = avs.ElementAtOrDefault(2)?.Nota ?? -1;
 
                 var notasValidas = avs.Select(a => a.Nota).ToList();
+                bool semNotas = !notasValidas.Any();
                 double media = notasValidas.Any() ? notasValidas.Average() : 0;
 
-                bool aprovado = media >= 7.0;
-                bool recuperacao = media >= 5.0 && media < 7.0;
+                bool cursando = semNotas;
+                bool aprovado = !semNotas && media >= 7.0;
+                bool recuperacao = !semNotas && media >= 5.0 && media < 7.0;
 
                 items.Add(new NotaLinhaVM
                 {
@@ -81,22 +83,28 @@ namespace Learnix
                     NotaAV2 = av2 >= 0 ? av2.ToString("0.0", ptBR) : "—",
                     NotaAV3 = av3 >= 0 ? av3.ToString("0.0", ptBR) : "—",
                     Media = media.ToString("0.0", ptBR),
-                    CorMedia = new SolidColorBrush(aprovado
-                                        ? (System.Windows.Media.Color)ColorConverter.ConvertFromString("#A5D6A7")
-                                        : recuperacao
-                                            ? (System.Windows.Media.Color)ColorConverter.ConvertFromString("#FFCC80")
-                                            : (System.Windows.Media.Color)ColorConverter.ConvertFromString("#EF9A9A")),
-                    StatusTexto = aprovado ? "Aprovado" : recuperacao ? "Recuperação" : "Reprovado",
-                    CorFundoStatus = new SolidColorBrush(aprovado
-                                        ? (System.Windows.Media.Color)ColorConverter.ConvertFromString("#1B5E20")
-                                        : recuperacao
-                                            ? (System.Windows.Media.Color)ColorConverter.ConvertFromString("#4E3600")
-                                            : (System.Windows.Media.Color)ColorConverter.ConvertFromString("#5E1B1B")),
-                    CorTextoStatus = new SolidColorBrush(aprovado
-                                        ? (System.Windows.Media.Color)ColorConverter.ConvertFromString("#A5D6A7")
-                                        : recuperacao
-                                            ? (System.Windows.Media.Color)ColorConverter.ConvertFromString("#FFCC80")
-                                            : (System.Windows.Media.Color)ColorConverter.ConvertFromString("#EF9A9A")),
+                    CorMedia = new SolidColorBrush(cursando
+                                        ? (System.Windows.Media.Color)ColorConverter.ConvertFromString("#90CAF9")
+                                        : aprovado
+                                            ? (System.Windows.Media.Color)ColorConverter.ConvertFromString("#A5D6A7")
+                                            : recuperacao
+                                                ? (System.Windows.Media.Color)ColorConverter.ConvertFromString("#FFCC80")
+                                                : (System.Windows.Media.Color)ColorConverter.ConvertFromString("#EF9A9A")),
+                    StatusTexto = cursando ? "Cursando" : aprovado ? "Aprovado" : recuperacao ? "Recuperação" : "Reprovado",
+                    CorFundoStatus = new SolidColorBrush(cursando
+                                        ? (System.Windows.Media.Color)ColorConverter.ConvertFromString("#1A2A3A")
+                                        : aprovado
+                                            ? (System.Windows.Media.Color)ColorConverter.ConvertFromString("#1B5E20")
+                                            : recuperacao
+                                                ? (System.Windows.Media.Color)ColorConverter.ConvertFromString("#4E3600")
+                                                : (System.Windows.Media.Color)ColorConverter.ConvertFromString("#5E1B1B")),
+                    CorTextoStatus = new SolidColorBrush(cursando
+                                        ? (System.Windows.Media.Color)ColorConverter.ConvertFromString("#90CAF9")
+                                        : aprovado
+                                            ? (System.Windows.Media.Color)ColorConverter.ConvertFromString("#A5D6A7")
+                                            : recuperacao
+                                                ? (System.Windows.Media.Color)ColorConverter.ConvertFromString("#FFCC80")
+                                                : (System.Windows.Media.Color)ColorConverter.ConvertFromString("#EF9A9A")),
                 });
             }
 
@@ -109,7 +117,7 @@ namespace Learnix
                 double mediaGeral = todasNotas.Average(a => a.Nota);
                 TxtMediaGeral.Text = mediaGeral.ToString("0.0", ptBR);
                 bool geralAprovado = mediaGeral >= 7.0;
-                bool geralRecuperacao = mediaGeral >= 5.0;
+                bool geralRecuperacao = mediaGeral >= 5.0 && mediaGeral < 7.0;
                 TxtSituacao.Text = geralAprovado ? "Aprovado" : geralRecuperacao ? "Recuperação" : "Reprovado";
                 TxtSituacao.Foreground = new SolidColorBrush(geralAprovado
                     ? (System.Windows.Media.Color)ColorConverter.ConvertFromString("#A5D6A7")

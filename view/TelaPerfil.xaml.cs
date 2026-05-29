@@ -2,11 +2,12 @@ using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using Learnix.data;
 using Learnix.model;
 using Microsoft.EntityFrameworkCore;
 
-namespace Learnix.view
+namespace Learnix
 {
     public partial class TelaPerfil : UserControl
     {
@@ -21,16 +22,14 @@ namespace Learnix.view
         {
             _aluno = aluno;
 
-            // Dados básicos
-            TxtNomePerfil.Text = aluno.Nome;
+            TxtNomePerfil.Text  = aluno.Nome;
             TxtEmailPerfil.Text = aluno.Email;
-            TxtEditNome.Text = aluno.Nome;
-            TxtEditEmail.Text = aluno.Email;
-            TxtMatricula.Text = aluno.MatriculaAcademica;
+            TxtEditNome.Text    = aluno.Nome;
+            TxtEditEmail.Text   = aluno.Email;
+            TxtMatricula.Text   = aluno.MatriculaAcademica;
             TxtMembroDesde.Text = aluno.DataCadastro.ToString("dd/MM/yyyy");
             Sidebar.DefinirAluno(aluno.Nome);
 
-            // Iniciais do avatar
             var partes = aluno.Nome.Split(' ');
             TxtIniciais.Text = partes.Length >= 2
                 ? $"{partes[0][0]}{partes[1][0]}".ToUpper()
@@ -69,19 +68,24 @@ namespace Learnix.view
             TxtAprovados.Text = aprovados.ToString();
         }
 
-        private void CarregarDados()
+        // Acionado pelo botão "Editar" no XAML
+        private void BtnEditar_Click(object sender, RoutedEventArgs e)
         {
             var corEdicao = new SolidColorBrush(
                 (Color)ColorConverter.ConvertFromString("#4E3A7A"));
-            TxtEditNome.IsReadOnly = false;
+
+            TxtEditNome.IsReadOnly  = false;
             TxtEditEmail.IsReadOnly = false;
-            TxtEditNome.Background = corEdicao;
+            TxtEditNome.Background  = corEdicao;
             TxtEditEmail.Background = corEdicao;
+
             BtnEditar.Visibility = Visibility.Collapsed;
             BtnSalvar.Visibility = Visibility.Visible;
+
             TxtEditNome.Focus();
         }
 
+        // Acionado pelo botão "Salvar" no XAML
         private void BtnSalvar_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(TxtEditNome.Text) ||
@@ -95,18 +99,18 @@ namespace Learnix.view
             if (_aluno != null)
             {
                 using var db = new LearnixDbContext();
-                var aluno = db.Alunos.Find(_aluno.Id);
-                if (aluno != null)
+                var alunoDb = db.Alunos.Find(_aluno.Id);
+                if (alunoDb != null)
                 {
-                    aluno.Nome = TxtEditNome.Text.Trim();
-                    aluno.Email = TxtEditEmail.Text.Trim();
+                    alunoDb.Nome  = TxtEditNome.Text.Trim();
+                    alunoDb.Email = TxtEditEmail.Text.Trim();
                     db.SaveChanges();
-                    _aluno.Nome = aluno.Nome;
-                    _aluno.Email = aluno.Email;
+                    _aluno.Nome  = alunoDb.Nome;
+                    _aluno.Email = alunoDb.Email;
                 }
             }
 
-            TxtNomePerfil.Text = TxtEditNome.Text;
+            TxtNomePerfil.Text  = TxtEditNome.Text;
             TxtEmailPerfil.Text = TxtEditEmail.Text;
             Sidebar.DefinirAluno(TxtEditNome.Text);
 
@@ -117,10 +121,12 @@ namespace Learnix.view
 
             var corLeitura = new SolidColorBrush(
                 (Color)ColorConverter.ConvertFromString("#3A2860"));
-            TxtEditNome.IsReadOnly = true;
+
+            TxtEditNome.IsReadOnly  = true;
             TxtEditEmail.IsReadOnly = true;
-            TxtEditNome.Background = corLeitura;
+            TxtEditNome.Background  = corLeitura;
             TxtEditEmail.Background = corLeitura;
+
             BtnSalvar.Visibility = Visibility.Collapsed;
             BtnEditar.Visibility = Visibility.Visible;
 

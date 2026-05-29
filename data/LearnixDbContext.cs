@@ -23,6 +23,7 @@ namespace Learnix.data
         public DbSet<Avaliacao> Avaliacoes { get; set; } = null!;
         public DbSet<Progresso> Progressos { get; set; } = null!;
         public DbSet<Certificado> Certificados { get; set; } = null!;
+        public DbSet<AulaConcluida> AulasConcluidas { get; set; } = null!;
 
         public LearnixDbContext() { }
 
@@ -33,7 +34,7 @@ namespace Learnix.data
             if (!optionsBuilder.IsConfigured)
             {
                 optionsBuilder.UseSqlServer(
-                    "Server=(localdb)\\mssqllocaldb;Database=MyDatabase;Trusted_Connection=True;");
+                    "Server=(localdb)\\mssqllocaldb;Database=LearnixDB;Trusted_Connection=True;");
             }
         }
 

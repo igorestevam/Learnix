@@ -17,9 +17,10 @@ namespace Learnix.Services
 
         public bool RegistrarConclusaoAula(int matriculaId, int aulaId)
         {
-            // Carrega a matricula trazendo o progresso e a estrutura de aulas do curso
-            Matricula? matricula = _context.Matriculas
+            // Carrega a matrícula com progresso e estrutura de aulas
+            var matricula = _context.Matriculas
                 .Include(m => m.Progresso)
+                .Include(m => m.Certificado)
                 .Include(m => m.Curso)
                     .ThenInclude(c => c.Modulos)
                         .ThenInclude(mod => mod.Aulas)
@@ -28,16 +29,15 @@ namespace Learnix.Services
             if (matricula == null || matricula.Progresso == null || matricula.Curso == null)
                 return false;
 
-            // Idempotencia: verifica se esta aula ja foi concluida nesta matricula.
-            // A PK composta (MatriculaId + AulaId) impede duplicatas no banco,
-            // mas verificamos antes para evitar excecao de constraint desnecessaria.
-            bool jaRegistrada = _context.AulasConcluidas
+            // Idempotência: verifica se esta aula já foi concluída
+            // Usa a tabela AulaConcluida (PK composta MatriculaId + AulaId)
+            bool jaRegistrada = _context.Set<AulaConcluida>()
                 .Any(ac => ac.MatriculaId == matriculaId && ac.AulaId == aulaId);
 
             if (jaRegistrada)
                 return false;
 
-            // Verifica se a aula pertence de fato a este curso
+            // Verifica se a aula pertence a este curso
             bool aulaExisteNoCurso = matricula.Curso.Modulos
                 .SelectMany(m => m.Aulas)
                 .Any(a => a.Id == aulaId);
@@ -45,41 +45,35 @@ namespace Learnix.Services
             if (!aulaExisteNoCurso)
                 return false;
 
-            // Registra a conclusao desta aula especifica
-            _context.AulasConcluidas.Add(new AulaConcluida(matriculaId, aulaId));
+            // Registra a conclusão desta aula
+            _context.Set<AulaConcluida>().Add(new AulaConcluida(matriculaId, aulaId));
 
-            // Recalcula o progresso com base nas aulas efetivamente concluidas
+            // Recalcula o progresso
             int totalAulas = matricula.Curso.Modulos.Sum(m => m.Aulas.Count);
+            if (totalAulas == 0) return false;
 
-            if (totalAulas == 0)
-                return false;
-
-            // Conta diretamente do banco para garantir consistencia
-            int aulasConcluidas = _context.AulasConcluidas
+            // Conta do banco (+1 porque o Add ainda não foi salvo)
+            int jaConcluidasNoBanco = _context.Set<AulaConcluida>()
                 .Count(ac => ac.MatriculaId == matriculaId);
 
-            // +1 porque o Add acima ainda nao foi salvo (SaveChanges ainda nao foi chamado)
-            int totalConcluidas = aulasConcluidas + 1;
+            int totalConcluidas = jaConcluidasNoBanco + 1;
+            double percentual   = ((double)totalConcluidas / totalAulas) * 100.0;
 
-            double percentual = ((double)totalConcluidas / totalAulas) * 100.0;
-            matricula.Progresso.AulasConcluidas = totalConcluidas;
-            matricula.Progresso.PercentualConcluido = percentual;
-            matricula.Progresso.UltimaAtualizacao = DateTime.Now;
+            matricula.Progresso.AulasConcluidas      = totalConcluidas;
+            matricula.Progresso.PercentualConcluido  = percentual;
+            matricula.Progresso.UltimaAtualizacao    = DateTime.Now;
 
-            // Regra de Negocio: Se concluiu 100%, finaliza a matricula e emite o certificado
+            // Regra de negócio: 100% → conclui matrícula e emite certificado
             if (percentual >= 100.0 && matricula.Certificado == null)
             {
                 matricula.Status = StatusMatricula.Concluida;
 
-                string codigoUnico = "LX-" + Guid.NewGuid().ToString().Substring(0, 6).ToUpper();
-
-                Certificado novoCertificado = new Certificado
+                _context.Certificados.Add(new Certificado
                 {
-                    CodigoCertificado = codigoUnico,
-                    DataEmissao = DateTime.Now,
-                    MatriculaId = matricula.Id
-                };
-                _context.Certificados.Add(novoCertificado);
+                    CodigoCertificado = "LX-" + Guid.NewGuid().ToString("N")[..6].ToUpper(),
+                    DataEmissao       = DateTime.Now,
+                    MatriculaId       = matricula.Id
+                });
             }
 
             _context.SaveChanges();

@@ -157,7 +157,7 @@
                         <Button Grid.Column="2" Content="&#x25B6; Rever"
                                 Style="{StaticResource BtnAssistirStyle}"
                                 VerticalAlignment="Center"
-                                Click="BtnAssistir_Click" Tag="Aula 01 — O que são Algoritmos?"/>
+                                Click="BtnAssistir_Click" Tag="1"/>
                     </Grid>
                 </Border>
 
@@ -189,7 +189,7 @@
                         <Button Grid.Column="2" Content="&#x25B6; Rever"
                                 Style="{StaticResource BtnAssistirStyle}"
                                 VerticalAlignment="Center"
-                                Click="BtnAssistir_Click" Tag="Aula 02 — Complexidade de Algoritmos"/>
+                                Click="BtnAssistir_Click" Tag="2"/>
                     </Grid>
                 </Border>
 
@@ -226,7 +226,7 @@
                         <Button Grid.Column="2" Content="&#x25B6; Continuar"
                                 Style="{StaticResource BtnAssistirStyle}"
                                 VerticalAlignment="Center"
-                                Click="BtnAssistir_Click" Tag="Aula 03 — Listas Encadeadas"/>
+                                Click="BtnAssistir_Click" Tag="3"/>
                     </Grid>
                 </Border>
 

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Learnix.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class CriacaoInicial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -49,7 +49,7 @@ namespace Learnix.Migrations
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Senha = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     DataCadastro = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    TipoUsuario = table.Column<string>(type: "nvarchar(13)", maxLength: 13, nullable: false),
+                    Discriminator = table.Column<string>(type: "nvarchar(13)", maxLength: 13, nullable: false),
                     MatriculaAcademica = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     PerfilDeAprendizagemId = table.Column<int>(type: "int", nullable: true),
                     Especialidade = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -62,8 +62,7 @@ namespace Learnix.Migrations
                         name: "FK_Usuarios_PerfisDeAprendizagem_PerfilDeAprendizagemId",
                         column: x => x.PerfilDeAprendizagemId,
                         principalTable: "PerfisDeAprendizagem",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -77,8 +76,8 @@ namespace Learnix.Migrations
                     CargaHoraria = table.Column<int>(type: "int", nullable: false),
                     Preco = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     CategoriaId = table.Column<int>(type: "int", nullable: false),
-                    InstrutorId = table.Column<int>(type: "int", nullable: false),
-                    TipoCurso = table.Column<string>(type: "nvarchar(8)", maxLength: 8, nullable: false),
+                    InstrutorId = table.Column<int>(type: "int", nullable: true),
+                    Discriminator = table.Column<string>(type: "nvarchar(13)", maxLength: 13, nullable: false),
                     PossuiLaboratorioVirtual = table.Column<bool>(type: "bit", nullable: true),
                     FerramentaSoftwareSugerida = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ExigeMonografia = table.Column<bool>(type: "bit", nullable: true),
@@ -97,8 +96,7 @@ namespace Learnix.Migrations
                         name: "FK_Cursos_Usuarios_InstrutorId",
                         column: x => x.InstrutorId,
                         principalTable: "Usuarios",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(

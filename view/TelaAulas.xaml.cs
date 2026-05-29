@@ -19,94 +19,61 @@ namespace Learnix
             InitializeComponent();
         }
 
-        /// <summary>
-        /// Sobrecarga compatibilizada com MainWindow.MostrarAulas (que passa nome do aluno
-        /// extraido de _usuarioLogado em vez de depender de matricula.Aluno).
-        /// </summary>
         public void DefinirMatricula(Matricula matricula, string nomeAluno)
         {
-            _matricula = matricula;
             _nomeAluno = string.IsNullOrWhiteSpace(nomeAluno)
                 ? (matricula?.Aluno?.Nome ?? "Aluno")
                 : nomeAluno;
 
-            Sidebar?.DefinirAluno(_nomeAluno);
+            using var db = new LearnixDbContext();
+            _matricula = db.Matriculas
+                .Include(m => m.Aluno)
+                .Include(m => m.Progresso)
+                .Include(m => m.Curso).ThenInclude(c => c.Instrutor)
+                .Include(m => m.Curso).ThenInclude(c => c.Categoria)
+                .Include(m => m.Curso).ThenInclude(c => c.Modulos)
+                    .ThenInclude(mod => mod.Aulas)
+                .FirstOrDefault(m => m.Id == matricula.Id)
+                ?? matricula;
 
+            Sidebar?.DefinirAluno(_nomeAluno);
             PopularDadosCurso();
         }
 
-        /// <summary>
-        /// Mantida por compatibilidade. Usa o nome contido em matricula.Aluno (se carregado).
-        /// </summary>
         public void DefinirMatricula(Matricula matricula)
         {
-            _matricula = matricula;
-            _nomeAluno = matricula?.Aluno?.Nome ?? "Aluno";
-
-            Sidebar?.DefinirAluno(_nomeAluno);
-
-            PopularDadosCurso();
+            DefinirMatricula(matricula, matricula?.Aluno?.Nome ?? "Aluno");
         }
 
         private void PopularDadosCurso()
         {
-            if (_matricula?.Curso != null)
-            {
-                TxtNomeCurso.Text = _matricula.Curso.Titulo;
-                if (_matricula.Curso.Instrutor != null)
-                    TxtProfessor.Text = "Prof. " + _matricula.Curso.Instrutor.Nome;
-                if (_matricula.Curso.Categoria != null)
-                    TxtCategoria.Text = _matricula.Curso.Categoria.Nome;
-                TxtCargaHoraria.Text = _matricula.Curso.CargaHoraria + "h";
-                TxtDescricao.Text = _matricula.Curso.Descricao ?? string.Empty;
-            }
+            if (_matricula?.Curso == null) return;
 
-            // Le o percentual do Progresso vinculado a matricula (nao do model Matricula direto)
-            double percentual = _matricula?.Progresso?.PercentualConcluido ?? 0.0;
-            TxtProgresso.Text = ((int)Math.Round(percentual)) + "%";
+            TxtNomeCurso.Text = _matricula.Curso.Titulo;
+            TxtProfessor.Text = _matricula.Curso.Instrutor != null
+                                   ? "Prof. " + _matricula.Curso.Instrutor.Nome : "";
+            TxtCategoria.Text = _matricula.Curso.Categoria?.Nome ?? "";
+            TxtCargaHoraria.Text = _matricula.Curso.CargaHoraria + "h";
+            TxtDescricao.Text = _matricula.Curso.Descricao ?? "";
+
+            double pct = _matricula?.Progresso?.PercentualConcluido ?? 0.0;
+            TxtProgresso.Text = ((int)Math.Round(pct)) + "%";
         }
 
         private void AulaCard_Click(object sender, MouseButtonEventArgs e)
         {
-            // O XAML tem 3 cards estaticos com Tag="1"/"2"/"3" representando a ordem da aula
-            if (sender is not FrameworkElement fe || fe.Tag == null) return;
-            if (_matricula?.Curso == null) return;
-
-            if (!int.TryParse(fe.Tag.ToString(), out int ordem)) return;
-            var aulas = _matricula.Curso.Modulos.SelectMany(m => m.Aulas).OrderBy(a => a.Id).ToList();
-            if (ordem < 1 || ordem > aulas.Count) return;
-
-            var aula = aulas[ordem - 1];
-            var main = Application.Current.MainWindow as MainWindow;
-            if (main != null)
-            {
-                var player = new TelaPlayer();
-                player.DefinirAula(_matricula, aula);
-                main.MostrarTela(player, _nomeAluno);
-            }
+            AbrirPlayer();
         }
 
         private void BtnAssistir_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is not Button btn || btn.Tag == null) return;
-            if (_matricula?.Curso == null) return;
+            AbrirPlayer();
+        }
 
-            if (!int.TryParse(btn.Tag.ToString(), out int ordem)) return;
-            var aulas = _matricula.Curso.Modulos.SelectMany(m => m.Aulas).OrderBy(a => a.Id).ToList();
-            if (ordem < 1 || ordem > aulas.Count)
-            {
-                MessageBox.Show("Aula nao disponivel.", "Aviso", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
-
-            var aula = aulas[ordem - 1];
+        private void AbrirPlayer()
+        {
             var main = Application.Current.MainWindow as MainWindow;
-            if (main != null)
-            {
-                var player = new TelaPlayer();
-                player.DefinirAula(_matricula, aula);
-                main.MostrarTela(player, _nomeAluno);
-            }
+            main?.MostrarAulaNoPlayer();
         }
 
         private void BtnVoltar_Click(object sender, MouseButtonEventArgs e)
