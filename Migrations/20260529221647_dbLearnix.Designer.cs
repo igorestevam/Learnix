@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Learnix.Migrations
 {
     [DbContext(typeof(LearnixDbContext))]
-    [Migration("20260529183205_CriacaoInicial")]
-    partial class CriacaoInicial
+    [Migration("20260529221647_dbLearnix")]
+    partial class dbLearnix
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

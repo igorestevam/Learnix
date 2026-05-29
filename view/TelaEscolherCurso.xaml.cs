@@ -5,12 +5,15 @@ using System.Windows.Media;
 using Learnix.data;
 using Learnix.model;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.ObjectModel;
 
 namespace Learnix
 {
     public partial class TelaEscolherCurso : UserControl
     {
         private Instrutor? _instrutor;
+        private ObservableCollection<AulaTempVM> _aulasTemporarias = new ObservableCollection<AulaTempVM>();
 
         public TelaEscolherCurso()
         {
@@ -95,11 +98,66 @@ namespace Learnix
             TxtDescricao.Clear();
             TxtCargaHoraria.Clear();
             TxtPreco.Clear();
+
+            // Limpa as áreas de aula
+            TxtAulaTitulo.Clear();
+            TxtAulaDuracao.Clear();
+            TxtAulaUrl.Clear();
+            _aulasTemporarias.Clear();
+            ListaAulasNovas.ItemsSource = _aulasTemporarias;
         }
 
-        private void BtnCancelarNovoCurso_Click(object sender, RoutedEventArgs e)
+        private void BtnAddAula_Click(object sender, RoutedEventArgs e)
         {
-            PainelNovoCurso.Visibility = Visibility.Collapsed;
+            string titulo = TxtAulaTitulo.Text.Trim();
+            string duracaoStr = TxtAulaDuracao.Text.Trim();
+            string url = TxtAulaUrl.Text.Trim();
+
+            if (string.IsNullOrEmpty(titulo) || string.IsNullOrEmpty(duracaoStr))
+            {
+                MessageBox.Show("Informe o título e a duração da aula.", "Atenção", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (!int.TryParse(duracaoStr, out int duracaoMinutos) || duracaoMinutos <= 0)
+            {
+                MessageBox.Show("A duração deve ser um número inteiro positivo.", "Atenção", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            _aulasTemporarias.Add(new AulaTempVM
+            {
+                Ordem = _aulasTemporarias.Count + 1,
+                Titulo = titulo,
+                Duracao = duracaoMinutos,
+                Url = string.IsNullOrEmpty(url) ? "https://www.youtube.com/watch?v=dQw4w9WgXcQ" : url // Coloca um dummy de vídeo se deixar vazio
+            });
+
+            TxtAulaTitulo.Clear();
+            TxtAulaDuracao.Clear();
+            TxtAulaUrl.Clear();
+        }
+
+        private void BtnRemoverAula_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is string idTemp)
+            {
+                var aula = _aulasTemporarias.FirstOrDefault(a => a.IdTemp == idTemp);
+                if (aula != null)
+                {
+                    _aulasTemporarias.Remove(aula);
+
+                    // Reordena os itens na interface (1, 2, 3...)
+                    for (int i = 0; i < _aulasTemporarias.Count; i++)
+                    {
+                        _aulasTemporarias[i].Ordem = i + 1;
+                    }
+
+                    // Atualiza interface
+                    ListaAulasNovas.ItemsSource = null;
+                    ListaAulasNovas.ItemsSource = _aulasTemporarias;
+                }
+            }
         }
 
         private void BtnSalvarNovoCurso_Click(object sender, RoutedEventArgs e)
@@ -149,6 +207,23 @@ namespace Learnix
             novoCurso.CategoriaId  = categoriaId;
             // InstrutorId null = disponível para candidatura
 
+            if (_aulasTemporarias.Any())
+            {
+                var moduloUnico = new Modulo
+                {
+                    Titulo = "Módulo 1",
+                    Ordem = 1,
+                    Aulas = _aulasTemporarias.Select(a => new Aula
+                    {
+                        Titulo = a.Titulo,
+                        VideoUrl = a.Url,
+                        Duracao = TimeSpan.FromMinutes(a.Duracao),
+                        Ordem = a.Ordem
+                    }).ToList()
+                };
+                novoCurso.Modulos.Add(moduloUnico);
+            }
+
             db.Cursos.Add(novoCurso);
             db.SaveChanges();
 
@@ -177,6 +252,12 @@ namespace Learnix
 
             CarregarCursos();
         }
+
+        private void BtnCancelarNovoCurso_Click(object sender, RoutedEventArgs e)
+        {
+            // Oculta o painel de criação de novo curso
+            PainelNovoCurso.Visibility = Visibility.Collapsed;
+        }
     }
 
     public class EscolherCursoVM
@@ -191,5 +272,14 @@ namespace Learnix
         public string          TextoBotao        { get; set; } = "";
         public SolidColorBrush CorBotao          { get; set; } = new();
         public bool            BotaoAtivo        { get; set; } = true;
+    }
+
+    public class AulaTempVM
+    {
+        public string IdTemp { get; set; } = Guid.NewGuid().ToString();
+        public int Ordem { get; set; }
+        public string Titulo { get; set; } = "";
+        public int Duracao { get; set; }
+        public string Url { get; set; } = "";
     }
 }
