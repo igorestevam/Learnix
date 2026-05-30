@@ -10,6 +10,7 @@ namespace Learnix.model
         AguardandoContinuar,
         AguardandoCorrecao,
         Concluida,
+        Reprovada,
         Cancelada
     }
 }

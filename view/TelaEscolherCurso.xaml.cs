@@ -430,7 +430,7 @@ namespace Learnix
             }
             else
             {
-                db.Matriculas.Remove(matricula);
+                matricula.Status = StatusMatricula.Reprovada;
                 MessageBox.Show($"O aluno foi REPROVADO com média {media:F1}. A matrícula foi cancelada e ele precisará refazer o curso do zero.", "Reprovado", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
 

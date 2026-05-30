@@ -61,25 +61,14 @@ namespace Learnix
                 int totalAulas = m.Curso?.Modulos?.Sum(mod => mod.Aulas?.Count ?? 0) ?? 0;
                 string categoria = m.Curso?.Categoria?.Nome ?? "Geral";
 
-                string corFundo = categoria switch
-                {
-                    "Humanas" => "#1A3A2A",
-                    "Tecnologia" => "#1A2A3A",
-                    _ => "#3A2860"
-                };
-                string corTexto = categoria switch
-                {
-                    "Humanas" => "#A5D6A7",
-                    "Tecnologia" => "#90CAF9",
-                    _ => "#D8CCF0"
-                };
-
+                string corFundo = categoria switch { "Humanas" => "#1A3A2A", "Tecnologia" => "#1A2A3A", _ => "#3A2860" };
+                string corTexto = categoria switch { "Humanas" => "#A5D6A7", "Tecnologia" => "#90CAF9", _ => "#D8CCF0" };
                 double largura = Math.Min(pct / 100.0 * 300, 300);
 
-                return new CursoCardVM
+                var vm = new CursoCardVM
                 {
                     MatriculaId = m.Id,
-                    Status = m.Status,
+                    CursoId = m.CursoId,
                     TituloCurso = m.Curso?.Titulo ?? "Curso",
                     NomeInstrutor = m.Curso?.Instrutor != null ? $"Prof. {m.Curso.Instrutor.Nome}" : "",
                     NomeCategoria = categoria,
@@ -90,18 +79,41 @@ namespace Learnix
                     NumAulas = $"✏️ {totalAulas} aulas",
                     PercentualTexto = concluido ? "100% ✔" : $"{pct:0}%",
                     LarguraBarra = largura,
-                    CorBarra = new SolidColorBrush(concluido
-                                                ? (Color)ColorConverter.ConvertFromString("#A5D6A7")
-                                                : (Color)ColorConverter.ConvertFromString("#7E6BAC")),
-                    CorFundoBarra = new SolidColorBrush(concluido
-                                                ? (Color)ColorConverter.ConvertFromString("#1B5E20")
-                                                : (Color)ColorConverter.ConvertFromString("#3A2860")),
-                    CorTextoProgresso = new SolidColorBrush(concluido
-                                                ? (Color)ColorConverter.ConvertFromString("#A5D6A7")
-                                                : (Color)ColorConverter.ConvertFromString("#D8CCF0")),
-                    BotaoCertificadoVisivel = concluido ? Visibility.Visible : Visibility.Collapsed,
-                    BotaoSairVisivel = concluido ? Visibility.Collapsed : Visibility.Visible,
+                    CorBarra = new SolidColorBrush((Color)ColorConverter.ConvertFromString(concluido ? "#A5D6A7" : "#7E6BAC")),
+                    CorFundoBarra = new SolidColorBrush((Color)ColorConverter.ConvertFromString(concluido ? "#1B5E20" : "#3A2860")),
+                    CorTextoProgresso = new SolidColorBrush((Color)ColorConverter.ConvertFromString(concluido ? "#A5D6A7" : "#D8CCF0")),
                 };
+
+                if (m.Status == StatusMatricula.Reprovada)
+                {
+                    vm.BotaoSairVisivel = Visibility.Visible;
+                    vm.TextoStatusVisivel = Visibility.Visible;
+                    vm.TextoStatusMsg = "❌ Você não atingiu a média. Abandone e tente novamente.";
+                    vm.CorTextoStatus = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#EF5350"));
+                }
+                else if (m.Status == StatusMatricula.Concluida)
+                {
+                    vm.BotaoAcessarVisivel = Visibility.Visible;
+                    vm.BotaoCertificadoVisivel = Visibility.Visible;
+                }
+                else if (m.Status == StatusMatricula.AguardandoCorrecao)
+                {
+                    vm.BotaoAcessarVisivel = Visibility.Visible;
+                    vm.TextoStatusVisivel = Visibility.Visible;
+                    vm.TextoStatusMsg = "⏳ Aguardando revisão do instrutor...";
+                    vm.CorTextoStatus = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFCA28"));
+                }
+                else
+                {
+                    vm.BotaoAcessarVisivel = Visibility.Visible;
+
+                    if (pct >= 100)
+                    {
+                        vm.BotaoAvaliacaoVisivel = Visibility.Visible;
+                    }
+                }
+
+                return vm;
             }).ToList();
 
             ListaCursos.ItemsSource = items;
@@ -274,6 +286,7 @@ namespace Learnix
     public class CursoCardVM
     {
         public int MatriculaId { get; set; }
+        public int CursoId { get; set; }
         public string TituloCurso { get; set; } = "";
         public string NomeInstrutor { get; set; } = "";
         public string NomeCategoria { get; set; } = "";
@@ -283,15 +296,16 @@ namespace Learnix
         public string CargaHoraria { get; set; } = "";
         public string NumAulas { get; set; } = "";
         public string PercentualTexto { get; set; } = "";
+        public string TextoStatusMsg { get; set; } = "";
         public double LarguraBarra { get; set; }
         public SolidColorBrush CorBarra { get; set; } = new();
         public SolidColorBrush CorFundoBarra { get; set; } = new();
         public SolidColorBrush CorTextoProgresso { get; set; } = new();
+        public SolidColorBrush CorTextoStatus { get; set; } = new();
+        public Visibility BotaoAcessarVisivel { get; set; } = Visibility.Collapsed;
+        public Visibility BotaoAvaliacaoVisivel { get; set; } = Visibility.Collapsed;
         public Visibility BotaoCertificadoVisivel { get; set; } = Visibility.Collapsed;
-        public Visibility BotaoSairVisivel { get; set; } = Visibility.Visible;
-        public StatusMatricula Status { get; set; }
-
-        public Visibility BotaoAvaliacaoVisivel =>
-            Status == StatusMatricula.AguardandoContinuar ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility BotaoSairVisivel { get; set; } = Visibility.Collapsed;
+        public Visibility TextoStatusVisivel { get; set; } = Visibility.Collapsed;
     }
 }
