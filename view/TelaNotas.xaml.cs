@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -22,14 +23,12 @@ namespace Learnix
             CarregarNotas(aluno.Id);
         }
 
-        // Mantido por compatibilidade
         public void DefinirMatricula(Matricula? matricula)
         {
             if (matricula?.Aluno != null)
                 Sidebar?.DefinirAluno(matricula.Aluno.Nome);
 
             if (matricula == null) return;
-            Sidebar.DefinirAluno(matricula.Aluno?.Nome ?? "Aluno");
             CarregarNotas(matricula.AlunoId);
         }
 
@@ -37,13 +36,13 @@ namespace Learnix
         {
             using var db = new LearnixDbContext();
 
+            // 1. Busca matrículas que não estejam Canceladas
             var matriculas = db.Matriculas
-                .Where(m => m.AlunoId == alunoId)
+                .Where(m => m.AlunoId == alunoId && m.Status != StatusMatricula.Cancelada)
                 .Include(m => m.Curso).ThenInclude(c => c.Instrutor)
-                .Include(m => m.Avaliacoes)
                 .ToList();
 
-            if (matriculas.Count == 0 || matriculas.All(m => !m.Avaliacoes.Any()))
+            if (matriculas.Count == 0)
             {
                 PainelVazio.Visibility = System.Windows.Visibility.Visible;
                 ListaNotas.Visibility = System.Windows.Visibility.Collapsed;
@@ -57,73 +56,103 @@ namespace Learnix
             PainelVazio.Visibility = System.Windows.Visibility.Collapsed;
             ListaNotas.Visibility = System.Windows.Visibility.Visible;
 
+            // 2. Busca TODAS as respostas (provas) dessas matrículas para extrair as notas
+            var matriculaIds = matriculas.Select(m => m.Id).ToList();
+            var todasRespostas = db.RespostasAtividades
+                .Where(r => matriculaIds.Contains(r.MatriculaId))
+                .ToList();
+
             var ptBR = new CultureInfo("pt-BR");
             var items = new List<NotaLinhaVM>();
+            var notasFinais = new List<decimal>();
 
             foreach (var m in matriculas)
             {
-                var avs = m.Avaliacoes.OrderBy(a => a.Titulo).ToList();
-                double av1 = avs.ElementAtOrDefault(0)?.Nota ?? -1;
-                double av2 = avs.ElementAtOrDefault(1)?.Nota ?? -1;
-                double av3 = avs.ElementAtOrDefault(2)?.Nota ?? -1;
+                // Ordena as respostas pelo ID (garantindo ordem Q1, Q2, Q3)
+                var respostas = todasRespostas.Where(r => r.MatriculaId == m.Id).OrderBy(r => r.Id).ToList();
 
-                var notasValidas = avs.Select(a => a.Nota).ToList();
-                bool semNotas = !notasValidas.Any();
-                double media = notasValidas.Any() ? notasValidas.Average() : 0;
+                // Só exibimos notas se o professor já tiver concluído ou reprovado o aluno
+                bool avaliado = m.Status == StatusMatricula.Concluida || m.Status == StatusMatricula.Reprovada;
 
-                bool cursando = semNotas;
-                bool aprovado = !semNotas && media >= 7.0;
-                bool recuperacao = !semNotas && media >= 5.0 && media < 7.0;
+                string strAv1 = "—", strAv2 = "—", strAv3 = "—", strMedia = "—";
+
+                if (avaliado)
+                {
+                    decimal nota1 = respostas.ElementAtOrDefault(0)?.Nota ?? 0m;
+                    decimal nota2 = respostas.ElementAtOrDefault(1)?.Nota ?? 0m;
+                    decimal nota3 = respostas.ElementAtOrDefault(2)?.Nota ?? 0m;
+
+                    strAv1 = nota1.ToString("0.0", ptBR);
+                    strAv2 = nota2.ToString("0.0", ptBR);
+                    strAv3 = nota3.ToString("0.0", ptBR);
+
+                    decimal media = (nota1 + nota2 + nota3) / 3m;
+                    strMedia = media.ToString("0.0", ptBR);
+                    notasFinais.Add(media);
+                }
+
+                // 3. Define as Cores e Textos baseados no Status Inteligente
+                string statusTexto = "Cursando";
+                string corTextoHex = "#90CAF9";  // Azul
+                string corFundoHex = "#1A2A3A";
+
+                if (m.Status == StatusMatricula.AguardandoCorrecao)
+                {
+                    statusTexto = "Em Correção";
+                    corTextoHex = "#FFCA28"; // Amarelo
+                    corFundoHex = "#4E3600";
+                }
+                else if (m.Status == StatusMatricula.Concluida)
+                {
+                    statusTexto = "Aprovado";
+                    corTextoHex = "#A5D6A7"; // Verde
+                    corFundoHex = "#1B5E20";
+                }
+                else if (m.Status == StatusMatricula.Reprovada)
+                {
+                    statusTexto = "Reprovado";
+                    corTextoHex = "#EF9A9A"; // Vermelho
+                    corFundoHex = "#5E1B1B";
+                }
+
+                var corMediaBrush = avaliado ? corTextoHex : "#90CAF9";
 
                 items.Add(new NotaLinhaVM
                 {
                     NomeCurso = m.Curso?.Titulo ?? "Curso",
                     NomeInstrutor = $"Prof. {m.Curso?.Instrutor?.Nome}",
-                    NotaAV1 = av1 >= 0 ? av1.ToString("0.0", ptBR) : "—",
-                    NotaAV2 = av2 >= 0 ? av2.ToString("0.0", ptBR) : "—",
-                    NotaAV3 = av3 >= 0 ? av3.ToString("0.0", ptBR) : "—",
-                    Media = media.ToString("0.0", ptBR),
-                    CorMedia = new SolidColorBrush(cursando
-                                        ? (System.Windows.Media.Color)ColorConverter.ConvertFromString("#90CAF9")
-                                        : aprovado
-                                            ? (System.Windows.Media.Color)ColorConverter.ConvertFromString("#A5D6A7")
-                                            : recuperacao
-                                                ? (System.Windows.Media.Color)ColorConverter.ConvertFromString("#FFCC80")
-                                                : (System.Windows.Media.Color)ColorConverter.ConvertFromString("#EF9A9A")),
-                    StatusTexto = cursando ? "Cursando" : aprovado ? "Aprovado" : recuperacao ? "Recuperação" : "Reprovado",
-                    CorFundoStatus = new SolidColorBrush(cursando
-                                        ? (System.Windows.Media.Color)ColorConverter.ConvertFromString("#1A2A3A")
-                                        : aprovado
-                                            ? (System.Windows.Media.Color)ColorConverter.ConvertFromString("#1B5E20")
-                                            : recuperacao
-                                                ? (System.Windows.Media.Color)ColorConverter.ConvertFromString("#4E3600")
-                                                : (System.Windows.Media.Color)ColorConverter.ConvertFromString("#5E1B1B")),
-                    CorTextoStatus = new SolidColorBrush(cursando
-                                        ? (System.Windows.Media.Color)ColorConverter.ConvertFromString("#90CAF9")
-                                        : aprovado
-                                            ? (System.Windows.Media.Color)ColorConverter.ConvertFromString("#A5D6A7")
-                                            : recuperacao
-                                                ? (System.Windows.Media.Color)ColorConverter.ConvertFromString("#FFCC80")
-                                                : (System.Windows.Media.Color)ColorConverter.ConvertFromString("#EF9A9A")),
+                    NotaAV1 = strAv1,
+                    NotaAV2 = strAv2,
+                    NotaAV3 = strAv3,
+                    Media = strMedia,
+                    CorMedia = new SolidColorBrush((Color)ColorConverter.ConvertFromString(corMediaBrush)),
+                    StatusTexto = statusTexto,
+                    CorFundoStatus = new SolidColorBrush((Color)ColorConverter.ConvertFromString(corFundoHex)),
+                    CorTextoStatus = new SolidColorBrush((Color)ColorConverter.ConvertFromString(corTextoHex))
                 });
             }
 
             ListaNotas.ItemsSource = items;
             TxtDisciplinas.Text = items.Count.ToString();
 
-            var todasNotas = matriculas.SelectMany(m => m.Avaliacoes).ToList();
-            if (todasNotas.Any())
+            // 4. Calcula a Média Geral global (somente de cursos que já receberam notas)
+            if (notasFinais.Any())
             {
-                double mediaGeral = todasNotas.Average(a => a.Nota);
+                decimal mediaGeral = notasFinais.Average();
                 TxtMediaGeral.Text = mediaGeral.ToString("0.0", ptBR);
-                bool geralAprovado = mediaGeral >= 7.0;
-                bool geralRecuperacao = mediaGeral >= 5.0 && mediaGeral < 7.0;
-                TxtSituacao.Text = geralAprovado ? "Aprovado" : geralRecuperacao ? "Recuperação" : "Reprovado";
+
+                bool geralAprovado = mediaGeral >= 7.0m;
+                TxtSituacao.Text = geralAprovado ? "Aprovado" : "Reprovado";
                 TxtSituacao.Foreground = new SolidColorBrush(geralAprovado
-                    ? (System.Windows.Media.Color)ColorConverter.ConvertFromString("#A5D6A7")
-                    : geralRecuperacao
-                        ? (System.Windows.Media.Color)ColorConverter.ConvertFromString("#FFCC80")
-                        : (System.Windows.Media.Color)ColorConverter.ConvertFromString("#EF9A9A"));
+                    ? (Color)ColorConverter.ConvertFromString("#A5D6A7")
+                    : (Color)ColorConverter.ConvertFromString("#EF9A9A"));
+            }
+            else
+            {
+                // Se nenhum curso foi avaliado ainda
+                TxtMediaGeral.Text = "—";
+                TxtSituacao.Text = "Cursando";
+                TxtSituacao.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#90CAF9"));
             }
         }
     }

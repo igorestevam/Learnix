@@ -34,10 +34,12 @@ namespace Learnix
         {
             if (_aluno == null) return;
 
+            if (_aluno == null) return;
+
             using var db = new LearnixDbContext();
 
             var matriculas = db.Matriculas
-                .Where(m => m.AlunoId == _aluno.Id)
+                .Where(m => m.AlunoId == _aluno.Id && m.Status != StatusMatricula.Cancelada)
                 .Include(m => m.Curso).ThenInclude(c => c.Categoria)
                 .Include(m => m.Curso).ThenInclude(c => c.Instrutor)
                 .Include(m => m.Curso).ThenInclude(c => c.Modulos).ThenInclude(mod => mod.Aulas)
@@ -161,22 +163,46 @@ namespace Learnix
             if (sender is not Button btn || btn.Tag is not int matriculaId) return;
 
             var r = MessageBox.Show(
-                "Deseja realmente sair deste curso?\nSeu progresso será perdido.",
+                "Deseja realmente sair deste curso?\nSeu progresso será perdido e a matrícula será cancelada.",
                 "Confirmar", MessageBoxButton.YesNo, MessageBoxImage.Warning);
             if (r != MessageBoxResult.Yes) return;
 
             using var db = new LearnixDbContext();
+
             var matricula = db.Matriculas
                 .Include(m => m.Progresso)
                 .Include(m => m.Avaliacoes)
+                .Include(m => m.Certificado)
                 .FirstOrDefault(m => m.Id == matriculaId);
 
             if (matricula == null) return;
 
-            db.Matriculas.Remove(matricula);
+            if (matricula.Progresso != null)
+            {
+                db.Remove(matricula.Progresso);
+            }
+
+            if (matricula.Avaliacoes != null && matricula.Avaliacoes.Any())
+            {
+                db.RemoveRange(matricula.Avaliacoes);
+            }
+
+            if (matricula.Certificado != null)
+            {
+                db.Remove(matricula.Certificado);
+            }
+
+            var respostas = db.RespostasAtividades.Where(resp => resp.MatriculaId == matriculaId).ToList();
+            if (respostas.Any())
+            {
+                db.RespostasAtividades.RemoveRange(respostas);
+            }
+
+            matricula.Status = StatusMatricula.Cancelada;
+
             db.SaveChanges();
 
-            MessageBox.Show("Você saiu do curso com sucesso.", "Learnix",
+            MessageBox.Show("Sua matrícula foi cancelada com sucesso. Você poderá reingressar no curso quando quiser.", "Learnix",
                 MessageBoxButton.OK, MessageBoxImage.Information);
 
             CarregarCursos();

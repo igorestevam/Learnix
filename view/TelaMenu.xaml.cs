@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -12,11 +13,8 @@ namespace Learnix
 {
     public partial class TelaMenu : UserControl
     {
-        private string _categoriaAtiva = "Todos";
-        private string _busca = "";
-        private const string PlaceholderBusca = "Buscar curso...";
         private Aluno? _aluno;
-        private List<MenuCursoVM> _todosCursos = new();
+        private List<CursoMenuVM> _todosCursos = new();
 
         public TelaMenu()
         {
@@ -26,79 +24,139 @@ namespace Learnix
         public void DefinirAluno(Aluno aluno)
         {
             _aluno = aluno;
-            Sidebar.DefinirAluno(aluno.Nome);
+            Sidebar?.DefinirAluno(aluno.Nome);
             CarregarCursos();
         }
 
         private void CarregarCursos()
         {
+            if (_aluno == null) return;
+
             using var db = new LearnixDbContext();
 
-            var matriculasDoAluno = _aluno != null
-                ? db.Matriculas.Where(m => m.AlunoId == _aluno.Id)
-                               .Select(m => m.CursoId).ToHashSet()
-                : new HashSet<int>();
-
-            var cursos = db.Cursos
+            var cursosNoBanco = db.Cursos
                 .Include(c => c.Categoria)
                 .Include(c => c.Instrutor)
                 .Include(c => c.MatriculasAtivas)
                 .ToList();
 
-            _todosCursos = cursos.Select(c =>
+            var historicoAluno = db.Matriculas.Where(m => m.AlunoId == _aluno.Id).ToList();
+
+            _todosCursos = cursosNoBanco.Select(c =>
             {
-                bool jaMatriculado = matriculasDoAluno.Contains(c.Id);
+                var matricula = historicoAluno.FirstOrDefault(m => m.CursoId == c.Id);
+
+                bool podeMatricular = matricula == null ||
+                                      matricula.Status == StatusMatricula.Cancelada ||
+                                      matricula.Status == StatusMatricula.Reprovada;
+
                 string categoria = c.Categoria?.Nome ?? "Geral";
+                string corFundo = categoria switch { "Humanas" => "#1A3A2A", "Tecnologia" => "#1A2A3A", _ => "#3A2860" };
+                string corTexto = categoria switch { "Humanas" => "#A5D6A7", "Tecnologia" => "#90CAF9", _ => "#D8CCF0" };
 
-                string corFundo = categoria switch
-                {
-                    "Humanas" => "#1A3A2A",
-                    "Tecnologia" => "#1A2A3A",
-                    _ => "#3A2860"
-                };
-                string corTexto = categoria switch
-                {
-                    "Humanas" => "#A5D6A7",
-                    "Tecnologia" => "#90CAF9",
-                    _ => "#D8CCF0"
-                };
+                int numAlunos = c.MatriculasAtivas?.Count ?? 0;
 
-                return new MenuCursoVM
+                return new CursoMenuVM
                 {
                     CursoId = c.Id,
                     Titulo = c.Titulo,
-                    NomeCategoria = categoria,
-                    CargaHoraria = $"{c.CargaHoraria}h",
-                    NomeInstrutor = c.Instrutor != null ? $"Prof. {c.Instrutor.Nome}" : "Sem instrutor",
                     Descricao = c.Descricao,
-                    NumAlunos = $"👥 {c.MatriculasAtivas?.Count ?? 0} alunos",
+                    NomeInstrutor = c.Instrutor != null ? $"Prof. {c.Instrutor.Nome}" : "Sem instrutor vinculado",
+                    NomeCategoria = categoria,
+                    CargaHoraria = $"🕐 {c.CargaHoraria}h",
+                    NumAlunos = $"👥 {numAlunos} aluno(s)",
                     CorFundoCategoria = new SolidColorBrush((Color)ColorConverter.ConvertFromString(corFundo)),
                     CorTextoCategoria = new SolidColorBrush((Color)ColorConverter.ConvertFromString(corTexto)),
-                    TextoBotao = jaMatriculado ? "✔ Matriculado"
-                                        : c.InstrutorId == null ? "Sem instrutor"
-                                        : "Matricular-se",
-                    CorBotao = new SolidColorBrush(jaMatriculado
-                                            ? (Color)ColorConverter.ConvertFromString("#1B5E20")
-                                            : c.InstrutorId == null
-                                                ? (Color)ColorConverter.ConvertFromString("#3A2040")
-                                                : (Color)ColorConverter.ConvertFromString("#4E3A7A")),
-                    BotaoAtivo = !jaMatriculado && c.InstrutorId != null,
+
+                    BotaoAtivo = podeMatricular,
+                    TextoBotao = podeMatricular ? "Matricular-se" : "Já Matriculado",
+                    CorBotao = podeMatricular ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2E7D32"))
+                                              : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#555555"))
                 };
             }).ToList();
 
-            AplicarFiltros();
+            AplicarFiltro();
         }
 
-        private void AplicarFiltros()
+        private void BtnMatricular_Click(object sender, RoutedEventArgs e)
         {
-            var filtrados = _todosCursos.Where(c =>
-            {
-                bool passaCategoria = _categoriaAtiva == "Todos" || c.NomeCategoria == _categoriaAtiva;
-                bool passaBusca = string.IsNullOrEmpty(_busca) || c.Titulo.ToLower().Contains(_busca);
-                return passaCategoria && passaBusca;
-            }).ToList();
+            if (sender is not Button btn || btn.Tag is not int cursoId) return;
+            if (_aluno == null) return;
 
-            if (filtrados.Count == 0)
+            var result = MessageBox.Show("Deseja confirmar a sua matrícula neste curso?", "Confirmação", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (result != MessageBoxResult.Yes) return;
+
+            using var db = new LearnixDbContext();
+
+            // Busca o histórico de matrícula incluindo o progresso
+            var matriculaExistente = db.Matriculas
+                .Include(m => m.Progresso)
+                .FirstOrDefault(m => m.AlunoId == _aluno.Id && m.CursoId == cursoId);
+
+            if (matriculaExistente != null)
+            {
+                // REATIVAÇÃO DE MATRÍCULA
+                if (matriculaExistente.Status == StatusMatricula.Cancelada || matriculaExistente.Status == StatusMatricula.Reprovada)
+                {
+                    matriculaExistente.Status = StatusMatricula.Ativa;
+                    matriculaExistente.DataMatricula = DateTime.Now;
+
+                    // 1. Reseta o percentual numérico da barra
+                    if (matriculaExistente.Progresso != null)
+                        matriculaExistente.Progresso.PercentualConcluido = 0;
+                    else
+                        matriculaExistente.Progresso = new Progresso { PercentualConcluido = 0 };
+
+                    var aulasAssistidas = db.AulasConcluidas.Where(a => a.MatriculaId == matriculaExistente.Id).ToList();
+                    if (aulasAssistidas.Any())
+                    {
+                        db.AulasConcluidas.RemoveRange(aulasAssistidas);
+                    }
+
+                    var respostasAntigas = db.RespostasAtividades.Where(r => r.MatriculaId == matriculaExistente.Id).ToList();
+                    if (respostasAntigas.Any())
+                    {
+                        db.RespostasAtividades.RemoveRange(respostasAntigas);
+                    }
+
+                    db.SaveChanges();
+                    MessageBox.Show("Sua matrícula foi reativada! Você iniciará o curso do zero.", "Bons Estudos", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            else
+            {
+                var novaMatricula = new Matricula
+                {
+                    AlunoId = _aluno.Id,
+                    CursoId = cursoId,
+                    Status = StatusMatricula.Ativa,
+                    DataMatricula = DateTime.Now,
+                    Progresso = new Progresso { PercentualConcluido = 0 }
+                };
+
+                db.Matriculas.Add(novaMatricula);
+                db.SaveChanges();
+                MessageBox.Show("Matrícula realizada com sucesso! Acesse 'Meus Cursos' para começar.", "Sucesso", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+
+            CarregarCursos(); // Atualiza os botões do menu
+        }
+
+        private string _filtroCategoria = "Todos";
+
+        private void AplicarFiltro()
+        {
+            var filtrados = _todosCursos.AsEnumerable();
+
+            if (_filtroCategoria != "Todos")
+                filtrados = filtrados.Where(c => c.NomeCategoria == _filtroCategoria);
+
+            if (TxtBusca.Text != "Buscar curso..." && !string.IsNullOrWhiteSpace(TxtBusca.Text))
+                filtrados = filtrados.Where(c => c.Titulo.Contains(TxtBusca.Text, StringComparison.OrdinalIgnoreCase));
+
+            var listaFinal = filtrados.ToList();
+
+            if (listaFinal.Count == 0)
             {
                 PainelVazio.Visibility = Visibility.Visible;
                 ListaCursos.Visibility = Visibility.Collapsed;
@@ -107,18 +165,31 @@ namespace Learnix
             {
                 PainelVazio.Visibility = Visibility.Collapsed;
                 ListaCursos.Visibility = Visibility.Visible;
-                ListaCursos.ItemsSource = filtrados;
+                ListaCursos.ItemsSource = listaFinal;
             }
         }
 
-        // ── Busca ────────────────────────────────────────────────────────────
+        private void FiltroTodos_Click(object sender, MouseButtonEventArgs e) { _filtroCategoria = "Todos"; ResetarBotoesFiltro(BtnTodos); AplicarFiltro(); }
+        private void FiltroExatas_Click(object sender, MouseButtonEventArgs e) { _filtroCategoria = "Exatas"; ResetarBotoesFiltro(BtnExatas); AplicarFiltro(); }
+        private void FiltroHumanas_Click(object sender, MouseButtonEventArgs e) { _filtroCategoria = "Humanas"; ResetarBotoesFiltro(BtnHumanas); AplicarFiltro(); }
+        private void FiltroTecnologia_Click(object sender, MouseButtonEventArgs e) { _filtroCategoria = "Tecnologia"; ResetarBotoesFiltro(BtnTecnologia); AplicarFiltro(); }
+
+        private void ResetarBotoesFiltro(Border botaoAtivo)
+        {
+            BtnTodos.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2A2040"));
+            BtnExatas.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2A2040"));
+            BtnHumanas.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2A2040"));
+            BtnTecnologia.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2A2040"));
+
+            botaoAtivo.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4E3A7A"));
+        }
 
         private void TxtBusca_GotFocus(object sender, RoutedEventArgs e)
         {
-            if (TxtBusca.Text == PlaceholderBusca)
+            if (TxtBusca.Text == "Buscar curso...")
             {
                 TxtBusca.Text = "";
-                TxtBusca.Foreground = new SolidColorBrush(Colors.White);
+                TxtBusca.Foreground = Brushes.White;
             }
         }
 
@@ -126,118 +197,31 @@ namespace Learnix
         {
             if (string.IsNullOrWhiteSpace(TxtBusca.Text))
             {
-                TxtBusca.Text = PlaceholderBusca;
-                TxtBusca.Foreground = new SolidColorBrush(
-                    (Color)ColorConverter.ConvertFromString("#9E8FC0"));
+                TxtBusca.Text = "Buscar curso...";
+                TxtBusca.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#9E8FC0"));
             }
         }
 
         private void TxtBusca_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (TxtBusca.Text == PlaceholderBusca) return;
-            _busca = TxtBusca.Text.ToLower().Trim();
-            AplicarFiltros();
-        }
-
-        // ── Filtros de categoria ─────────────────────────────────────────────
-
-        private void FiltroTodos_Click(object sender, MouseButtonEventArgs e)
-            => AtivarCategoria("Todos");
-
-        private void FiltroExatas_Click(object sender, MouseButtonEventArgs e)
-            => AtivarCategoria("Exatas");
-
-        private void FiltroHumanas_Click(object sender, MouseButtonEventArgs e)
-            => AtivarCategoria("Humanas");
-
-        private void FiltroTecnologia_Click(object sender, MouseButtonEventArgs e)
-            => AtivarCategoria("Tecnologia");
-
-        private void AtivarCategoria(string categoria)
-        {
-            _categoriaAtiva = categoria;
-
-            var inativa = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2A2040"));
-            var ativa = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4E3A7A"));
-
-            BtnTodos.Background = inativa;
-            BtnExatas.Background = inativa;
-            BtnHumanas.Background = inativa;
-            BtnTecnologia.Background = inativa;
-
-            switch (categoria)
-            {
-                case "Todos": BtnTodos.Background = ativa; break;
-                case "Exatas": BtnExatas.Background = ativa; break;
-                case "Humanas": BtnHumanas.Background = ativa; break;
-                case "Tecnologia": BtnTecnologia.Background = ativa; break;
-            }
-
-            AplicarFiltros();
-        }
-
-        // ── Matrícula ────────────────────────────────────────────────────────
-
-        private void BtnMatricular_Click(object sender, RoutedEventArgs e)
-        {
-            if (_aluno == null)
-            {
-                MessageBox.Show("Usuário não identificado.", "Erro",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
-
-            if (sender is not Button btn || btn.Tag is not int cursoId) return;
-
-            using var db = new LearnixDbContext();
-
-            var curso = db.Cursos.FirstOrDefault(c => c.Id == cursoId);
-            if (curso == null) return;
-
-            bool jaMatriculado = db.Matriculas.Any(m => m.AlunoId == _aluno.Id && m.CursoId == cursoId);
-            if (jaMatriculado)
-            {
-                MessageBox.Show($"Você já está matriculado em \"{curso.Titulo}\".",
-                    "Atenção", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            var matricula = new Matricula
-            {
-                AlunoId = _aluno.Id,
-                CursoId = cursoId,
-                DataMatricula = System.DateTime.Now,
-                Status = StatusMatricula.Ativa,
-                Progresso = new Progresso { PercentualConcluido = 0, AulasConcluidas = 0 },
-            };
-
-            db.Matriculas.Add(matricula);
-            db.SaveChanges();
-
-            btn.Content = "✔ Matriculado";
-            btn.IsEnabled = false;
-
-            MessageBox.Show($"Matrícula em \"{curso.Titulo}\" realizada com sucesso!",
-                "Learnix", MessageBoxButton.OK, MessageBoxImage.Information);
-
-            // Recarrega a lista para refletir o novo estado
-            CarregarCursos();
+            if (TxtBusca.Text != "Buscar curso...") AplicarFiltro();
         }
     }
 
-    public class MenuCursoVM
+    public class CursoMenuVM
     {
         public int CursoId { get; set; }
         public string Titulo { get; set; } = "";
+        public string Descricao { get; set; } = "";
+        public string NomeInstrutor { get; set; } = "";
         public string NomeCategoria { get; set; } = "";
         public string CargaHoraria { get; set; } = "";
-        public string NomeInstrutor { get; set; } = "";
-        public string Descricao { get; set; } = "";
         public string NumAlunos { get; set; } = "";
         public SolidColorBrush CorFundoCategoria { get; set; } = new();
         public SolidColorBrush CorTextoCategoria { get; set; } = new();
-        public string TextoBotao { get; set; } = "Matricular-se";
+
+        public bool BotaoAtivo { get; set; }
+        public string TextoBotao { get; set; } = "";
         public SolidColorBrush CorBotao { get; set; } = new();
-        public bool BotaoAtivo { get; set; } = true;
     }
 }

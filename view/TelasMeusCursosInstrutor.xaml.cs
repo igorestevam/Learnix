@@ -14,7 +14,10 @@ namespace Learnix
 {
     public partial class TelaMeusCursosInstrutor : UserControl
     {
+
+        private int _matriculaCorrecaoAtualId;
         private Instrutor? _instrutor;
+        private List<RespostaCorrecaoVM> _respostasAtual = new();
         private List<CursoInstrutorVM> _cursos = new();
 
         public TelaMeusCursosInstrutor()
@@ -106,99 +109,126 @@ namespace Learnix
 
         private void BtnLancarNotas_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is not Button btn || btn.Tag is not int cursoId) return;
-
-            var vm = _cursos.FirstOrDefault(c => c.CursoId == cursoId);
-            if (vm == null) return;
-
-            if (vm.PainelNotasVisivel == Visibility.Visible)
+            if (sender is Button btn && btn.Tag is int cursoId)
             {
-                vm.PainelNotasVisivel = Visibility.Collapsed;
-                return;
+                using var db = new LearnixDbContext();
+
+                var pendentes = db.Matriculas
+                    .Include(m => m.Aluno)
+                    .Where(m => m.CursoId == cursoId && m.Status == StatusMatricula.AguardandoCorrecao)
+                    .Select(m => new AlunoPendenteVM
+                    {
+                        MatriculaId = m.Id,
+                        AlunoNome = m.Aluno != null ? m.Aluno.Nome : "Aluno Desconhecido"
+                    }).ToList();
+
+                ListaAlunosPendentes.ItemsSource = pendentes;
+                TxtSemAlunos.Visibility = pendentes.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+
+                PainelAlunosPendentes.Visibility = Visibility.Visible;
             }
-
-            using var db = new LearnixDbContext();
-            var matriculas = db.Matriculas
-                .Where(m => m.CursoId == cursoId)
-                .Include(m => m.Aluno)
-                .Include(m => m.Avaliacoes)
-                .ToList();
-
-            vm.Alunos = matriculas.Select(m =>
-            {
-                var avs = m.Avaliacoes?.OrderBy(a => a.Titulo).ToList() ?? new List<Avaliacao>();
-                return new AlunoNotaVM
-                {
-                    MatriculaId = m.Id,
-                    NomeAluno = m.Aluno?.Nome ?? "Aluno",
-                    Matricula = m.Aluno?.MatriculaAcademica ?? "",
-                    NotaAV1 = avs.ElementAtOrDefault(0)?.Nota.ToString("0.0", CultureInfo.InvariantCulture) ?? "",
-                    NotaAV2 = avs.ElementAtOrDefault(1)?.Nota.ToString("0.0", CultureInfo.InvariantCulture) ?? "",
-                    NotaAV3 = avs.ElementAtOrDefault(2)?.Nota.ToString("0.0", CultureInfo.InvariantCulture) ?? "",
-                };
-            }).ToList();
-
-            vm.PainelSemAlunosVisivel = matriculas.Count == 0
-                ? Visibility.Visible : Visibility.Collapsed;
-            vm.PainelNotasVisivel = Visibility.Visible;
         }
 
-        private void BtnSalvarNota_Click(object sender, RoutedEventArgs e)
+        private void BtnFecharListaPendentes_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is not Button btn || btn.Tag is not int matriculaId) return;
+            PainelAlunosPendentes.Visibility = Visibility.Collapsed;
+        }
 
-            AlunoNotaVM? item = null;
-            foreach (var curso in _cursos)
-                item = curso.Alunos?.FirstOrDefault(a => a.MatriculaId == matriculaId) ?? item;
-
-            if (item == null) return;
-
-            var novasNotas = new (string Titulo, string Valor)[]
+        private void BtnAbrirCorrecaoAluno_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is int matriculaId)
             {
-                ("AV1", item.NotaAV1),
-                ("AV2", item.NotaAV2),
-                ("AV3", item.NotaAV3),
-            };
+                using var db = new LearnixDbContext();
+                var matricula = db.Matriculas.Include(m => m.Aluno).FirstOrDefault(m => m.Id == matriculaId);
+                var respostas = db.RespostasAtividades.Include(r => r.AtividadeCurso).Where(r => r.MatriculaId == matriculaId).ToList();
 
-            using var db = new LearnixDbContext();
-            var avaliacoesExistentes = db.Avaliacoes
-                .Where(a => a.MatriculaId == matriculaId)
-                .ToList();
+                if (matricula == null || respostas.Count == 0) return;
 
-            foreach (var (titulo, valor) in novasNotas)
-            {
-                if (string.IsNullOrWhiteSpace(valor)) continue;
+                _matriculaCorrecaoAtualId = matriculaId;
+                TxtNomeAlunoCorrecao.Text = $"Aluno: {matricula.Aluno?.Nome}";
 
-                if (!double.TryParse(valor.Replace(',', '.'),
-                    NumberStyles.Any, CultureInfo.InvariantCulture, out double nota)
-                    || nota < 0 || nota > 10)
+                _respostasAtual.Clear();
+                for (int i = 0; i < respostas.Count; i++)
                 {
-                    MessageBox.Show($"{titulo}: valor inválido. Use um número entre 0 e 10.",
-                        "Atenção", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    _respostasAtual.Add(new RespostaCorrecaoVM
+                    {
+                        RespostaId = respostas[i].Id,
+                        NumeroPergunta = i + 1,
+                        Pergunta = respostas[i].AtividadeCurso?.Pergunta ?? "",
+                        Resposta = respostas[i].Resposta ?? "",
+                        NotaDigitada = ""
+                    });
+                }
+
+                ListaRespostasParaCorrigir.ItemsSource = null;
+                ListaRespostasParaCorrigir.ItemsSource = _respostasAtual;
+
+                PainelAlunosPendentes.Visibility = Visibility.Collapsed;
+                PainelCorrecao.Visibility = Visibility.Visible;
+            }
+        }
+
+        private void BtnFecharCorrecao_Click(object sender, RoutedEventArgs e)
+        {
+            PainelCorrecao.Visibility = Visibility.Collapsed;
+        }
+
+        private void BtnSalvarNotasProfessor_Click(object sender, RoutedEventArgs e)
+        {
+            using var db = new LearnixDbContext();
+            var matricula = db.Matriculas.FirstOrDefault(m => m.Id == _matriculaCorrecaoAtualId);
+            if (matricula == null) return;
+
+            decimal somaNotas = 0;
+
+            foreach (var rVM in _respostasAtual)
+            {
+                if (!decimal.TryParse(rVM.NotaDigitada.Replace(',', '.'),
+                    System.Globalization.NumberStyles.Any,
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    out decimal notaLida) || notaLida < 0 || notaLida > 10)
+                {
+                    MessageBox.Show("Preencha todas as notas com valores válidos numéricos entre 0 e 10.", "Atenção", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
 
-                var existente = avaliacoesExistentes.FirstOrDefault(a => a.Titulo == titulo);
-                if (existente != null)
+                var respostaBanco = db.RespostasAtividades.Find(rVM.RespostaId);
+                if (respostaBanco != null)
                 {
-                    existente.Nota = nota;
-                    existente.DataRealizacao = DateTime.Now;
-                }
-                else
-                {
-                    db.Avaliacoes.Add(new Avaliacao
-                    {
-                        MatriculaId = matriculaId,
-                        Titulo = titulo,
-                        Nota = nota,
-                        DataRealizacao = DateTime.Now,
-                    });
+                    respostaBanco.Nota = notaLida;
+                    somaNotas += notaLida;
                 }
             }
 
+            decimal media = somaNotas / _respostasAtual.Count;
+
+            if (media >= 7.0m)
+            {
+                matricula.Status = StatusMatricula.Concluida;
+
+                var certificadoExistente = db.Certificados.FirstOrDefault(c => c.MatriculaId == matricula.Id);
+
+                if (certificadoExistente == null)
+                {
+                    db.Certificados.Add(new Certificado
+                    {
+                        MatriculaId = matricula.Id,
+                        CodigoCertificado = "LX-" + Guid.NewGuid().ToString("N").Substring(0, 6).ToUpper(),
+                        DataEmissao = DateTime.Now
+                    });
+                }
+
+                MessageBox.Show($"Avaliação salva! O aluno foi APROVADO com média {media:F1}.", "Aprovado", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            else
+            {
+                matricula.Status = StatusMatricula.Reprovada;
+                MessageBox.Show($"O aluno foi REPROVADO com média {media:F1}. O status foi alterado para reprovado.", "Reprovado", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+
             db.SaveChanges();
-            MessageBox.Show($"Notas de {item.NomeAluno} salvas com sucesso!",
-                "Learnix", MessageBoxButton.OK, MessageBoxImage.Information);
+            PainelCorrecao.Visibility = Visibility.Collapsed;
+            CarregarCursos();
         }
 
         private void BtnSairCurso_Click(object sender, RoutedEventArgs e)
@@ -268,5 +298,18 @@ namespace Learnix
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged(string name)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+    }
+    public class AlunoPendenteVM
+    {
+        public int MatriculaId { get; set; }
+        public string AlunoNome { get; set; } = "";
+    }
+    public class RespostaCorrecaoVM
+    {
+        public int RespostaId { get; set; }
+        public int NumeroPergunta { get; set; }
+        public string Pergunta { get; set; } = "";
+        public string Resposta { get; set; } = "";
+        public string NotaDigitada { get; set; } = "";
     }
 }

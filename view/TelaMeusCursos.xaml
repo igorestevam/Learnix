@@ -132,72 +132,42 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                            <Border Background="{Binding CorCategoria}" CornerRadius="20" Padding="10,4" Margin="0,0,8,0">
+                                                <TextBlock Text="{Binding NomeCategoria}" Foreground="{Binding CorTextoCategoria}" FontFamily="Segoe UI" FontSize="11"/>
+                                            </Border>
+                                            <Border Background="#1B3A5E" CornerRadius="20" Padding="10,4">
+                                                <TextBlock Text="{Binding CargaHoraria}" Foreground="#90CAF9" FontFamily="Segoe UI" FontSize="11"/>
+                                            </Border>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding TituloCurso}" Foreground="White" FontSize="15" FontWeight="Bold" FontFamily="Segoe UI"/>
+                                        <TextBlock Text="{Binding NomeInstrutor}" Foreground="#9E8FC0" FontSize="12" FontFamily="Segoe UI" Margin="0,4,0,0"/>
 
-                                        <TextBlock Text="{Binding TextoStatusMsg}" Foreground="{Binding CorTextoStatus}" 
-                                                   Visibility="{Binding TextoStatusVisivel}" FontFamily="Segoe UI" FontSize="12" 
-                                                   FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,16,0"/>
-
-                                        
-                                        <Button Content="&#x1F4DA; Acessar" Style="{StaticResource BtnAcessarStyle}" Click="BtnAcessar_Click" Tag="{Binding MatriculaId}" Margin="0,0,6,0"
-                                                Visibility="{Binding BotaoAcessarVisivel}" />
-
-                                        <Button Content="&#x1F4DD; Avaliação" Background="#D84315" Foreground="White" BorderThickness="0" Padding="12,6" FontSize="12" FontFamily="Segoe UI" Cursor="Hand" Margin="0,0,6,0"
-                                                Click="BtnAbrirAvaliacao_Click" Tag="{Binding MatriculaId}" Visibility="{Binding BotaoAvaliacaoVisivel}">
-                                            <Button.Resources>
-                                                <Style TargetType="Border">
-                                                    <Setter Property="CornerRadius" Value="6"/>
-                                                </Style>
-                                            </Button.Resources>
-                                        </Button>
-
-                                        <Button Content="&#x1F3C6; Certificado" Style="{StaticResource BtnCertificadoStyle}" Click="BtnCertificado_Click" Tag="{Binding MatriculaId}" Margin="0,0,6,0"
-                                                Visibility="{Binding BotaoCertificadoVisivel}" />
-
-                                        <Button Content="&#x1F6AA; Sair do Curso" Style="{StaticResource BtnSairStyle}" Click="BtnSairCurso_Click" Tag="{Binding MatriculaId}"
-                                                Visibility="{Binding BotaoSairVisivel}" />
-
+                                        <Grid Margin="0,12,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" Background="{Binding CorFundoBarra}" CornerRadius="3" Height="6" VerticalAlignment="Center">
+                                                <Border Background="{Binding CorBarra}" CornerRadius="3" HorizontalAlignment="Left" Width="{Binding LarguraBarra}"/>
+                                            </Border>
+                                            <TextBlock Grid.Column="1" Text="{Binding PercentualTexto}" Foreground="{Binding CorTextoProgresso}" FontSize="12" FontWeight="SemiBold" FontFamily="Segoe UI" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                                        </Grid>
                                     </StackPanel>
 
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
 
-                                        <Button Content="&#x1F4DA; Acessar" Click="BtnAcessar_Click" Tag="{Binding MatriculaId}" Margin="0,0,6,0">
-                                            <Button.Style>
-                                                <Style TargetType="Button" BasedOn="{StaticResource BtnAcessarStyle}">
-                                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding Status}" Value="Ativa">
-                                                            <Setter Property="Visibility" Value="Visible"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Button.Style>
-                                        </Button>
+                                        <TextBlock Text="{Binding TextoStatusMsg}" Foreground="{Binding CorTextoStatus}" 
+                                                   Visibility="{Binding TextoStatusVisivel}" FontFamily="Segoe UI" FontSize="13" 
+                                                   FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,16,0"/>
 
-                                        <Button Content="&#x27A1; Continuar" Background="#4E3A7A" Foreground="White" BorderThickness="0" Padding="12,6" FontSize="12" FontFamily="Segoe UI" Cursor="Hand" Margin="0,0,6,0" Click="BtnContinuarParaAvaliacao_Click" Tag="{Binding MatriculaId}">
-                                            <Button.Resources>
-                                                <Style TargetType="Border">
-                                                    <Setter Property="CornerRadius" Value="6"/>
-                                                </Style>
-                                            </Button.Resources>
-                                            <Button.Style>
-                                                <Style TargetType="Button">
-                                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                                    <Style.Triggers>
-                                                        <MultiDataTrigger>
-                                                            <MultiDataTrigger.Conditions>
-                                                                <Condition Binding="{Binding Status}" Value="Ativa"/>
-                                                                <Condition Binding="{Binding PercentualTexto}" Value="100% ✔"/>
-                                                            </MultiDataTrigger.Conditions>
-                                                            <Setter Property="Visibility" Value="Visible"/>
-                                                        </MultiDataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Button.Style>
-                                        </Button>
+                                        <Button Content="&#x1F4DA; Acessar" Style="{StaticResource BtnAcessarStyle}" 
+                                                Click="BtnAcessar_Click" Tag="{Binding MatriculaId}" Margin="0,0,6,0"
+                                                Visibility="{Binding BotaoAcessarVisivel}" />
 
                                         <Button Content="&#x1F4DD; Avaliação" Background="#D84315" Foreground="White" BorderThickness="0" Padding="12,6" FontSize="12" FontFamily="Segoe UI" Cursor="Hand" Margin="0,0,6,0"
-                                                Click="BtnAbrirAvaliacao_Click" Tag="{Binding MatriculaId}"
+                                                Click="BtnAbrirAvaliacao_Click" Tag="{Binding MatriculaId}" 
                                                 Visibility="{Binding BotaoAvaliacaoVisivel}">
                                             <Button.Resources>
                                                 <Style TargetType="Border">
@@ -206,16 +176,15 @@
                                             </Button.Resources>
                                         </Button>
 
-                                        <Button Content="&#x1F3C6; Certificado" Style="{StaticResource BtnCertificadoStyle}"
-                                                Visibility="{Binding BotaoCertificadoVisivel}" Margin="0,0,6,0"
-                                                Click="BtnCertificado_Click" Tag="{Binding MatriculaId}"/>
+                                        <Button Content="&#x1F3C6; Certificado" Style="{StaticResource BtnCertificadoStyle}" 
+                                                Click="BtnCertificado_Click" Tag="{Binding MatriculaId}" Margin="0,0,6,0"
+                                                Visibility="{Binding BotaoCertificadoVisivel}" />
 
-                                        <Button Content="&#x1F6AA; Sair" Style="{StaticResource BtnSairStyle}"
-                                                Visibility="{Binding BotaoSairVisivel}"
-                                                Click="BtnSairCurso_Click" Tag="{Binding MatriculaId}"/>
+                                        <Button Content="&#x1F6AA; Sair do Curso" Style="{StaticResource BtnSairStyle}" 
+                                                Click="BtnSairCurso_Click" Tag="{Binding MatriculaId}"
+                                                Visibility="{Binding BotaoSairVisivel}" />
 
                                     </StackPanel>
-
                                 </Grid>
                             </Border>
                         </DataTemplate>
