@@ -54,41 +54,55 @@ namespace Learnix
             _cursos = cursos.Select(c =>
             {
                 string categoria = c.Categoria?.Nome ?? "Geral";
-                string corFundo  = categoria switch
+                string corFundo = categoria switch
                 {
-                    "Humanas"    => "#1A3A2A",
+                    "Humanas" => "#1A3A2A",
                     "Tecnologia" => "#1A2A3A",
-                    _            => "#3A2860"
+                    _ => "#3A2860"
                 };
                 string corTexto = categoria switch
                 {
-                    "Humanas"    => "#A5D6A7",
+                    "Humanas" => "#A5D6A7",
                     "Tecnologia" => "#90CAF9",
-                    _            => "#D8CCF0"
+                    _ => "#D8CCF0"
                 };
 
                 int numAlunos = c.MatriculasAtivas?.Count ?? 0;
 
                 return new CursoInstrutorVM
                 {
-                    CursoId           = c.Id,
-                    Titulo            = c.Titulo,
-                    Descricao         = c.Descricao,
-                    NomeCategoria     = categoria,
-                    CargaHoraria      = $"{c.CargaHoraria}h",
-                    NumAlunos         = $"👥 {numAlunos} aluno{(numAlunos == 1 ? "" : "s")}",
-                    CorCategoria      = new SolidColorBrush((Color)ColorConverter.ConvertFromString(corFundo)),
+                    CursoId = c.Id,
+                    Titulo = c.Titulo,
+                    Descricao = c.Descricao,
+                    NomeCategoria = categoria,
+                    CargaHoraria = $"{c.CargaHoraria}h",
+                    NumAlunos = $"👥 {numAlunos} aluno{(numAlunos == 1 ? "" : "s")}",
+                    CorCategoria = new SolidColorBrush((Color)ColorConverter.ConvertFromString(corFundo)),
                     CorTextoCategoria = new SolidColorBrush((Color)ColorConverter.ConvertFromString(corTexto)),
-                    PodeSair          = numAlunos == 0,
-                    PainelNotasVisivel       = Visibility.Collapsed,
-                    PainelSemAlunosVisivel   = Visibility.Collapsed,
+                    PodeSair = numAlunos == 0,
+                    PainelNotasVisivel = Visibility.Collapsed,
+                    PainelSemAlunosVisivel = Visibility.Collapsed,
                 };
             }).ToList();
 
             ListaCursos.ItemsSource = _cursos;
         }
 
-        // ── Lançar Notas inline ──────────────────────────────────────────────
+        private void BtnEditarCurso_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not Button btn || btn.Tag is not int cursoId) return;
+            if (_instrutor == null) return;
+
+            using var db = new LearnixDbContext();
+            var curso = db.Cursos
+                .Include(c => c.Modulos).ThenInclude(m => m.Aulas)
+                .FirstOrDefault(c => c.Id == cursoId);
+
+            if (curso == null) return;
+
+            var main = Application.Current.MainWindow as MainWindow;
+            main?.MostrarEditarCurso(curso, _instrutor);
+        }
 
         private void BtnLancarNotas_Click(object sender, RoutedEventArgs e)
         {
@@ -97,14 +111,12 @@ namespace Learnix
             var vm = _cursos.FirstOrDefault(c => c.CursoId == cursoId);
             if (vm == null) return;
 
-            // Toggle: abre se fechado, fecha se aberto
             if (vm.PainelNotasVisivel == Visibility.Visible)
             {
                 vm.PainelNotasVisivel = Visibility.Collapsed;
                 return;
             }
 
-            // Carrega alunos do banco
             using var db = new LearnixDbContext();
             var matriculas = db.Matriculas
                 .Where(m => m.CursoId == cursoId)
@@ -118,17 +130,16 @@ namespace Learnix
                 return new AlunoNotaVM
                 {
                     MatriculaId = m.Id,
-                    NomeAluno   = m.Aluno?.Nome ?? "Aluno",
-                    Matricula   = m.Aluno?.MatriculaAcademica ?? "",
-                    NotaAV1     = avs.ElementAtOrDefault(0)?.Nota.ToString("0.0", CultureInfo.InvariantCulture) ?? "",
-                    NotaAV2     = avs.ElementAtOrDefault(1)?.Nota.ToString("0.0", CultureInfo.InvariantCulture) ?? "",
-                    NotaAV3     = avs.ElementAtOrDefault(2)?.Nota.ToString("0.0", CultureInfo.InvariantCulture) ?? "",
+                    NomeAluno = m.Aluno?.Nome ?? "Aluno",
+                    Matricula = m.Aluno?.MatriculaAcademica ?? "",
+                    NotaAV1 = avs.ElementAtOrDefault(0)?.Nota.ToString("0.0", CultureInfo.InvariantCulture) ?? "",
+                    NotaAV2 = avs.ElementAtOrDefault(1)?.Nota.ToString("0.0", CultureInfo.InvariantCulture) ?? "",
+                    NotaAV3 = avs.ElementAtOrDefault(2)?.Nota.ToString("0.0", CultureInfo.InvariantCulture) ?? "",
                 };
             }).ToList();
 
             vm.PainelSemAlunosVisivel = matriculas.Count == 0
                 ? Visibility.Visible : Visibility.Collapsed;
-
             vm.PainelNotasVisivel = Visibility.Visible;
         }
 
@@ -136,7 +147,6 @@ namespace Learnix
         {
             if (sender is not Button btn || btn.Tag is not int matriculaId) return;
 
-            // Encontra o VM do aluno
             AlunoNotaVM? item = null;
             foreach (var curso in _cursos)
                 item = curso.Alunos?.FirstOrDefault(a => a.MatriculaId == matriculaId) ?? item;
@@ -178,21 +188,18 @@ namespace Learnix
                 {
                     db.Avaliacoes.Add(new Avaliacao
                     {
-                        MatriculaId    = matriculaId,
-                        Titulo         = titulo,
-                        Nota           = nota,
+                        MatriculaId = matriculaId,
+                        Titulo = titulo,
+                        Nota = nota,
                         DataRealizacao = DateTime.Now,
                     });
                 }
             }
 
             db.SaveChanges();
-
             MessageBox.Show($"Notas de {item.NomeAluno} salvas com sucesso!",
                 "Learnix", MessageBoxButton.OK, MessageBoxImage.Information);
         }
-
-        // ── Sair do Curso ────────────────────────────────────────────────────
 
         private void BtnSairCurso_Click(object sender, RoutedEventArgs e)
         {
@@ -231,20 +238,18 @@ namespace Learnix
         }
     }
 
-    // ── ViewModels ───────────────────────────────────────────────────────────
-
     public class CursoInstrutorVM : INotifyPropertyChanged
     {
-        public int             CursoId           { get; set; }
-        public string          Titulo            { get; set; } = "";
-        public string          Descricao         { get; set; } = "";
-        public string          NomeCategoria     { get; set; } = "";
-        public string          CargaHoraria      { get; set; } = "";
-        public string          NumAlunos         { get; set; } = "";
-        public SolidColorBrush CorCategoria      { get; set; } = new();
+        public int CursoId { get; set; }
+        public string Titulo { get; set; } = "";
+        public string Descricao { get; set; } = "";
+        public string NomeCategoria { get; set; } = "";
+        public string CargaHoraria { get; set; } = "";
+        public string NumAlunos { get; set; } = "";
+        public SolidColorBrush CorCategoria { get; set; } = new();
         public SolidColorBrush CorTextoCategoria { get; set; } = new();
-        public bool            PodeSair          { get; set; } = true;
-        public List<AlunoNotaVM>? Alunos         { get; set; }
+        public bool PodeSair { get; set; } = true;
+        public List<AlunoNotaVM>? Alunos { get; set; }
 
         private Visibility _painelNotasVisivel = Visibility.Collapsed;
         public Visibility PainelNotasVisivel

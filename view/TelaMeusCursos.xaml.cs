@@ -51,59 +51,57 @@ namespace Learnix
 
             var items = matriculas.Select(m =>
             {
-                double pct      = m.Progresso?.PercentualConcluido ?? 0;
-                bool concluido  = pct >= 100 || m.Status == StatusMatricula.Concluida;
-                int totalAulas  = m.Curso?.Modulos?.Sum(mod => mod.Aulas?.Count ?? 0) ?? 0;
+                double pct = m.Progresso?.PercentualConcluido ?? 0;
+                bool concluido = pct >= 100 || m.Status == StatusMatricula.Concluida;
+                int totalAulas = m.Curso?.Modulos?.Sum(mod => mod.Aulas?.Count ?? 0) ?? 0;
                 string categoria = m.Curso?.Categoria?.Nome ?? "Geral";
 
                 string corFundo = categoria switch
                 {
-                    "Humanas"    => "#1A3A2A",
+                    "Humanas" => "#1A3A2A",
                     "Tecnologia" => "#1A2A3A",
-                    _            => "#3A2860"
+                    _ => "#3A2860"
                 };
                 string corTexto = categoria switch
                 {
-                    "Humanas"    => "#A5D6A7",
+                    "Humanas" => "#A5D6A7",
                     "Tecnologia" => "#90CAF9",
-                    _            => "#D8CCF0"
+                    _ => "#D8CCF0"
                 };
 
                 double largura = Math.Min(pct / 100.0 * 300, 300);
 
                 return new CursoCardVM
                 {
-                    MatriculaId         = m.Id,
-                    TituloCurso         = m.Curso?.Titulo ?? "Curso",
-                    NomeInstrutor       = m.Curso?.Instrutor != null ? $"Prof. {m.Curso.Instrutor.Nome}" : "",
-                    NomeCategoria       = categoria,
-                    CorCategoria        = new SolidColorBrush((Color)ColorConverter.ConvertFromString(corFundo)),
-                    CorTextoCategoria   = new SolidColorBrush((Color)ColorConverter.ConvertFromString(corTexto)),
-                    DataFormatada       = $"📅 {m.DataMatricula:MMM yyyy}",
-                    CargaHoraria        = $"🕐 {m.Curso?.CargaHoraria ?? 0}h",
-                    NumAulas            = $"✏️ {totalAulas} aulas",
-                    PercentualTexto     = concluido ? "100% ✔" : $"{pct:0}%",
-                    LarguraBarra        = largura,
-                    CorBarra            = new SolidColorBrush(concluido
-                                            ? (Color)ColorConverter.ConvertFromString("#A5D6A7")
-                                            : (Color)ColorConverter.ConvertFromString("#7E6BAC")),
-                    CorFundoBarra       = new SolidColorBrush(concluido
-                                            ? (Color)ColorConverter.ConvertFromString("#1B5E20")
-                                            : (Color)ColorConverter.ConvertFromString("#3A2860")),
-                    CorTextoProgresso   = new SolidColorBrush(concluido
-                                            ? (Color)ColorConverter.ConvertFromString("#A5D6A7")
-                                            : (Color)ColorConverter.ConvertFromString("#D8CCF0")),
-                    TextoBotao          = concluido ? "🏆 Concluído" : "Acessar →",
-                    CorBotao            = new SolidColorBrush(concluido
-                                            ? (Color)ColorConverter.ConvertFromString("#2E7D32")
-                                            : (Color)ColorConverter.ConvertFromString("#4E3A7A")),
+                    MatriculaId = m.Id,
+                    TituloCurso = m.Curso?.Titulo ?? "Curso",
+                    NomeInstrutor = m.Curso?.Instrutor != null ? $"Prof. {m.Curso.Instrutor.Nome}" : "",
+                    NomeCategoria = categoria,
+                    CorCategoria = new SolidColorBrush((Color)ColorConverter.ConvertFromString(corFundo)),
+                    CorTextoCategoria = new SolidColorBrush((Color)ColorConverter.ConvertFromString(corTexto)),
+                    DataFormatada = $"📅 {m.DataMatricula:MMM yyyy}",
+                    CargaHoraria = $"🕐 {m.Curso?.CargaHoraria ?? 0}h",
+                    NumAulas = $"✏️ {totalAulas} aulas",
+                    PercentualTexto = concluido ? "100% ✔" : $"{pct:0}%",
+                    LarguraBarra = largura,
+                    CorBarra = new SolidColorBrush(concluido
+                                                ? (Color)ColorConverter.ConvertFromString("#A5D6A7")
+                                                : (Color)ColorConverter.ConvertFromString("#7E6BAC")),
+                    CorFundoBarra = new SolidColorBrush(concluido
+                                                ? (Color)ColorConverter.ConvertFromString("#1B5E20")
+                                                : (Color)ColorConverter.ConvertFromString("#3A2860")),
+                    CorTextoProgresso = new SolidColorBrush(concluido
+                                                ? (Color)ColorConverter.ConvertFromString("#A5D6A7")
+                                                : (Color)ColorConverter.ConvertFromString("#D8CCF0")),
+                    BotaoCertificadoVisivel = concluido ? Visibility.Visible : Visibility.Collapsed,
+                    BotaoSairVisivel = concluido ? Visibility.Collapsed : Visibility.Visible,
                 };
             }).ToList();
 
             ListaCursos.ItemsSource = items;
         }
 
-        private void BtnAcao_Click(object sender, RoutedEventArgs e)
+        private void BtnAcessar_Click(object sender, RoutedEventArgs e)
         {
             if (sender is not Button btn || btn.Tag is not int matriculaId) return;
 
@@ -111,39 +109,64 @@ namespace Learnix
             var matricula = db.Matriculas
                 .Include(m => m.Curso).ThenInclude(c => c.Modulos).ThenInclude(mod => mod.Aulas)
                 .Include(m => m.Progresso)
-                .Include(m => m.Certificado)
                 .FirstOrDefault(m => m.Id == matriculaId);
 
             if (matricula == null) return;
 
-            double pct       = matricula.Progresso?.PercentualConcluido ?? 0;
-            bool concluido   = pct >= 100 || matricula.Status == StatusMatricula.Concluida;
-            var main         = Application.Current.MainWindow as MainWindow;
+            var main = Application.Current.MainWindow as MainWindow;
+            main?.MostrarAulas(matricula);
+        }
 
-            if (concluido)
-                main?.MostrarCertificados(_aluno?.Nome ?? "");
-            else
-                main?.MostrarAulas(matricula);
+        private void BtnCertificado_Click(object sender, RoutedEventArgs e)
+        {
+            var main = Application.Current.MainWindow as MainWindow;
+            main?.MostrarCertificados(_aluno?.Nome ?? "");
+        }
+
+        private void BtnSairCurso_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not Button btn || btn.Tag is not int matriculaId) return;
+
+            var r = MessageBox.Show(
+                "Deseja realmente sair deste curso?\nSeu progresso será perdido.",
+                "Confirmar", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            if (r != MessageBoxResult.Yes) return;
+
+            using var db = new LearnixDbContext();
+            var matricula = db.Matriculas
+                .Include(m => m.Progresso)
+                .Include(m => m.Avaliacoes)
+                .FirstOrDefault(m => m.Id == matriculaId);
+
+            if (matricula == null) return;
+
+            db.Matriculas.Remove(matricula);
+            db.SaveChanges();
+
+            MessageBox.Show("Você saiu do curso com sucesso.", "Learnix",
+                MessageBoxButton.OK, MessageBoxImage.Information);
+
+            CarregarCursos();
         }
     }
 
     public class CursoCardVM
     {
-        public int             MatriculaId       { get; set; }
-        public string          TituloCurso       { get; set; } = "";
-        public string          NomeInstrutor     { get; set; } = "";
-        public string          NomeCategoria     { get; set; } = "";
-        public SolidColorBrush CorCategoria      { get; set; } = new();
+        public int MatriculaId { get; set; }
+        public string TituloCurso { get; set; } = "";
+        public string NomeInstrutor { get; set; } = "";
+        public string NomeCategoria { get; set; } = "";
+        public SolidColorBrush CorCategoria { get; set; } = new();
         public SolidColorBrush CorTextoCategoria { get; set; } = new();
-        public string          DataFormatada     { get; set; } = "";
-        public string          CargaHoraria      { get; set; } = "";
-        public string          NumAulas          { get; set; } = "";
-        public string          PercentualTexto   { get; set; } = "";
-        public double          LarguraBarra      { get; set; }
-        public SolidColorBrush CorBarra          { get; set; } = new();
-        public SolidColorBrush CorFundoBarra     { get; set; } = new();
+        public string DataFormatada { get; set; } = "";
+        public string CargaHoraria { get; set; } = "";
+        public string NumAulas { get; set; } = "";
+        public string PercentualTexto { get; set; } = "";
+        public double LarguraBarra { get; set; }
+        public SolidColorBrush CorBarra { get; set; } = new();
+        public SolidColorBrush CorFundoBarra { get; set; } = new();
         public SolidColorBrush CorTextoProgresso { get; set; } = new();
-        public string          TextoBotao        { get; set; } = "";
-        public SolidColorBrush CorBotao          { get; set; } = new();
+        public Visibility BotaoCertificadoVisivel { get; set; } = Visibility.Collapsed;
+        public Visibility BotaoSairVisivel { get; set; } = Visibility.Visible;
     }
 }

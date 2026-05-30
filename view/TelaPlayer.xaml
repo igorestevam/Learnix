@@ -5,7 +5,6 @@
              Background="#1E1E1E">
 
     <UserControl.Resources>
-
         <Style x:Key="BtnPlayerStyle" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="White"/>
@@ -29,78 +28,58 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
-        <Style x:Key="AulaItemStyle" TargetType="Border">
-            <Setter Property="Padding" Value="14,12"/>
-            <Setter Property="Margin" Value="0,0,0,2"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Background" Value="Transparent"/>
-        </Style>
-
     </UserControl.Resources>
 
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="220"/>
-            <!-- Sidebar -->
             <ColumnDefinition Width="*"/>
-            <!-- Player + conteúdo -->
             <ColumnDefinition Width="300"/>
-            <!-- Lista de aulas -->
         </Grid.ColumnDefinitions>
 
-        <!-- Sidebar -->
         <local:SidebarControl x:Name="Sidebar" Grid.Column="0"/>
 
-        <!-- Área central: player + abas -->
+        <!-- Área central -->
         <Grid Grid.Column="1" Margin="24,24,12,24">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
-                <!-- Voltar + título -->
                 <RowDefinition Height="Auto"/>
-                <!-- Vídeo -->
                 <RowDefinition Height="Auto"/>
-                <!-- Controles -->
                 <RowDefinition Height="*"/>
-                <!-- Abas: materiais / transcrição / anotações -->
             </Grid.RowDefinitions>
 
-            <!-- Voltar + título da aula -->
-            <StackPanel Grid.Row="0" Margin="0,0,0,16">
+            <!-- Voltar + título -->
+            <StackPanel Grid.Row="0" Margin="0,0,0,12">
                 <TextBlock x:Name="BtnVoltar"
                            Text="&#x2190; Voltar para Aulas"
                            Foreground="#D8CCF0" FontSize="13"
                            FontFamily="Segoe UI" Cursor="Hand"
                            TextDecorations="Underline" Margin="0,0,0,10"
                            MouseLeftButtonDown="BtnVoltar_Click"/>
-                <TextBlock x:Name="TxtTituloAula"
-                           Text="Aula 03 — Listas Encadeadas"
+                <TextBlock x:Name="TxtTituloAula" Text=""
                            Foreground="White" FontSize="18" FontWeight="Bold"
                            FontFamily="Segoe UI"/>
-                <TextBlock x:Name="TxtNomeCurso"
-                           Text="Algoritmos e Estrutura de Dados"
+                <TextBlock x:Name="TxtNomeCurso" Text=""
                            Foreground="#9E8FC0" FontSize="13"
                            FontFamily="Segoe UI" Margin="0,4,0,0"/>
             </StackPanel>
 
-            <!-- Vídeo (MediaElement) -->
-            <Border Grid.Row="1" Background="Black" CornerRadius="12"
-                    ClipToBounds="True">
+            <!-- Vídeo — altura fixa 360 -->
+            <Border Grid.Row="1" Background="Black" CornerRadius="12,12,0,0"
+                    ClipToBounds="True" Height="360">
                 <Grid>
                     <MediaElement x:Name="VideoPlayer"
                                   LoadedBehavior="Manual"
                                   UnloadedBehavior="Stop"
                                   Stretch="Uniform"
-                                  MinHeight="320"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"
                                   MediaOpened="VideoPlayer_MediaOpened"
                                   MediaEnded="VideoPlayer_MediaEnded"
                                   MediaFailed="VideoPlayer_MediaFailed"/>
-
-                    <!-- Overlay quando não há vídeo carregado -->
                     <StackPanel x:Name="OverlaySemVideo"
-                                VerticalAlignment="Center" HorizontalAlignment="Center"
-                                MinHeight="320">
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Center">
                         <TextBlock Text="&#x25B6;" FontSize="56"
                                    HorizontalAlignment="Center"
                                    Foreground="#4E3A7A" Opacity="0.6"/>
@@ -112,7 +91,7 @@
                 </Grid>
             </Border>
 
-            <!-- Controles do player -->
+            <!-- Controles -->
             <Border Grid.Row="2" Background="#2A2040" CornerRadius="0,0,12,12"
                     Padding="16,10" Margin="0,0,0,16">
                 <Grid>
@@ -121,12 +100,10 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <!-- Barra de progresso do vídeo — com DragStarted/DragCompleted no Thumb -->
                     <Slider x:Name="SliderVideo" Grid.Row="0"
                             Minimum="0" Maximum="100" Value="0"
                             Margin="0,0,0,8"
-                            Foreground="#7E6BAC"
-                            Background="#3A2860"
+                            Foreground="#7E6BAC" Background="#3A2860"
                             ValueChanged="SliderVideo_ValueChanged"
                             IsMoveToPointEnabled="True">
                         <Slider.Resources>
@@ -137,7 +114,6 @@
                         </Slider.Resources>
                     </Slider>
 
-                    <!-- Botões e tempo -->
                     <Grid Grid.Row="1">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
@@ -145,7 +121,6 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
-                        <!-- Botões de controle -->
                         <StackPanel Grid.Column="0" Orientation="Horizontal">
                             <Button x:Name="BtnPlayPause" Content="&#x25B6;"
                                     Style="{StaticResource BtnPlayerStyle}"
@@ -158,7 +133,6 @@
                                     Click="BtnAvancar10_Click" ToolTip="+10s"/>
                         </StackPanel>
 
-                        <!-- Tempo atual / total -->
                         <TextBlock Grid.Column="1" x:Name="TxtTempo"
                                    Text="00:00 / 00:00"
                                    Foreground="#9E8FC0" FontSize="12"
@@ -166,7 +140,6 @@
                                    VerticalAlignment="Center"
                                    HorizontalAlignment="Center"/>
 
-                        <!-- Volume + abrir arquivo -->
                         <StackPanel Grid.Column="2" Orientation="Horizontal">
                             <TextBlock Text="&#x1F50A;" FontSize="16"
                                        VerticalAlignment="Center" Margin="0,0,6,0"
@@ -176,7 +149,7 @@
                                     VerticalAlignment="Center" Margin="0,0,12,0"
                                     Foreground="#7E6BAC"
                                     ValueChanged="SliderVolume_ValueChanged"/>
-                            <Button Content="&#x1F4C2; Abrir Vídeo"
+                            <Button Content="&#x1F4C2; Abrir V&#xED;deo"
                                     Style="{StaticResource BtnPlayerStyle}"
                                     FontSize="13" Padding="12,6"
                                     Click="BtnAbrirVideo_Click"/>
@@ -185,7 +158,7 @@
                 </Grid>
             </Border>
 
-            <!-- Abas: Materiais / Transcrição / Anotações -->
+            <!-- Abas -->
             <Border Grid.Row="3" Background="#2A2040" CornerRadius="12" Padding="0">
                 <Grid>
                     <Grid.RowDefinitions>
@@ -193,13 +166,10 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <!-- Cabeçalho das abas -->
-                    <StackPanel Grid.Row="0" Orientation="Horizontal"
-                                Background="#2A2040">
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Background="#2A2040">
                         <Border x:Name="AbaMateriaisHeader"
                                 Padding="20,12" Cursor="Hand"
-                                BorderThickness="0,0,0,2"
-                                BorderBrush="#7E6BAC"
+                                BorderThickness="0,0,0,2" BorderBrush="#7E6BAC"
                                 MouseLeftButtonDown="AbaMateriaisClick">
                             <TextBlock Text="&#x1F4CE; Materiais"
                                        Foreground="White" FontSize="13"
@@ -207,8 +177,7 @@
                         </Border>
                         <Border x:Name="AbaTranscricaoHeader"
                                 Padding="20,12" Cursor="Hand"
-                                BorderThickness="0,0,0,2"
-                                BorderBrush="Transparent"
+                                BorderThickness="0,0,0,2" BorderBrush="Transparent"
                                 MouseLeftButtonDown="AbaTranscricaoClick">
                             <TextBlock Text="&#x1F4DD; Transcri&#xE7;&#xE3;o"
                                        Foreground="#9E8FC0" FontSize="13"
@@ -216,8 +185,7 @@
                         </Border>
                         <Border x:Name="AbaAnotacoesHeader"
                                 Padding="20,12" Cursor="Hand"
-                                BorderThickness="0,0,0,2"
-                                BorderBrush="Transparent"
+                                BorderThickness="0,0,0,2" BorderBrush="Transparent"
                                 MouseLeftButtonDown="AbaAnotacoesClick">
                             <TextBlock Text="&#x270F;&#xFE0F; Anota&#xE7;&#xF5;es"
                                        Foreground="#9E8FC0" FontSize="13"
@@ -225,88 +193,45 @@
                         </Border>
                     </StackPanel>
 
-                    <!-- Conteúdo das abas -->
                     <ScrollViewer Grid.Row="1" Padding="20,16"
                                   VerticalScrollBarVisibility="Auto">
                         <Grid>
-
-                            <!-- Aba Materiais -->
                             <StackPanel x:Name="AbaMateriais">
                                 <TextBlock Text="Material de Apoio"
-                                       Foreground="White" FontSize="14" FontWeight="SemiBold"
-                                       FontFamily="Segoe UI" Margin="0,0,0,12"/>
-                                <Border Background="#3A2860" CornerRadius="8" Padding="14,10" Margin="0,0,0,8" Cursor="Hand">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="&#x1F4C4;" FontSize="18" Margin="0,0,10,0" VerticalAlignment="Center"/>
-                                        <StackPanel>
-                                            <TextBlock Text="Slides — Listas Encadeadas.pdf"
-                                                   Foreground="White" FontSize="13" FontFamily="Segoe UI"/>
-                                            <TextBlock Text="2,4 MB" Foreground="#9E8FC0"
-                                                   FontSize="11" FontFamily="Segoe UI"/>
-                                        </StackPanel>
-                                    </StackPanel>
-                                </Border>
-                                <Border Background="#3A2860" CornerRadius="8" Padding="14,10" Margin="0,0,0,8" Cursor="Hand">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="&#x1F4C4;" FontSize="18" Margin="0,0,10,0" VerticalAlignment="Center"/>
-                                        <StackPanel>
-                                            <TextBlock Text="Exerc&#xED;cios — Aula 03.pdf"
-                                                   Foreground="White" FontSize="13" FontFamily="Segoe UI"/>
-                                            <TextBlock Text="1,1 MB" Foreground="#9E8FC0"
-                                                   FontSize="11" FontFamily="Segoe UI"/>
-                                        </StackPanel>
-                                    </StackPanel>
-                                </Border>
-                                <Border Background="#3A2860" CornerRadius="8" Padding="14,10" Cursor="Hand">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="&#x1F517;" FontSize="18" Margin="0,0,10,0" VerticalAlignment="Center"/>
-                                        <StackPanel>
-                                            <TextBlock Text="C&#xF3;digo-fonte no GitHub"
-                                                   Foreground="#D8CCF0" FontSize="13" FontFamily="Segoe UI"/>
-                                            <TextBlock Text="github.com/learnix/aula03"
-                                                   Foreground="#9E8FC0" FontSize="11" FontFamily="Segoe UI"/>
-                                        </StackPanel>
-                                    </StackPanel>
-                                </Border>
+                                           Foreground="White" FontSize="14" FontWeight="SemiBold"
+                                           FontFamily="Segoe UI" Margin="0,0,0,12"/>
+                                <TextBlock Text="Nenhum material dispon&#xED;vel para esta aula."
+                                           Foreground="#9E8FC0" FontSize="13"
+                                           FontFamily="Segoe UI"/>
                             </StackPanel>
 
-                            <!-- Aba Transcrição (oculta inicialmente) -->
                             <StackPanel x:Name="AbaTranscricao" Visibility="Collapsed">
                                 <TextBlock Text="Transcri&#xE7;&#xE3;o da Aula"
-                                       Foreground="White" FontSize="14" FontWeight="SemiBold"
-                                       FontFamily="Segoe UI" Margin="0,0,0,12"/>
-                                <TextBlock TextWrapping="Wrap" Foreground="#D8CCF0"
-                                       FontSize="13" FontFamily="Segoe UI" LineHeight="22">
-                                <Run Foreground="#9E8FC0" FontWeight="SemiBold">00:00</Run>
-                                <Run> Ol&#xE1; pessoal! Hoje vamos falar sobre listas encadeadas, uma das estruturas de dados mais importantes da programa&#xE7;&#xE3;o.</Run>
-                                <LineBreak/><LineBreak/>
-                                <Run Foreground="#9E8FC0" FontWeight="SemiBold">01:30</Run>
-                                <Run> Uma lista encadeada &#xE9; uma cole&#xE7;&#xE3;o de n&#xF3;s onde cada n&#xF3; cont&#xE9;m um valor e um ponteiro para o pr&#xF3;ximo n&#xF3;.</Run>
-                                <LineBreak/><LineBreak/>
-                                <Run Foreground="#9E8FC0" FontWeight="SemiBold">03:45</Run>
-                                <Run> Diferente dos arrays, as listas encadeadas n&#xE3;o precisam de mem&#xF3;ria cont&#xED;gua, o que traz vantagens em inser&#xE7;&#xF5;es e remo&#xE7;&#xF5;es.</Run>
-                                </TextBlock>
+                                           Foreground="White" FontSize="14" FontWeight="SemiBold"
+                                           FontFamily="Segoe UI" Margin="0,0,0,12"/>
+                                <TextBlock Text="Transcri&#xE7;&#xE3;o n&#xE3;o dispon&#xED;vel."
+                                           Foreground="#9E8FC0" FontSize="13"
+                                           FontFamily="Segoe UI"/>
                             </StackPanel>
 
-                            <!-- Aba Anotações (oculta inicialmente) -->
                             <StackPanel x:Name="AbaAnotacoes" Visibility="Collapsed">
                                 <TextBlock Text="Minhas Anota&#xE7;&#xF5;es"
-                                       Foreground="White" FontSize="14" FontWeight="SemiBold"
-                                       FontFamily="Segoe UI" Margin="0,0,0,12"/>
+                                           Foreground="White" FontSize="14" FontWeight="SemiBold"
+                                           FontFamily="Segoe UI" Margin="0,0,0,12"/>
                                 <TextBox x:Name="TxtAnotacoes"
-                                     AcceptsReturn="True" TextWrapping="Wrap"
-                                     MinHeight="120" Background="#3A2860"
-                                     Foreground="White" BorderThickness="0"
-                                     FontFamily="Segoe UI" FontSize="13"
-                                     Padding="12" CaretBrush="White"
-                                     Text="Digite suas anota&#xE7;&#xF5;es aqui...">
+                                         AcceptsReturn="True" TextWrapping="Wrap"
+                                         MinHeight="120" Background="#3A2860"
+                                         Foreground="White" BorderThickness="0"
+                                         FontFamily="Segoe UI" FontSize="13"
+                                         Padding="12" CaretBrush="White"
+                                         Text="Digite suas anota&#xE7;&#xF5;es aqui...">
                                     <TextBox.Style>
                                         <Style TargetType="TextBox">
                                             <Setter Property="Template">
                                                 <Setter.Value>
                                                     <ControlTemplate TargetType="TextBox">
                                                         <Border Background="{TemplateBinding Background}"
-                                                            CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                                                CornerRadius="8" Padding="{TemplateBinding Padding}">
                                                             <ScrollViewer x:Name="PART_ContentHost"/>
                                                         </Border>
                                                     </ControlTemplate>
@@ -316,16 +241,17 @@
                                     </TextBox.Style>
                                 </TextBox>
                                 <Button Content="&#x1F4BE; Salvar Anota&#xE7;&#xF5;es"
-                                    Margin="0,10,0,0" HorizontalAlignment="Right"
-                                    Background="#4E3A7A" Foreground="White"
-                                    BorderThickness="0" Padding="16,8"
-                                    FontFamily="Segoe UI" FontSize="13" Cursor="Hand"
-                                    Click="BtnSalvarAnotacoes_Click">
+                                        Margin="0,10,0,0" HorizontalAlignment="Right"
+                                        Background="#4E3A7A" Foreground="White"
+                                        BorderThickness="0" Padding="16,8"
+                                        FontFamily="Segoe UI" FontSize="13" Cursor="Hand"
+                                        Click="BtnSalvarAnotacoes_Click">
                                     <Button.Template>
                                         <ControlTemplate TargetType="Button">
                                             <Border x:Name="b" Background="{TemplateBinding Background}"
-                                                CornerRadius="8" Padding="{TemplateBinding Padding}">
-                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                                <ContentPresenter HorizontalAlignment="Center"
+                                                                  VerticalAlignment="Center"/>
                                             </Border>
                                             <ControlTemplate.Triggers>
                                                 <Trigger Property="IsMouseOver" Value="True">
@@ -336,14 +262,13 @@
                                     </Button.Template>
                                 </Button>
                             </StackPanel>
-
                         </Grid>
                     </ScrollViewer>
                 </Grid>
             </Border>
         </Grid>
 
-        <!-- Lista de aulas (lateral direita) -->
+        <!-- Lista de aulas lateral direita -->
         <Border Grid.Column="2" Background="#2A2040"
                 Margin="12,24,24,24" CornerRadius="14">
             <Grid>
@@ -360,131 +285,7 @@
 
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"
                               Padding="8,0,8,8">
-                    <StackPanel>
-
-                        <TextBlock Text="M&#xF3;dulo 1" Foreground="#9E8FC0"
-                                   FontSize="11" FontWeight="SemiBold"
-                                   FontFamily="Segoe UI" Margin="8,8,0,4"/>
-
-                        <!-- Aula 1 lista - assistida -->
-                        <Border Style="{StaticResource AulaItemStyle}"
-                                MouseLeftButtonDown="AulaLista_Click" Tag="Aula 01 — O que são Algoritmos?">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Border Grid.Column="0" Width="28" Height="28" CornerRadius="14"
-                                        Background="#1B5E20" Margin="0,0,10,0">
-                                    <TextBlock Text="&#x2714;" Foreground="#A5D6A7" FontSize="12"
-                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                    <TextBlock Text="Aula 01 — Algoritmos"
-                                               Foreground="#D8CCF0" FontSize="12"
-                                               FontFamily="Segoe UI" TextWrapping="Wrap"/>
-                                    <TextBlock Text="12 min" Foreground="#9E8FC0"
-                                               FontSize="11" FontFamily="Segoe UI"/>
-                                </StackPanel>
-                            </Grid>
-                        </Border>
-
-                        <!-- Aula 2 lista - assistida -->
-                        <Border Style="{StaticResource AulaItemStyle}"
-                                MouseLeftButtonDown="AulaLista_Click" Tag="Aula 02 — Complexidade de Algoritmos">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Border Grid.Column="0" Width="28" Height="28" CornerRadius="14"
-                                        Background="#1B5E20" Margin="0,0,10,0">
-                                    <TextBlock Text="&#x2714;" Foreground="#A5D6A7" FontSize="12"
-                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                    <TextBlock Text="Aula 02 — Complexidade"
-                                               Foreground="#D8CCF0" FontSize="12"
-                                               FontFamily="Segoe UI" TextWrapping="Wrap"/>
-                                    <TextBlock Text="18 min" Foreground="#9E8FC0"
-                                               FontSize="11" FontFamily="Segoe UI"/>
-                                </StackPanel>
-                            </Grid>
-                        </Border>
-
-                        <TextBlock Text="M&#xF3;dulo 2" Foreground="#9E8FC0"
-                                   FontSize="11" FontWeight="SemiBold"
-                                   FontFamily="Segoe UI" Margin="8,12,0,4"/>
-
-                        <!-- Aula 3 lista - ativa (em andamento) -->
-                        <Border Style="{StaticResource AulaItemStyle}"
-                                Background="#3A2860"
-                                MouseLeftButtonDown="AulaLista_Click" Tag="Aula 03 — Listas Encadeadas">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Border Grid.Column="0" Width="28" Height="28" CornerRadius="14"
-                                        Background="#4E3A7A" Margin="0,0,10,0">
-                                    <TextBlock Text="&#x25B6;" Foreground="White" FontSize="11"
-                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                    <TextBlock Text="Aula 03 — Listas Encadeadas"
-                                               Foreground="White" FontSize="12" FontWeight="SemiBold"
-                                               FontFamily="Segoe UI" TextWrapping="Wrap"/>
-                                    <TextBlock Text="22 min • Em andamento" Foreground="#FFCC80"
-                                               FontSize="11" FontFamily="Segoe UI"/>
-                                </StackPanel>
-                            </Grid>
-                        </Border>
-
-                        <!-- Aula 4 lista - bloqueada -->
-                        <Border Style="{StaticResource AulaItemStyle}" Opacity="0.45">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Border Grid.Column="0" Width="28" Height="28" CornerRadius="14"
-                                        Background="#3A2860" Margin="0,0,10,0">
-                                    <TextBlock Text="&#x1F512;" FontSize="12"
-                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                    <TextBlock Text="Aula 04 — Pilhas e Filas"
-                                               Foreground="#9E8FC0" FontSize="12"
-                                               FontFamily="Segoe UI" TextWrapping="Wrap"/>
-                                    <TextBlock Text="19 min" Foreground="#9E8FC0"
-                                               FontSize="11" FontFamily="Segoe UI"/>
-                                </StackPanel>
-                            </Grid>
-                        </Border>
-
-                        <!-- Aula 5 lista - bloqueada -->
-                        <Border Style="{StaticResource AulaItemStyle}" Opacity="0.45">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Border Grid.Column="0" Width="28" Height="28" CornerRadius="14"
-                                        Background="#3A2860" Margin="0,0,10,0">
-                                    <TextBlock Text="&#x1F512;" FontSize="12"
-                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                    <TextBlock Text="Aula 05 — &#xC1;rvores Bin&#xE1;rias"
-                                               Foreground="#9E8FC0" FontSize="12"
-                                               FontFamily="Segoe UI" TextWrapping="Wrap"/>
-                                    <TextBlock Text="25 min" Foreground="#9E8FC0"
-                                               FontSize="11" FontFamily="Segoe UI"/>
-                                </StackPanel>
-                            </Grid>
-                        </Border>
-
-                    </StackPanel>
+                    <StackPanel x:Name="ListaAulasPanel"/>
                 </ScrollViewer>
             </Grid>
         </Border>
