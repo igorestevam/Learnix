@@ -1,3 +1,8 @@
+sqlcmd -S "(localdb)\MSSQLLocalDB" -Q "ALTER DATABASE MyDatabase SET SINGLE_USER WITH ROLLBACK IMMEDIATE; DROP DATABASE MyDatabase"
+dotnet ef database update
+
+
+
 # Learnix — Backup das Alterações
 
 Backup completo do antes e depois de cada arquivo alterado conforme o plano de correções MVC.
