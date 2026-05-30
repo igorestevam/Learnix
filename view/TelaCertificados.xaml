@@ -5,7 +5,6 @@
              Background="#1E1E1E">
 
     <UserControl.Resources>
-
         <Style x:Key="BtnCertStyle" TargetType="Button">
             <Setter Property="Background" Value="#4E3A7A"/>
             <Setter Property="Foreground" Value="White"/>
@@ -30,7 +29,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
     </UserControl.Resources>
 
     <Grid>
@@ -39,10 +37,8 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <!-- Sidebar -->
         <local:SidebarControl x:Name="Sidebar" Grid.Column="0"/>
 
-        <!-- Conteúdo principal -->
         <Grid Grid.Column="1" Margin="36,32,36,32">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -50,7 +46,6 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <!-- Título -->
             <StackPanel Grid.Row="0" Margin="0,0,0,24">
                 <TextBlock Text="&#x1F3C6;  Meus Certificados"
                            Foreground="White" FontSize="24" FontWeight="Bold"
@@ -60,7 +55,6 @@
                            FontFamily="Segoe UI" Margin="0,6,0,0"/>
             </StackPanel>
 
-            <!-- Resumo -->
             <Border Grid.Row="1" Background="#2A2040" CornerRadius="14"
                     Padding="24,16" Margin="0,0,0,24">
                 <StackPanel Orientation="Horizontal">
@@ -83,16 +77,13 @@
                 </StackPanel>
             </Border>
 
-            <!-- Painel Lista / Painel Certificado (alternados) -->
             <Grid Grid.Row="2">
 
-                <!-- Painel Lista -->
                 <Grid x:Name="PainelLista">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <!-- Estado vazio -->
                     <StackPanel x:Name="PainelVazio"
                                 VerticalAlignment="Center" HorizontalAlignment="Center"
                                 Visibility="Visible">
@@ -108,7 +99,6 @@
                                    Opacity="0.7"/>
                     </StackPanel>
 
-                    <!-- Lista de certificados -->
                     <ItemsControl x:Name="ListaCertificados" Visibility="Collapsed">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
@@ -121,7 +111,6 @@
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
 
-                                        <!-- Ícone -->
                                         <Border Grid.Column="0" Width="56" Height="56"
                                                 CornerRadius="28" Background="#4E3A7A"
                                                 Margin="0,0,20,0">
@@ -130,7 +119,6 @@
                                                        VerticalAlignment="Center"/>
                                         </Border>
 
-                                        <!-- Dados -->
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                             <TextBlock Text="{Binding NomeCurso}"
                                                        Foreground="White" FontSize="16"
@@ -158,7 +146,6 @@
                                             </Border>
                                         </StackPanel>
 
-                                        <!-- Botão Ver -->
                                         <Button Grid.Column="2"
                                                 Content="&#x1F441; Ver Certificado"
                                                 Style="{StaticResource BtnCertStyle}"
@@ -172,7 +159,6 @@
                     </ItemsControl>
                 </Grid>
 
-                <!-- Painel Certificado Visual -->
                 <Grid x:Name="PainelCertificado" Visibility="Collapsed">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -180,117 +166,115 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <!-- Voltar -->
                     <TextBlock Grid.Row="0"
                                Text="&#x2190; Voltar para lista"
                                Foreground="#D8CCF0" FontSize="13"
                                FontFamily="Segoe UI" Cursor="Hand"
-                               TextDecorations="Underline" Margin="0,0,0,20"
+                               TextDecorations="Underline" Margin="0,0,0,12"
                                MouseLeftButtonDown="BtnVoltarLista_Click"/>
 
-                    <!-- Certificado visual -->
-                    <Border x:Name="BorderCertificado" Grid.Row="1"
-                            Background="#FBFBF2" CornerRadius="16"
-                            Padding="48,40" MaxWidth="720">
-                        <StackPanel HorizontalAlignment="Center">
+                    <ScrollViewer Grid.Row="1" 
+                                  VerticalScrollBarVisibility="Auto" 
+                                  HorizontalScrollBarVisibility="Auto">
 
-                            <!-- Cabeçalho -->
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"
-                                        Margin="0,0,0,24">
-                                <TextBlock Text="&#x1F393;" FontSize="32" VerticalAlignment="Center"/>
-                                <TextBlock Text="LEARNIX" FontSize="22" FontWeight="Bold"
-                                           Foreground="#231942" VerticalAlignment="Center"
-                                           Margin="12,0,0,0" FontFamily="Segoe UI"/>
+                        <Border x:Name="BorderCertificado" 
+                                Background="#FBFBF2" CornerRadius="16"
+                                Padding="48,40" Width="720" MinHeight="450"
+                                HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"
+                                            Margin="0,0,0,24">
+                                    <TextBlock Text="&#x1F393;" FontSize="32" VerticalAlignment="Center"/>
+                                    <TextBlock Text="LEARNIX" FontSize="22" FontWeight="Bold"
+                                               Foreground="#231942" VerticalAlignment="Center"
+                                               Margin="12,0,0,0" FontFamily="Segoe UI"/>
+                                </StackPanel>
+
+                                <TextBlock Text="CERTIFICADO DE CONCLUSAO"
+                                           Foreground="#5E548E" FontSize="13"
+                                           FontWeight="Bold" FontFamily="Segoe UI"
+                                           HorizontalAlignment="Center"
+                                           Margin="0,0,0,24"/>
+
+                                <TextBlock Text="Certificamos que"
+                                           Foreground="#5E548E" FontSize="14"
+                                           FontFamily="Segoe UI" HorizontalAlignment="Center"
+                                           Margin="0,0,0,8"/>
+
+                                <TextBlock x:Name="CertNomeAluno" Text="Nome do Aluno"
+                                           Foreground="#231942" FontSize="28" FontWeight="Bold"
+                                           FontFamily="Segoe UI" HorizontalAlignment="Center"
+                                           Margin="0,0,0,16"/>
+
+                                <TextBlock Text="concluiu com exito o curso"
+                                           Foreground="#5E548E" FontSize="14"
+                                           FontFamily="Segoe UI" HorizontalAlignment="Center"
+                                           Margin="0,0,0,8"/>
+
+                                <TextBlock x:Name="CertNomeCurso" Text="Nome do Curso"
+                                           Foreground="#231942" FontSize="20" FontWeight="SemiBold"
+                                           FontFamily="Segoe UI" HorizontalAlignment="Center"
+                                           TextWrapping="Wrap" TextAlignment="Center"
+                                           Margin="0,0,0,8"/>
+
+                                <TextBlock x:Name="CertCargaHoraria"
+                                           Text="com carga horaria de 60h"
+                                           Foreground="#5E548E" FontSize="13"
+                                           FontFamily="Segoe UI" HorizontalAlignment="Center"
+                                           Margin="0,0,0,8"/>
+
+                                <TextBlock Text="ministrado por"
+                                           Foreground="#5E548E" FontSize="13"
+                                           FontFamily="Segoe UI" HorizontalAlignment="Center"
+                                           Margin="0,0,0,4"/>
+
+                                <TextBlock x:Name="CertProfessor" Text="Nome do Professor"
+                                           Foreground="#231942" FontSize="15" FontWeight="SemiBold"
+                                           FontFamily="Segoe UI" HorizontalAlignment="Center"
+                                           Margin="0,0,0,24"/>
+
+                                <Rectangle Height="1" Fill="#BE95C4" Margin="0,0,0,24" Opacity="0.5"/>
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0" HorizontalAlignment="Center">
+                                        <TextBlock Text="DATA DE CONCLUSAO"
+                                                   Foreground="#9F86C0" FontSize="10"
+                                                   FontFamily="Segoe UI" FontWeight="Bold"
+                                                   HorizontalAlignment="Center"/>
+                                        <TextBlock x:Name="CertData" Text="01/01/2026"
+                                                   Foreground="#231942" FontSize="14"
+                                                   FontFamily="Segoe UI" HorizontalAlignment="Center"
+                                                   Margin="0,4,0,0"/>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                                        <TextBlock Text="CODIGO DE VALIDACAO"
+                                                   Foreground="#9F86C0" FontSize="10"
+                                                   FontFamily="Segoe UI" FontWeight="Bold"
+                                                   HorizontalAlignment="Center"/>
+                                        <TextBlock x:Name="CertCodigo" Text="LX-000000"
+                                                   Foreground="#231942" FontSize="14"
+                                                   FontFamily="Segoe UI" HorizontalAlignment="Center"
+                                                   Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </Grid>
+
                             </StackPanel>
+                        </Border>
+                    </ScrollViewer>
 
-                            <TextBlock Text="CERTIFICADO DE CONCLUSAO"
-                                       Foreground="#5E548E" FontSize="13"
-                                       FontWeight="Bold" FontFamily="Segoe UI"
-                                       HorizontalAlignment="Center"
-                                       Margin="0,0,0,24"/>
-
-                            <TextBlock Text="Certificamos que"
-                                       Foreground="#5E548E" FontSize="14"
-                                       FontFamily="Segoe UI" HorizontalAlignment="Center"
-                                       Margin="0,0,0,8"/>
-
-                            <TextBlock x:Name="CertNomeAluno" Text="Nome do Aluno"
-                                       Foreground="#231942" FontSize="28" FontWeight="Bold"
-                                       FontFamily="Segoe UI" HorizontalAlignment="Center"
-                                       Margin="0,0,0,16"/>
-
-                            <TextBlock Text="concluiu com exito o curso"
-                                       Foreground="#5E548E" FontSize="14"
-                                       FontFamily="Segoe UI" HorizontalAlignment="Center"
-                                       Margin="0,0,0,8"/>
-
-                            <TextBlock x:Name="CertNomeCurso" Text="Nome do Curso"
-                                       Foreground="#231942" FontSize="20" FontWeight="SemiBold"
-                                       FontFamily="Segoe UI" HorizontalAlignment="Center"
-                                       TextWrapping="Wrap" TextAlignment="Center"
-                                       Margin="0,0,0,8"/>
-
-                            <TextBlock x:Name="CertCargaHoraria"
-                                       Text="com carga horaria de 60h"
-                                       Foreground="#5E548E" FontSize="13"
-                                       FontFamily="Segoe UI" HorizontalAlignment="Center"
-                                       Margin="0,0,0,8"/>
-
-                            <TextBlock Text="ministrado por"
-                                       Foreground="#5E548E" FontSize="13"
-                                       FontFamily="Segoe UI" HorizontalAlignment="Center"
-                                       Margin="0,0,0,4"/>
-
-                            <TextBlock x:Name="CertProfessor" Text="Nome do Professor"
-                                       Foreground="#231942" FontSize="15" FontWeight="SemiBold"
-                                       FontFamily="Segoe UI" HorizontalAlignment="Center"
-                                       Margin="0,0,0,24"/>
-
-                            <Rectangle Height="1" Fill="#BE95C4" Margin="0,0,0,24" Opacity="0.5"/>
-
-                            <!-- Rodapé -->
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-
-                                <StackPanel Grid.Column="0" HorizontalAlignment="Center">
-                                    <TextBlock Text="DATA DE CONCLUSAO"
-                                               Foreground="#9F86C0" FontSize="10"
-                                               FontFamily="Segoe UI" FontWeight="Bold"
-                                               HorizontalAlignment="Center"/>
-                                    <TextBlock x:Name="CertData" Text="01/01/2026"
-                                               Foreground="#231942" FontSize="14"
-                                               FontFamily="Segoe UI" HorizontalAlignment="Center"
-                                               Margin="0,4,0,0"/>
-                                </StackPanel>
-
-                                <StackPanel Grid.Column="1" HorizontalAlignment="Center">
-                                    <TextBlock Text="CODIGO DE VALIDACAO"
-                                               Foreground="#9F86C0" FontSize="10"
-                                               FontFamily="Segoe UI" FontWeight="Bold"
-                                               HorizontalAlignment="Center"/>
-                                    <TextBlock x:Name="CertCodigo" Text="LX-000000"
-                                               Foreground="#231942" FontSize="14"
-                                               FontFamily="Segoe UI" HorizontalAlignment="Center"
-                                               Margin="0,4,0,0"/>
-                                </StackPanel>
-                            </Grid>
-
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Botões de ação -->
                     <StackPanel Grid.Row="2" Orientation="Horizontal"
                                 HorizontalAlignment="Right" Margin="0,20,0,0">
-                        <Button Content="&#x1F5A8; Imprimir / PDF"
+                        <Button Content="&#x1F4BE; Salvar Certificado (png)"
                                 Style="{StaticResource BtnCertStyle}"
                                 Margin="0,0,12,0"
                                 Click="BtnPdf_Click"/>
-                        <Button Content="&#x2B07; Baixar PDF"
-                                Style="{StaticResource BtnCertStyle}"
-                                Click="BtnBaixarPdf_Click"/>
                     </StackPanel>
 
                 </Grid>

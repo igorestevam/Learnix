@@ -15,7 +15,6 @@ namespace Learnix
         {
             InitializeComponent();
             using var db = new LearnixDbContext();
-            LearnixDbInitializer.Seed(db);
             MostrarLogin();
         }
 
@@ -285,6 +284,19 @@ namespace Learnix
             var tela = new TelaEditarCurso();
             tela.DefinirCurso(curso, instrutor);
             ConectarSidebarInstrutor(tela.Sidebar, instrutor);
+            conteudoPrincipal.Content = tela;
+        }
+
+        public void MostrarCertificadosPorId(Learnix.model.Aluno aluno, int idCertificado)
+        {
+            AjustarJanela(1280, 720);
+
+            var tela = new TelaCertificados(idCertificado);
+            tela.DefinirAluno(aluno);
+
+            if (tela.SidebarNav != null)
+                ConectarSidebar(tela.SidebarNav, aluno.Nome);
+
             conteudoPrincipal.Content = tela;
         }
     }

@@ -56,6 +56,7 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
+
                     <StackPanel Grid.Column="0">
                         <TextBlock Text="&#x1F4DA;  Escolher Curso"
                                    Foreground="White" FontSize="24" FontWeight="Bold"
@@ -64,42 +65,75 @@
                                    Foreground="#9E8FC0" FontSize="12"
                                    FontFamily="Segoe UI" Margin="0,6,0,0"/>
                     </StackPanel>
-                    <Button Grid.Column="1" Content="&#x2B; Adicionar Curso"
-                            VerticalAlignment="Bottom"
-                            Click="BtnAdicionarCurso_Click">
-                        <Button.Style>
-                            <Style TargetType="Button">
-                                <Setter Property="Background" Value="#4E3A7A"/>
-                                <Setter Property="Foreground" Value="White"/>
-                                <Setter Property="BorderThickness" Value="0"/>
-                                <Setter Property="Padding" Value="20,10"/>
-                                <Setter Property="FontFamily" Value="Segoe UI"/>
-                                <Setter Property="FontSize" Value="14"/>
-                                <Setter Property="Cursor" Value="Hand"/>
-                                <Setter Property="Template">
-                                    <Setter.Value>
-                                        <ControlTemplate TargetType="Button">
-                                            <Border x:Name="borda" Background="{TemplateBinding Background}"
-                                                    CornerRadius="8" Padding="{TemplateBinding Padding}">
-                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            </Border>
-                                            <ControlTemplate.Triggers>
-                                                <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter TargetName="borda" Property="Background" Value="#3A2860"/>
-                                                </Trigger>
-                                                <Trigger Property="IsPressed" Value="True">
-                                                    <Setter TargetName="borda" Property="Background" Value="#2C1F4A"/>
-                                                </Trigger>
-                                            </ControlTemplate.Triggers>
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                            </Style>
-                        </Button.Style>
-                    </Button>
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom">
+
+                        <Button Content="&#x2795; Criar Categoria" Click="BtnNovaCategoria_Click" Margin="0,0,12,0">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Background" Value="#4E3A7A"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                    <Setter Property="BorderThickness" Value="0"/>
+                                    <Setter Property="Padding" Value="20,10"/>
+                                    <Setter Property="FontFamily" Value="Segoe UI"/>
+                                    <Setter Property="FontSize" Value="14"/>
+                                    <Setter Property="Cursor" Value="Hand"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border x:Name="borda" Background="{TemplateBinding Background}"
+                                                        CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="borda" Property="Background" Value="#3A2860"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsPressed" Value="True">
+                                                        <Setter TargetName="borda" Property="Background" Value="#2C1F4A"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+
+                        <Button Content="&#x2B; Adicionar Curso" Click="BtnAdicionarCurso_Click">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Background" Value="#4E3A7A"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                    <Setter Property="BorderThickness" Value="0"/>
+                                    <Setter Property="Padding" Value="20,10"/>
+                                    <Setter Property="FontFamily" Value="Segoe UI"/>
+                                    <Setter Property="FontSize" Value="14"/>
+                                    <Setter Property="Cursor" Value="Hand"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border x:Name="borda" Background="{TemplateBinding Background}"
+                                                        CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="borda" Property="Background" Value="#3A2860"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsPressed" Value="True">
+                                                        <Setter TargetName="borda" Property="Background" Value="#2C1F4A"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                    </StackPanel>
                 </Grid>
 
-                <!-- Formulário de novo curso (oculto por padrão) -->
                 <Border x:Name="PainelNovoCurso" Visibility="Collapsed"
                         Background="#2A2040" CornerRadius="12" Padding="24,20" Margin="0,0,0,20">
                     <StackPanel>
@@ -132,8 +166,33 @@
                             <StackPanel Margin="0,0,0,12">
                                 <TextBlock Text="CATEGORIA" Foreground="#9E8FC0" FontSize="11"
                                            FontFamily="Segoe UI" Margin="0,0,0,4"/>
-                                <ComboBox x:Name="ComboCategorias" Background="#3A2860" Foreground="White"
-                                          BorderThickness="0" Padding="12,8" FontFamily="Segoe UI" FontSize="13"/>
+                                <ComboBox x:Name="ComboCategorias" Background="#3A2860" BorderBrush="#3A2860"
+                                        BorderThickness="0" Padding="12,8" FontFamily="Segoe UI" FontSize="13">
+
+                                    <ComboBox.Resources>
+                                        <SolidColorBrush x:Key="{x:Static SystemColors.WindowBrushKey}" Color="#2A2040"/>
+                                        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#4E3A7A"/>
+                                        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="White"/>
+                                    </ComboBox.Resources>
+
+                                    <ComboBox.ItemContainerStyle>
+                                        <Style TargetType="ComboBoxItem">
+                                            <Setter Property="Background" Value="#2A2040"/>
+                                            <Setter Property="Foreground" Value="White"/>
+                                            <Setter Property="Padding" Value="12,8"/>
+                                            <Setter Property="BorderThickness" Value="0"/>
+                                            <Setter Property="Cursor" Value="Hand"/>
+
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Background" Value="#4E3A7A"/>
+                                                    <Setter Property="Foreground" Value="White"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </ComboBox.ItemContainerStyle>
+
+                                </ComboBox>
                             </StackPanel>
 
                             <StackPanel Margin="0,0,12,12">
@@ -200,9 +259,9 @@
                                 </TextBox.Style>
                             </TextBox>
                         </StackPanel>
+
                         <StackPanel Margin="0,0,0,16">
                             <TextBlock Text="AULAS DO CURSO" Foreground="#9E8FC0" FontSize="11" FontFamily="Segoe UI" Margin="0,0,0,4"/>
-
                             <Border Background="#1E1E1E" CornerRadius="8" Padding="16">
                                 <StackPanel>
                                     <UniformGrid Columns="3" Margin="0,0,0,12">
@@ -245,22 +304,44 @@
                                         </StackPanel>
 
                                         <StackPanel>
-                                            <TextBlock Text="URL DO VÍDEO" Foreground="#9E8FC0" FontSize="10" FontFamily="Segoe UI" Margin="0,0,0,4"/>
-                                            <TextBox x:Name="TxtAulaUrl" Background="#3A2860" Foreground="White" BorderThickness="0" Padding="10,8" FontFamily="Segoe UI" FontSize="12">
-                                                <TextBox.Style>
-                                                    <Style TargetType="TextBox">
-                                                        <Setter Property="Template">
-                                                            <Setter.Value>
-                                                                <ControlTemplate TargetType="TextBox">
-                                                                    <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                                                        <ScrollViewer x:Name="PART_ContentHost"/>
-                                                                    </Border>
-                                                                </ControlTemplate>
-                                                            </Setter.Value>
-                                                        </Setter>
-                                                    </Style>
-                                                </TextBox.Style>
-                                            </TextBox>
+                                            <TextBlock Text="ARQUIVO DE VÍDEO" Foreground="#9E8FC0" FontSize="10" FontFamily="Segoe UI" Margin="0,0,0,4"/>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <TextBox x:Name="TxtCaminhoVideo" IsReadOnly="True" Background="#3A2860" Foreground="#D8CCF0" BorderThickness="0" Padding="10,8" FontFamily="Segoe UI" FontSize="12" Margin="0,0,8,0">
+                                                    <TextBox.Style>
+                                                        <Style TargetType="TextBox">
+                                                            <Setter Property="Template">
+                                                                <Setter.Value>
+                                                                    <ControlTemplate TargetType="TextBox">
+                                                                        <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                                            <ScrollViewer x:Name="PART_ContentHost"/>
+                                                                        </Border>
+                                                                    </ControlTemplate>
+                                                                </Setter.Value>
+                                                            </Setter>
+                                                        </Style>
+                                                    </TextBox.Style>
+                                                </TextBox>
+
+                                                <Button Grid.Column="1" Content="&#x1F4C2;" Click="BtnSelecionarVideo_Click" Background="#4E3A7A" Foreground="White" BorderThickness="0" Padding="12,8" Cursor="Hand" ToolTip="Procurar arquivo no computador">
+                                                    <Button.Template>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border x:Name="b" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                            </Border>
+                                                            <ControlTemplate.Triggers>
+                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                    <Setter TargetName="b" Property="Background" Value="#3A2860"/>
+                                                                </Trigger>
+                                                            </ControlTemplate.Triggers>
+                                                        </ControlTemplate>
+                                                    </Button.Template>
+                                                </Button>
+                                            </Grid>
                                         </StackPanel>
                                     </UniformGrid>
 
@@ -322,6 +403,32 @@
                             </Border>
                         </StackPanel>
 
+                        <StackPanel Margin="0,0,0,16">
+                            <TextBlock Text="ATIVIDADES AVALIATIVAS (Obrigatório 3 questões discursivas)" 
+                                       Foreground="#9E8FC0" FontSize="11" FontFamily="Segoe UI" Margin="0,0,0,4"/>
+
+                            <Border Background="#1E1E1E" CornerRadius="8" Padding="16">
+                                <StackPanel>
+
+                                    <TextBlock Text="PERGUNTA 1" Foreground="#9E8FC0" FontSize="10" FontFamily="Segoe UI" Margin="0,0,0,4"/>
+                                    <TextBox x:Name="TxtPergunta1" Background="#3A2860" Foreground="White" BorderThickness="0" 
+                                             Padding="10,8" FontFamily="Segoe UI" FontSize="13" MinHeight="45" 
+                                             AcceptsReturn="True" TextWrapping="Wrap" Margin="0,0,0,12"/>
+
+                                    <TextBlock Text="PERGUNTA 2" Foreground="#9E8FC0" FontSize="10" FontFamily="Segoe UI" Margin="0,0,0,4"/>
+                                    <TextBox x:Name="TxtPergunta2" Background="#3A2860" Foreground="White" BorderThickness="0" 
+                                             Padding="10,8" FontFamily="Segoe UI" FontSize="13" MinHeight="45" 
+                                             AcceptsReturn="True" TextWrapping="Wrap" Margin="0,0,0,12"/>
+
+                                    <TextBlock Text="PERGUNTA 3" Foreground="#9E8FC0" FontSize="10" FontFamily="Segoe UI" Margin="0,0,0,4"/>
+                                    <TextBox x:Name="TxtPergunta3" Background="#3A2860" Foreground="White" BorderThickness="0" 
+                                             Padding="10,8" FontFamily="Segoe UI" FontSize="13" MinHeight="45" 
+                                             AcceptsReturn="True" TextWrapping="Wrap"/>
+
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                             <Button Content="Cancelar" Click="BtnCancelarNovoCurso_Click"
                                     Margin="0,0,10,0">
@@ -346,6 +453,7 @@
                                     </Style>
                                 </Button.Style>
                             </Button>
+
                             <Button Content="&#x1F4BE; Salvar Curso" Click="BtnSalvarNovoCurso_Click">
                                 <Button.Style>
                                     <Style TargetType="Button">
@@ -377,8 +485,7 @@
                     </StackPanel>
                 </Border>
 
-                <Border x:Name="PainelVazio" Visibility="Collapsed"
-                        Style="{StaticResource CardStyle}">
+                <Border x:Name="PainelVazio" Visibility="Collapsed" Style="{StaticResource CardStyle}">
                     <TextBlock Text="Nenhum curso disponível no momento."
                                Foreground="#9E8FC0" FontSize="13" FontFamily="Segoe UI"
                                HorizontalAlignment="Center"/>
@@ -431,5 +538,67 @@
 
             </StackPanel>
         </ScrollViewer>
+
+        <Grid x:Name="PainelNovaCategoria" Visibility="Collapsed" Background="#B3000000" Grid.ColumnSpan="2" Panel.ZIndex="100">
+            <Border Background="#1E1E1E" CornerRadius="12" Padding="32"
+                    HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="400">
+                <StackPanel>
+                    <TextBlock Text="NOVA CATEGORIA" Foreground="White" FontSize="18" FontWeight="Bold" FontFamily="Segoe UI" Margin="0,0,0,16"/>
+
+                    <TextBlock Text="NOME DA CATEGORIA" Foreground="#9E8FC0" FontSize="11" FontFamily="Segoe UI" Margin="0,0,0,4"/>
+                    <TextBox x:Name="TxtCategoriaNome" Background="#3A2860" Foreground="White" BorderThickness="0" Padding="10,8" FontFamily="Segoe UI" FontSize="13" Margin="0,0,0,16">
+                        <TextBox.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="6"/>
+                            </Style>
+                        </TextBox.Resources>
+                    </TextBox>
+
+                    <TextBlock Text="DESCRIÇÃO (Opcional)" Foreground="#9E8FC0" FontSize="11" FontFamily="Segoe UI" Margin="0,0,0,4"/>
+                    <TextBox x:Name="TxtCategoriaDescricao" Background="#3A2860" Foreground="White" BorderThickness="0" Padding="10,8" Height="60" TextWrapping="Wrap" AcceptsReturn="True" FontFamily="Segoe UI" FontSize="13" Margin="0,0,0,24">
+                        <TextBox.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="6"/>
+                            </Style>
+                        </TextBox.Resources>
+                    </TextBox>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Cancelar" Click="BtnCancelarCategoria_Click" Background="Transparent" Foreground="#D8CCF0" BorderThickness="0" Margin="0,0,16,0" Cursor="Hand" FontFamily="Segoe UI"/>
+                        <Button Content="Salvar Categoria" Click="BtnSalvarCategoria_Click" Background="#4E3A7A" Foreground="White" BorderThickness="0" Padding="16,8" Cursor="Hand" FontFamily="Segoe UI">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="6"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+        <Grid x:Name="PainelCorrecao" Visibility="Collapsed" Background="#B3000000" Grid.ColumnSpan="10" Grid.RowSpan="10" Panel.ZIndex="200">
+            <Border Background="#1E1E1E" CornerRadius="12" Padding="32" Width="600" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel>
+                    <TextBlock Text="&#x1F468;&#x200D;&#x1F3EB; CORREÇÃO DE ATIVIDADES" Foreground="White" FontSize="18" FontWeight="Bold" FontFamily="Segoe UI" Margin="0,0,0,16"/>
+                    <TextBlock x:Name="TxtNomeAlunoCorrecao" Text="Aluno: João" Foreground="#9E8FC0" FontSize="14" FontFamily="Segoe UI" Margin="0,0,0,16"/>
+
+                    <ScrollViewer MaxHeight="400" VerticalScrollBarVisibility="Auto" Margin="0,0,0,16">
+                        <StackPanel x:Name="ListaRespostasParaCorrigir">
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Cancelar" Click="BtnFecharCorrecao_Click" Background="Transparent" Foreground="#D8CCF0" BorderThickness="0" Margin="0,0,16,0" Cursor="Hand"/>
+                        <Button Content="Salvar Notas e Avaliar" Click="BtnSalvarNotasProfessor_Click" Background="#2E7D32" Foreground="White" BorderThickness="0" Padding="16,8" Cursor="Hand">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="6"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
     </Grid>
 </UserControl>

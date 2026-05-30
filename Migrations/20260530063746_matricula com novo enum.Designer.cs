@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Learnix.Migrations
 {
     [DbContext(typeof(LearnixDbContext))]
-    [Migration("20260530021657_Inicial")]
-    partial class Inicial
+    [Migration("20260530063746_matricula com novo enum")]
+    partial class matriculacomnovoenum
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,28 @@ namespace Learnix.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("Learnix.model.AtividadeCurso", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CursoId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Pergunta")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CursoId");
+
+                    b.ToTable("AtividadesCursos");
+                });
 
             modelBuilder.Entity("Learnix.model.Aula", b =>
                 {
@@ -168,11 +190,6 @@ namespace Learnix.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Discriminator")
-                        .IsRequired()
-                        .HasMaxLength(13)
-                        .HasColumnType("nvarchar(13)");
-
                     b.Property<int?>("InstrutorId")
                         .HasColumnType("int");
 
@@ -190,10 +207,6 @@ namespace Learnix.Migrations
                     b.HasIndex("InstrutorId");
 
                     b.ToTable("Cursos");
-
-                    b.HasDiscriminator<string>("Discriminator").HasValue("Curso");
-
-                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("Learnix.model.Matricula", b =>
@@ -299,6 +312,36 @@ namespace Learnix.Migrations
                     b.ToTable("Progressos");
                 });
 
+            modelBuilder.Entity("Learnix.model.RespostaAtividade", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AtividadeCursoId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MatriculaId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("Nota")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Resposta")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AtividadeCursoId");
+
+                    b.HasIndex("MatriculaId");
+
+                    b.ToTable("RespostasAtividades");
+                });
+
             modelBuilder.Entity("Learnix.model.Usuario", b =>
                 {
                     b.Property<int>("Id")
@@ -336,33 +379,6 @@ namespace Learnix.Migrations
                     b.UseTphMappingStrategy();
                 });
 
-            modelBuilder.Entity("Learnix.model.CursoExatas", b =>
-                {
-                    b.HasBaseType("Learnix.model.Curso");
-
-                    b.Property<string>("FerramentaSoftwareSugerida")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("PossuiLaboratorioVirtual")
-                        .HasColumnType("bit");
-
-                    b.HasDiscriminator().HasValue("CursoExatas");
-                });
-
-            modelBuilder.Entity("Learnix.model.CursoHumanas", b =>
-                {
-                    b.HasBaseType("Learnix.model.Curso");
-
-                    b.Property<bool>("ExigeMonografia")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("QuantidadeLivrosObrigatorios")
-                        .HasColumnType("int");
-
-                    b.HasDiscriminator().HasValue("CursoHumanas");
-                });
-
             modelBuilder.Entity("Learnix.model.Aluno", b =>
                 {
                     b.HasBaseType("Learnix.model.Usuario");
@@ -394,6 +410,17 @@ namespace Learnix.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasDiscriminator().HasValue("Instrutor");
+                });
+
+            modelBuilder.Entity("Learnix.model.AtividadeCurso", b =>
+                {
+                    b.HasOne("Learnix.model.Curso", "Curso")
+                        .WithMany("Atividades")
+                        .HasForeignKey("CursoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Curso");
                 });
 
             modelBuilder.Entity("Learnix.model.Aula", b =>
@@ -506,6 +533,25 @@ namespace Learnix.Migrations
                     b.Navigation("Matricula");
                 });
 
+            modelBuilder.Entity("Learnix.model.RespostaAtividade", b =>
+                {
+                    b.HasOne("Learnix.model.AtividadeCurso", "AtividadeCurso")
+                        .WithMany()
+                        .HasForeignKey("AtividadeCursoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Learnix.model.Matricula", "Matricula")
+                        .WithMany()
+                        .HasForeignKey("MatriculaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AtividadeCurso");
+
+                    b.Navigation("Matricula");
+                });
+
             modelBuilder.Entity("Learnix.model.Aluno", b =>
                 {
                     b.HasOne("Learnix.model.PerfilDeAprendizagem", "Perfil")
@@ -522,6 +568,8 @@ namespace Learnix.Migrations
 
             modelBuilder.Entity("Learnix.model.Curso", b =>
                 {
+                    b.Navigation("Atividades");
+
                     b.Navigation("MatriculasAtivas");
 
                     b.Navigation("Modulos");

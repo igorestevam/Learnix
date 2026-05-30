@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Learnix.Migrations
 {
     /// <inheritdoc />
-    public partial class Inicial : Migration
+    public partial class learnix : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -76,12 +76,7 @@ namespace Learnix.Migrations
                     CargaHoraria = table.Column<int>(type: "int", nullable: false),
                     Preco = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     CategoriaId = table.Column<int>(type: "int", nullable: false),
-                    InstrutorId = table.Column<int>(type: "int", nullable: true),
-                    Discriminator = table.Column<string>(type: "nvarchar(13)", maxLength: 13, nullable: false),
-                    PossuiLaboratorioVirtual = table.Column<bool>(type: "bit", nullable: true),
-                    FerramentaSoftwareSugerida = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ExigeMonografia = table.Column<bool>(type: "bit", nullable: true),
-                    QuantidadeLivrosObrigatorios = table.Column<int>(type: "int", nullable: true)
+                    InstrutorId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -97,6 +92,26 @@ namespace Learnix.Migrations
                         column: x => x.InstrutorId,
                         principalTable: "Usuarios",
                         principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AtividadesCursos",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Pergunta = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CursoId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AtividadesCursos", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AtividadesCursos_Cursos_CursoId",
+                        column: x => x.CursoId,
+                        principalTable: "Cursos",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -262,6 +277,11 @@ namespace Learnix.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_AtividadesCursos_CursoId",
+                table: "AtividadesCursos",
+                column: "CursoId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Aulas_ModuloId",
                 table: "Aulas",
                 column: "ModuloId");
@@ -324,6 +344,9 @@ namespace Learnix.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "AtividadesCursos");
+
             migrationBuilder.DropTable(
                 name: "AulasConcluidas");
 

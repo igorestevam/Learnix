@@ -4,6 +4,7 @@ using Learnix.data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Learnix.Migrations
 {
     [DbContext(typeof(LearnixDbContext))]
-    partial class LearnixDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260530052739_learnix")]
+    partial class learnix
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -309,36 +312,6 @@ namespace Learnix.Migrations
                     b.ToTable("Progressos");
                 });
 
-            modelBuilder.Entity("Learnix.model.RespostaAtividade", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AtividadeCursoId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MatriculaId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal?>("Nota")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Resposta")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AtividadeCursoId");
-
-                    b.HasIndex("MatriculaId");
-
-                    b.ToTable("RespostasAtividades");
-                });
-
             modelBuilder.Entity("Learnix.model.Usuario", b =>
                 {
                     b.Property<int>("Id")
@@ -526,25 +499,6 @@ namespace Learnix.Migrations
                         .HasForeignKey("Learnix.model.Progresso", "MatriculaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Matricula");
-                });
-
-            modelBuilder.Entity("Learnix.model.RespostaAtividade", b =>
-                {
-                    b.HasOne("Learnix.model.AtividadeCurso", "AtividadeCurso")
-                        .WithMany()
-                        .HasForeignKey("AtividadeCursoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Learnix.model.Matricula", "Matricula")
-                        .WithMany()
-                        .HasForeignKey("MatriculaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("AtividadeCurso");
 
                     b.Navigation("Matricula");
                 });

@@ -13,8 +13,6 @@ namespace Learnix.data
 
         // Hierarquia de Curso (TPH → tabela unica "Cursos" + coluna discriminador)
         public DbSet<Curso> Cursos { get; set; } = null!;
-        public DbSet<CursoExatas> CursosExatas { get; set; } = null!;
-        public DbSet<CursoHumanas> CursosHumanas { get; set; } = null!;
 
         public DbSet<Categoria> Categorias { get; set; } = null!;
         public DbSet<Matricula> Matriculas { get; set; } = null!;
@@ -24,6 +22,8 @@ namespace Learnix.data
         public DbSet<Progresso> Progressos { get; set; } = null!;
         public DbSet<Certificado> Certificados { get; set; } = null!;
         public DbSet<AulaConcluida> AulasConcluidas { get; set; } = null!;
+        public DbSet<AtividadeCurso> AtividadesCursos { get; set; } = null!;
+        public DbSet<RespostaAtividade> RespostasAtividades { get; set; } = null!;
 
         public LearnixDbContext() { }
 

@@ -6,16 +6,10 @@ namespace Learnix.model
     /// </summary>
     public enum StatusMatricula
     {
-        // Aluno está cursando — exibe botão "Acessar" na TelaMeusCursos
         Ativa,
-
-        // Progresso = 100% — exibe botão "Concluir" e gera certificado
+        AguardandoContinuar,
+        AguardandoCorrecao,
         Concluida,
-
-        // Matrícula cancelada pelo aluno ou pela plataforma
-        Cancelada,
-
-        // Matrícula pausada temporariamente
-        Pausada
+        Cancelada
     }
 }

@@ -38,9 +38,11 @@ namespace Learnix
 
         private void VolumePadrao()
         {
-            if (VideoPlayer != null) VideoPlayer.Volume = 0.7;
-            VideoPlayer.Volume = 0.8;
-            VideoPlayer.IsMuted = false;
+            if (VideoPlayer != null)
+            {
+                VideoPlayer.Volume = 0.8;
+                VideoPlayer.IsMuted = false;
+            }
         }
 
         public void DefinirAula(Matricula matricula, Aula aula, string nomeAluno = "")
@@ -54,7 +56,6 @@ namespace Learnix
             _matriculaId = matricula.Id;
             _aulaId = aula.Id;
 
-            // Recarrega a matrícula completa do banco
             using var db = new LearnixDbContext();
             _matricula = db.Matriculas
                 .Include(m => m.Curso).ThenInclude(c => c.Modulos).ThenInclude(mod => mod.Aulas)
@@ -69,7 +70,6 @@ namespace Learnix
             TxtTituloAula.Text = aula.Titulo ?? "Aula";
             TxtNomeCurso.Text = _matricula.Curso?.Titulo ?? "";
 
-            // Monta lista de aulas
             _aulas = _matricula.Curso?.Modulos?
                 .OrderBy(m => m.Ordem)
                 .SelectMany(m => m.Aulas.OrderBy(a => a.Ordem))
@@ -78,15 +78,14 @@ namespace Learnix
             _aulaAtualIndex = _aulas.FindIndex(a => a.Id == aula.Id);
             if (_aulaAtualIndex < 0) _aulaAtualIndex = 0;
 
-            // Carrega aulas concluídas e renderiza lista lateral
             var aulasConcluidas = db.AulasConcluidas
                 .Where(ac => ac.MatriculaId == _matriculaId)
                 .Select(ac => ac.AulaId)
                 .ToHashSet();
 
             RenderizarListaAulas(aulasConcluidas);
+            AtualizarNavegacaoPlayer();
 
-            // Carrega vídeo se tiver URL
             if (!string.IsNullOrWhiteSpace(aula.VideoUrl))
             {
                 try
@@ -94,10 +93,7 @@ namespace Learnix
                     VideoPlayer.Source = new Uri(aula.VideoUrl, UriKind.RelativeOrAbsolute);
                     OverlaySemVideo.Visibility = Visibility.Collapsed;
                 }
-                catch
-                {
-                    OverlaySemVideo.Visibility = Visibility.Visible;
-                }
+                catch { OverlaySemVideo.Visibility = Visibility.Visible; }
             }
             else
             {
@@ -105,9 +101,78 @@ namespace Learnix
             }
         }
 
+        private void AtualizarNavegacaoPlayer()
+        {
+            if (_aulas.Count == 0) return;
+            TxtContadorPlayer.Text = $"Aula {_aulaAtualIndex + 1} de {_aulas.Count}";
+            BtnAnteriorPlayer.IsEnabled = _aulaAtualIndex > 0;
+            BtnProximaPlayer.IsEnabled = _aulaAtualIndex < _aulas.Count - 1;
+        }
+
+        private void BtnProximaPlayer_Click(object sender, RoutedEventArgs e)
+        {
+            if (_matricula == null || _aulaAtualIndex >= _aulas.Count - 1) return;
+
+            var aulaAtual = _aulas[_aulaAtualIndex];
+            try
+            {
+                using var db = new LearnixDbContext();
+                bool jaRegistrada = db.AulasConcluidas
+                    .Any(ac => ac.MatriculaId == _matriculaId && ac.AulaId == aulaAtual.Id);
+                if (!jaRegistrada)
+                {
+                    var svc = new ProgressoService(db);
+                    svc.RegistrarConclusaoAula(_matriculaId, aulaAtual.Id);
+                }
+            }
+            catch { }
+
+            _aulaAtualIndex++;
+            CarregarAulaAtual();
+        }
+
+        private void BtnAnteriorPlayer_Click(object sender, RoutedEventArgs e)
+        {
+            if (_aulaAtualIndex <= 0) return;
+            _aulaAtualIndex--;
+            CarregarAulaAtual();
+        }
+
+        private void CarregarAulaAtual()
+        {
+            var aula = _aulas[_aulaAtualIndex];
+            _aulaId = aula.Id;
+            TxtTituloAula.Text = aula.Titulo ?? "Aula";
+
+            if (!string.IsNullOrWhiteSpace(aula.VideoUrl))
+            {
+                try
+                {
+                    VideoPlayer.Source = new Uri(aula.VideoUrl, UriKind.Absolute);
+                    VideoPlayer.Play();
+                    _isPlaying = true;
+                    BtnPlayPause.Content = "⏸";
+                    OverlaySemVideo.Visibility = Visibility.Collapsed;
+                }
+                catch { OverlaySemVideo.Visibility = Visibility.Visible; }
+            }
+            else
+            {
+                VideoPlayer.Source = null;
+                OverlaySemVideo.Visibility = Visibility.Visible;
+            }
+
+            AtualizarNavegacaoPlayer();
+
+            using var db = new LearnixDbContext();
+            var concluidas = db.AulasConcluidas
+                .Where(ac => ac.MatriculaId == _matriculaId)
+                .Select(ac => ac.AulaId).ToHashSet();
+            RenderizarListaAulas(concluidas);
+        }
+
         private void RenderizarListaAulas(HashSet<int> aulasConcluidas)
         {
-            // Limpa lista lateral
             ListaAulasPanel.Children.Clear();
 
             string moduloAtual = "";
@@ -199,12 +264,11 @@ namespace Learnix
                 grid.Children.Add(info);
                 item.Child = grid;
 
-                // Clique na aula da lista
                 if (!bloqueada)
                 {
                     int capturedIndex = i;
                     var capturedAula = aula;
-                    item.MouseLeftButtonDown += (s, e) =>
+                    item.MouseLeftButtonDown += (s, ev) =>
                     {
                         _aulaAtualIndex = capturedIndex;
                         _aulaId = capturedAula.Id;
@@ -228,11 +292,12 @@ namespace Learnix
                             OverlaySemVideo.Visibility = Visibility.Visible;
                         }
 
+                        AtualizarNavegacaoPlayer();
+
                         using var db = new LearnixDbContext();
                         var concluidas = db.AulasConcluidas
                             .Where(ac => ac.MatriculaId == _matriculaId)
-                            .Select(ac => ac.AulaId)
-                            .ToHashSet();
+                            .Select(ac => ac.AulaId).ToHashSet();
                         RenderizarListaAulas(concluidas);
                     };
                 }
@@ -317,9 +382,8 @@ namespace Learnix
         {
             if (VideoPlayer.NaturalDuration.HasTimeSpan)
                 SliderVideo.Maximum = VideoPlayer.NaturalDuration.TimeSpan.TotalSeconds;
-
             VideoPlayer.Volume = SliderVolume.Value;
-            VideoPlayer.IsMuted = false;    
+            VideoPlayer.IsMuted = false;
             OverlaySemVideo.Visibility = Visibility.Collapsed;
         }
 
@@ -334,12 +398,11 @@ namespace Learnix
                 var progSvc = new ProgressoService(ctx);
                 progSvc.RegistrarConclusaoAula(_matriculaId, _aulaId);
 
-                // Atualiza lista
                 var concluidas = ctx.AulasConcluidas
                     .Where(ac => ac.MatriculaId == _matriculaId)
-                    .Select(ac => ac.AulaId)
-                    .ToHashSet();
+                    .Select(ac => ac.AulaId).ToHashSet();
                 RenderizarListaAulas(concluidas);
+                AtualizarNavegacaoPlayer();
             }
             catch { }
         }

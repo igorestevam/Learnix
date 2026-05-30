@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Learnix.model
 {
-    public abstract class Curso
+    public class Curso
     {
         public int Id { get; set; }
         public string Titulo { get; set; } = null!;
@@ -19,14 +19,15 @@ namespace Learnix.model
 
         public List<Modulo> Modulos { get; set; } = null!;
         public List<Matricula> MatriculasAtivas { get; set; } = null!;
+        public List<AtividadeCurso> Atividades { get; set; } = new List<AtividadeCurso>();
 
-        protected Curso()
+        public Curso()
         {
             Modulos = new List<Modulo>();
             MatriculasAtivas = new List<Matricula>();
         }
 
-        protected Curso(int id, string titulo, int cargaHoraria)
+        public Curso(int id, string titulo, int cargaHoraria)
         {
             Id = id;
             Titulo = titulo;

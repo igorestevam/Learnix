@@ -63,19 +63,6 @@ namespace Learnix.Services
             matricula.Progresso.PercentualConcluido  = percentual;
             matricula.Progresso.UltimaAtualizacao    = DateTime.Now;
 
-            // Regra de negócio: 100% → conclui matrícula e emite certificado
-            if (percentual >= 100.0 && matricula.Certificado == null)
-            {
-                matricula.Status = StatusMatricula.Concluida;
-
-                _context.Certificados.Add(new Certificado
-                {
-                    CodigoCertificado = "LX-" + Guid.NewGuid().ToString("N")[..6].ToUpper(),
-                    DataEmissao       = DateTime.Now,
-                    MatriculaId       = matricula.Id
-                });
-            }
-
             _context.SaveChanges();
             return true;
         }

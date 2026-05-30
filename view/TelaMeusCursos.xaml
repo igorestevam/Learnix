@@ -135,87 +135,60 @@
                 <ItemsControl x:Name="ListaCursos">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Style="{StaticResource CursoCardStyle}">
-                                <StackPanel>
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="1" Orientation="Vertical" VerticalAlignment="Center" Margin="16,0,0,0">
 
-                                        <StackPanel Grid.Column="0">
-                                            <TextBlock Text="{Binding TituloCurso}"
-                                                       Foreground="White" FontSize="15" FontWeight="Bold"
-                                                       FontFamily="Segoe UI"/>
-                                            <TextBlock Text="{Binding NomeInstrutor}"
-                                                       Foreground="#9E8FC0" FontSize="12"
-                                                       FontFamily="Segoe UI" Margin="0,4,0,0"/>
-                                        </StackPanel>
+                                <Button Content="&#x27A1; Continuar para Avaliação" Background="#4E3A7A" Foreground="White"
+                                        Padding="10,6" Margin="0,0,0,6" Click="BtnContinuarParaAvaliacao_Click" Tag="{Binding MatriculaId}">
+                                    <Button.Style>
+                                        <Style TargetType="Button">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Percentual}" Value="100">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
 
-                                        <Border Grid.Column="1" Background="{Binding CorCategoria}"
-                                                CornerRadius="20" Padding="12,5"
-                                                VerticalAlignment="Top" Margin="12,0">
-                                            <TextBlock Text="{Binding NomeCategoria}"
-                                                       Foreground="{Binding CorTextoCategoria}"
-                                                       FontFamily="Segoe UI" FontSize="11"/>
-                                        </Border>
+                                <Button Content="&#x1F4DD; Fazer Avaliação" Background="#D84315" Foreground="White"
+                                    Padding="10,6" Margin="0,0,0,6" Click="BtnAbrirAvaliacao_Click" Tag="{Binding CursoId}"
+                                    Visibility="{Binding BotaoAvaliacaoVisivel}"/>
 
-                                        <!-- Botões -->
-                                        <StackPanel Grid.Column="2" Orientation="Horizontal"
-                                                    VerticalAlignment="Top">
-                                            <Button Content="&#x25B6; Acessar"
-                                                    Style="{StaticResource BtnAcessarStyle}"
-                                                    Margin="0,0,8,0"
-                                                    Click="BtnAcessar_Click"
-                                                    Tag="{Binding MatriculaId}"/>
-                                            <Button Content="&#x1F3C6; Certificado"
-                                                    Style="{StaticResource BtnCertificadoStyle}"
-                                                    Visibility="{Binding BotaoCertificadoVisivel}"
-                                                    Margin="0,0,8,0"
-                                                    Click="BtnCertificado_Click"
-                                                    Tag="{Binding MatriculaId}"/>
-                                            <Button Content="&#x1F6AA; Sair"
-                                                    Style="{StaticResource BtnSairStyle}"
-                                                    Visibility="{Binding BotaoSairVisivel}"
-                                                    Click="BtnSairCurso_Click"
-                                                    Tag="{Binding MatriculaId}"/>
-                                        </StackPanel>
-                                    </Grid>
-
-                                    <StackPanel Orientation="Horizontal" Margin="0,12,0,10">
-                                        <TextBlock Text="{Binding DataFormatada}" Foreground="#9E8FC0"
-                                                   FontSize="12" FontFamily="Segoe UI" Margin="0,0,18,0"/>
-                                        <TextBlock Text="{Binding CargaHoraria}" Foreground="#9E8FC0"
-                                                   FontSize="12" FontFamily="Segoe UI" Margin="0,0,18,0"/>
-                                        <TextBlock Text="{Binding NumAulas}" Foreground="#9E8FC0"
-                                                   FontSize="12" FontFamily="Segoe UI"/>
-                                    </StackPanel>
-
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <Border Grid.Column="0" Background="{Binding CorFundoBarra}"
-                                                CornerRadius="3" Height="6" VerticalAlignment="Center">
-                                            <Border Background="{Binding CorBarra}" CornerRadius="3"
-                                                    HorizontalAlignment="Left"
-                                                    Width="{Binding LarguraBarra}"/>
-                                        </Border>
-                                        <TextBlock Grid.Column="1" Text="{Binding PercentualTexto}"
-                                                   Foreground="{Binding CorTextoProgresso}"
-                                                   FontSize="12" FontWeight="SemiBold"
-                                                   FontFamily="Segoe UI" Margin="10,0,0,0"
-                                                   VerticalAlignment="Center"/>
-                                    </Grid>
-                                </StackPanel>
-                            </Border>
+                            </StackPanel>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
 
             </StackPanel>
         </ScrollViewer>
+        <Grid x:Name="PainelAvaliacaoAluno" Visibility="Collapsed" Background="#B3000000" Grid.RowSpan="10" Grid.ColumnSpan="10" Panel.ZIndex="100">
+            <Border Background="#1E1E1E" CornerRadius="12" Padding="32"
+                    HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="500" MaxWidth="700">
+                <StackPanel>
+                    <TextBlock Text="&#x1F4DD; AVALIAÇÃO FINAL DO CURSO" Foreground="White" FontSize="18" FontWeight="Bold" FontFamily="Segoe UI" Margin="0,0,0,16"/>
+
+                    <TextBlock x:Name="TxtPerguntaAluno1" Text="Carregando pergunta 1..." Foreground="#9E8FC0" FontSize="13" FontFamily="Segoe UI" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                    <TextBox x:Name="TxtRespostaAluno1" Background="#3A2860" Foreground="White" BorderThickness="0" Padding="12,10" FontFamily="Segoe UI" FontSize="13" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" Margin="0,0,0,20"/>
+
+                    <TextBlock x:Name="TxtPerguntaAluno2" Text="Carregando pergunta 2..." Foreground="#9E8FC0" FontSize="13" FontFamily="Segoe UI" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                    <TextBox x:Name="TxtRespostaAluno2" Background="#3A2860" Foreground="White" BorderThickness="0" Padding="12,10" FontFamily="Segoe UI" FontSize="13" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" Margin="0,0,0,20"/>
+
+                    <TextBlock x:Name="TxtPerguntaAluno3" Text="Carregando pergunta 3..." Foreground="#9E8FC0" FontSize="13" FontFamily="Segoe UI" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                    <TextBox x:Name="TxtRespostaAluno3" Background="#3A2860" Foreground="White" BorderThickness="0" Padding="12,10" FontFamily="Segoe UI" FontSize="13" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" Margin="0,0,0,24"/>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Cancelar" Click="BtnCancelarAvaliacao_Click" Background="Transparent" Foreground="#D8CCF0" BorderThickness="0" Margin="0,0,16,0" Cursor="Hand" FontFamily="Segoe UI"/>
+                        <Button Content="Enviar Respostas" Click="BtnEnviarAvaliacao_Click" Background="#2E7D32" Foreground="White" BorderThickness="0" Padding="16,8" Cursor="Hand" FontFamily="Segoe UI">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="6"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
     </Grid>
 </UserControl>

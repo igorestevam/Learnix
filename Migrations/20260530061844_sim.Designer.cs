@@ -4,6 +4,7 @@ using Learnix.data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Learnix.Migrations
 {
     [DbContext(typeof(LearnixDbContext))]
-    partial class LearnixDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260530061844_sim")]
+    partial class sim
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -322,9 +325,6 @@ namespace Learnix.Migrations
 
                     b.Property<int>("MatriculaId")
                         .HasColumnType("int");
-
-                    b.Property<decimal?>("Nota")
-                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Resposta")
                         .IsRequired()

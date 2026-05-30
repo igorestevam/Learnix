@@ -6,12 +6,17 @@ using System.Windows.Media;
 using Learnix.data;
 using Learnix.model;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace Learnix
 {
     public partial class TelaMeusCursos : UserControl
     {
         private Aluno? _aluno;
+        private int _matriculaAvaliacaoAtualId;
+        private int _atividade1Id;
+        private int _atividade2Id;
+        private int _atividade3Id;
 
         public TelaMeusCursos()
         {
@@ -21,7 +26,7 @@ namespace Learnix
         public void DefinirAluno(Aluno aluno)
         {
             _aluno = aluno;
-            Sidebar.DefinirAluno(aluno.Nome);
+            Sidebar?.DefinirAluno(aluno.Nome);
             CarregarCursos();
         }
 
@@ -74,6 +79,7 @@ namespace Learnix
                 return new CursoCardVM
                 {
                     MatriculaId = m.Id,
+                    Status = m.Status,
                     TituloCurso = m.Curso?.Titulo ?? "Curso",
                     NomeInstrutor = m.Curso?.Instrutor != null ? $"Prof. {m.Curso.Instrutor.Nome}" : "",
                     NomeCategoria = categoria,
@@ -119,8 +125,23 @@ namespace Learnix
 
         private void BtnCertificado_Click(object sender, RoutedEventArgs e)
         {
-            var main = Application.Current.MainWindow as MainWindow;
-            main?.MostrarCertificados(_aluno?.Nome ?? "");
+            if (sender is Button btn && btn.Tag is int matriculaId)
+            {
+                using var db = new LearnixDbContext();
+
+                var matricula = db.Matriculas
+                    .Include(m => m.Certificado)
+                    .FirstOrDefault(m => m.Id == matriculaId);
+
+                int? certId = matricula?.Certificado?.Id;
+
+                var main = Application.Current.MainWindow as MainWindow;
+
+                if (main != null && certId.HasValue && _aluno != null)
+                {
+                    main.MostrarCertificadosPorId(_aluno, certId.Value);
+                }
+            }
         }
 
         private void BtnSairCurso_Click(object sender, RoutedEventArgs e)
@@ -148,6 +169,106 @@ namespace Learnix
 
             CarregarCursos();
         }
+
+        public void AbrirAvaliacaoFinal(int matriculaId)
+        {
+            using var db = new LearnixDbContext();
+
+            var matricula = db.Matriculas
+                              .Include(m => m.Curso)
+                                .ThenInclude(c => c.Atividades)
+                              .FirstOrDefault(m => m.Id == matriculaId);
+
+            if (matricula == null || matricula.Curso.Atividades.Count < 3)
+            {
+                MessageBox.Show("Este curso ainda não possui as 3 avaliações configuradas pelo instrutor.", "Aviso", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var atividades = matricula.Curso.Atividades.ToList();
+
+            _matriculaAvaliacaoAtualId = matriculaId;
+            _atividade1Id = atividades[0].Id;
+            _atividade2Id = atividades[1].Id;
+            _atividade3Id = atividades[2].Id;
+
+            TxtPerguntaAluno1.Text = $"1. {atividades[0].Pergunta}";
+            TxtPerguntaAluno2.Text = $"2. {atividades[1].Pergunta}";
+            TxtPerguntaAluno3.Text = $"3. {atividades[2].Pergunta}";
+
+            TxtRespostaAluno1.Clear();
+            TxtRespostaAluno2.Clear();
+            TxtRespostaAluno3.Clear();
+
+            PainelAvaliacaoAluno.Visibility = Visibility.Visible;
+        }
+
+        private void BtnEnviarAvaliacao_Click(object sender, RoutedEventArgs e)
+        {
+            string resp1 = TxtRespostaAluno1.Text.Trim();
+            string resp2 = TxtRespostaAluno2.Text.Trim();
+            string resp3 = TxtRespostaAluno3.Text.Trim();
+
+            if (string.IsNullOrEmpty(resp1) || string.IsNullOrEmpty(resp2) || string.IsNullOrEmpty(resp3))
+            {
+                MessageBox.Show("Você precisa responder todas as 3 perguntas para concluir a avaliação.", "Atenção", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            using var db = new LearnixDbContext();
+
+            if (db.RespostasAtividades.Any(r => r.MatriculaId == _matriculaAvaliacaoAtualId))
+            {
+                MessageBox.Show("Você já enviou a avaliação para este curso!", "Aviso", MessageBoxButton.OK, MessageBoxImage.Information);
+                PainelAvaliacaoAluno.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            db.RespostasAtividades.AddRange(
+                new RespostaAtividade { MatriculaId = _matriculaAvaliacaoAtualId, AtividadeCursoId = _atividade1Id, Resposta = resp1 },
+                new RespostaAtividade { MatriculaId = _matriculaAvaliacaoAtualId, AtividadeCursoId = _atividade2Id, Resposta = resp2 },
+                new RespostaAtividade { MatriculaId = _matriculaAvaliacaoAtualId, AtividadeCursoId = _atividade3Id, Resposta = resp3 }
+            );
+            var matriculaParaAtualizar = db.Matriculas.Find(_matriculaAvaliacaoAtualId);
+            if (matriculaParaAtualizar != null)
+            {
+                matriculaParaAtualizar.Status = StatusMatricula.AguardandoCorrecao;
+            }
+            db.SaveChanges();
+
+            MessageBox.Show("Parabéns! Suas respostas foram enviadas e o instrutor já pode avaliá-las.", "Avaliação Concluída", MessageBoxButton.OK, MessageBoxImage.Information);
+            PainelAvaliacaoAluno.Visibility = Visibility.Collapsed;
+        }
+
+        private void BtnCancelarAvaliacao_Click(object sender, RoutedEventArgs e)
+        {
+            PainelAvaliacaoAluno.Visibility = Visibility.Collapsed;
+        }
+
+        private void BtnAbrirAvaliacao_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is int matriculaId)
+            {
+                AbrirAvaliacaoFinal(matriculaId);
+            }
+        }
+
+        private void BtnContinuarParaAvaliacao_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is int matriculaId)
+            {
+                using var db = new LearnixDbContext();
+                var matricula = db.Matriculas.Find(matriculaId);
+
+                if (matricula != null)
+                {
+                    matricula.Status = StatusMatricula.AguardandoContinuar;
+                    db.SaveChanges();
+                    CarregarCursos();
+                    MessageBox.Show("Você concluiu as aulas! Agora você pode responder às atividades avaliativas.", "Sucesso", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+        }
     }
 
     public class CursoCardVM
@@ -168,5 +289,9 @@ namespace Learnix
         public SolidColorBrush CorTextoProgresso { get; set; } = new();
         public Visibility BotaoCertificadoVisivel { get; set; } = Visibility.Collapsed;
         public Visibility BotaoSairVisivel { get; set; } = Visibility.Visible;
+        public StatusMatricula Status { get; set; }
+
+        public Visibility BotaoAvaliacaoVisivel =>
+            Status == StatusMatricula.AguardandoContinuar ? Visibility.Visible : Visibility.Collapsed;
     }
 }
