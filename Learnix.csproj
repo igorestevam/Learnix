@@ -9,6 +9,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Migrations\20260530052739_learnix.cs" />
+    <Compile Remove="Migrations\20260530052739_learnix.Designer.cs" />
+    <Compile Remove="Migrations\20260530061844_sim.cs" />
+    <Compile Remove="Migrations\20260530061844_sim.Designer.cs" />
+    <Compile Remove="Migrations\20260530063746_matricula com novo enum.cs" />
+    <Compile Remove="Migrations\20260530063746_matricula com novo enum.Designer.cs" />
+    <Compile Remove="Migrations\LearnixDbContextModelSnapshot.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.8">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

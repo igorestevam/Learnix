@@ -181,7 +181,7 @@
                         <TextBlock Text="Resumo Acadêmico"
                                    Foreground="White" FontSize="15" FontWeight="SemiBold"
                                    FontFamily="Segoe UI" Margin="0,0,0,16"/>
-                        <UniformGrid Columns="4">
+                        <UniformGrid Columns="3">
                             <StackPanel HorizontalAlignment="Center">
                                 <TextBlock x:Name="TxtTotalCursos" Text="0"
                                            Foreground="White" FontSize="28" FontWeight="Bold"
@@ -203,14 +203,6 @@
                                            Foreground="#90CAF9" FontSize="28" FontWeight="Bold"
                                            FontFamily="Segoe UI" HorizontalAlignment="Center"/>
                                 <TextBlock Text="Estudadas" Foreground="#9E8FC0"
-                                           FontSize="12" FontFamily="Segoe UI"
-                                           HorizontalAlignment="Center"/>
-                            </StackPanel>
-                            <StackPanel HorizontalAlignment="Center">
-                                <TextBlock x:Name="TxtAprovados" Text="0"
-                                           Foreground="#FFCC80" FontSize="28" FontWeight="Bold"
-                                           FontFamily="Segoe UI" HorizontalAlignment="Center"/>
-                                <TextBlock Text="Aprovados" Foreground="#9E8FC0"
                                            FontSize="12" FontFamily="Segoe UI"
                                            HorizontalAlignment="Center"/>
                             </StackPanel>

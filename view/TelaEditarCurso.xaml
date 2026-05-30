@@ -194,7 +194,6 @@
                                                                     <TextBlock Text="{Binding DuracaoAula}"
                                                                                Foreground="#9E8FC0" FontSize="11"
                                                                                FontFamily="Segoe UI" Margin="0,2,0,6"/>
-                                                                    <!-- Vídeo selecionado -->
                                                                     <StackPanel Orientation="Horizontal">
                                                                         <TextBlock Text="{Binding VideoNome}"
                                                                                    Foreground="#9E8FC0" FontSize="11"
@@ -237,13 +236,40 @@
                                                     </DataTemplate>
                                                 </ItemsControl.ItemTemplate>
                                             </ItemsControl>
-
                                         </StackPanel>
                                     </Border>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
+                    </StackPanel>
+                </Border>
 
+                <!-- Atividades Avaliativas -->
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="Atividades Avaliativas"
+                                   Foreground="White" FontSize="15" FontWeight="SemiBold"
+                                   FontFamily="Segoe UI" Margin="0,0,0,6"/>
+                        <TextBlock Text="Obrigat&#xF3;rio 3 quest&#xF5;es discursivas"
+                                   Foreground="#9E8FC0" FontSize="11"
+                                   FontFamily="Segoe UI" Margin="0,0,0,16"/>
+
+                        <TextBlock Text="PERGUNTA 1" Style="{StaticResource LabelStyle}"/>
+                        <TextBox x:Name="TxtPergunta1" Style="{StaticResource InputStyle}"
+                                 AcceptsReturn="True" MinHeight="60" TextWrapping="Wrap"/>
+
+                        <TextBlock Text="PERGUNTA 2" Style="{StaticResource LabelStyle}"/>
+                        <TextBox x:Name="TxtPergunta2" Style="{StaticResource InputStyle}"
+                                 AcceptsReturn="True" MinHeight="60" TextWrapping="Wrap"/>
+
+                        <TextBlock Text="PERGUNTA 3" Style="{StaticResource LabelStyle}"/>
+                        <TextBox x:Name="TxtPergunta3" Style="{StaticResource InputStyle}"
+                                 AcceptsReturn="True" MinHeight="60" TextWrapping="Wrap"/>
+
+                        <Button Content="&#x2714; Salvar Atividades"
+                                Style="{StaticResource BtnSalvarStyle}"
+                                HorizontalAlignment="Right"
+                                Click="BtnSalvarAtividades_Click"/>
                     </StackPanel>
                 </Border>
 

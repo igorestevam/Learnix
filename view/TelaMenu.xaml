@@ -111,25 +111,6 @@
                     </Border>
                 </Grid>
 
-                <!-- Filtros -->
-                <StackPanel Orientation="Horizontal" Margin="0,0,0,24">
-                    <Border x:Name="BtnTodos" Style="{StaticResource BtnCategoriaStyle}"
-                            Background="#4E3A7A" MouseLeftButtonDown="FiltroTodos_Click">
-                        <TextBlock Text="Todos" Foreground="White" FontFamily="Segoe UI" FontSize="12"/>
-                    </Border>
-                    <Border x:Name="BtnExatas" Style="{StaticResource BtnCategoriaStyle}"
-                            Background="#2A2040" MouseLeftButtonDown="FiltroExatas_Click">
-                        <TextBlock Text="&#x1F4D0; Exatas" Foreground="#D8CCF0" FontFamily="Segoe UI" FontSize="12"/>
-                    </Border>
-                    <Border x:Name="BtnHumanas" Style="{StaticResource BtnCategoriaStyle}"
-                            Background="#2A2040" MouseLeftButtonDown="FiltroHumanas_Click">
-                        <TextBlock Text="&#x1F4D6; Humanas" Foreground="#D8CCF0" FontFamily="Segoe UI" FontSize="12"/>
-                    </Border>
-                    <Border x:Name="BtnTecnologia" Style="{StaticResource BtnCategoriaStyle}"
-                            Background="#2A2040" MouseLeftButtonDown="FiltroTecnologia_Click">
-                        <TextBlock Text="&#x1F4BB; Tecnologia" Foreground="#D8CCF0" FontFamily="Segoe UI" FontSize="12"/>
-                    </Border>
-                </StackPanel>
 
                 <Separator Background="#9E8FC0" Opacity="0.25" Margin="0,0,0,20"/>
 

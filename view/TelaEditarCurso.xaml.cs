@@ -36,6 +36,7 @@ namespace Learnix
             TxtCargaHoraria.Text = _curso.CargaHoraria.ToString();
 
             CarregarModulos();
+            CarregarAtividades();
         }
 
         private void CarregarModulos()
@@ -73,6 +74,68 @@ namespace Learnix
                                     : Path.GetFileName(a.VideoUrl),
                 }).ToList() ?? new List<AulaEditVM>(),
             }).ToList();
+        }
+
+        private void CarregarAtividades()
+        {
+            if (_curso == null) return;
+
+            using var db = new LearnixDbContext();
+            var atividades = db.AtividadesCursos
+                .Where(a => a.CursoId == _curso.Id)
+                .OrderBy(a => a.Id)
+                .ToList();
+
+            TxtPergunta1.Text = atividades.ElementAtOrDefault(0)?.Pergunta ?? "";
+            TxtPergunta2.Text = atividades.ElementAtOrDefault(1)?.Pergunta ?? "";
+            TxtPergunta3.Text = atividades.ElementAtOrDefault(2)?.Pergunta ?? "";
+        }
+
+        private void BtnSalvarAtividades_Click(object sender, RoutedEventArgs e)
+        {
+            if (_curso == null) return;
+
+            var perguntas = new[]
+            {
+                TxtPergunta1.Text.Trim(),
+                TxtPergunta2.Text.Trim(),
+                TxtPergunta3.Text.Trim(),
+            };
+
+            if (perguntas.Any(string.IsNullOrWhiteSpace))
+            {
+                MessageBox.Show("Preencha as 3 perguntas antes de salvar.", "Atenção",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            using var db = new LearnixDbContext();
+
+            var atividadesExistentes = db.AtividadesCursos
+                .Where(a => a.CursoId == _curso.Id)
+                .OrderBy(a => a.Id)
+                .ToList();
+
+            for (int i = 0; i < 3; i++)
+            {
+                if (i < atividadesExistentes.Count)
+                {
+                    atividadesExistentes[i].Pergunta = perguntas[i];
+                }
+                else
+                {
+                    db.AtividadesCursos.Add(new AtividadeCurso
+                    {
+                        Pergunta = perguntas[i],
+                        CursoId = _curso.Id,
+                    });
+                }
+            }
+
+            db.SaveChanges();
+
+            MessageBox.Show("Atividades salvas com sucesso!", "Learnix",
+                MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void BtnSalvarCurso_Click(object sender, RoutedEventArgs e)

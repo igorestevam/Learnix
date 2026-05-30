@@ -39,7 +39,7 @@
                            FontFamily="Segoe UI" Margin="0,0,0,26"/>
 
                 <!-- Cards resumo -->
-                <UniformGrid Columns="3" Margin="0,0,0,28">
+                <UniformGrid Columns="2" Margin="0,0,0,28">
                     <Border Style="{StaticResource CardStyle}" Margin="0,0,14,0">
                         <StackPanel>
                             <TextBlock Text="&#x1F4DA;  Cursos" Foreground="#D8CCF0"
@@ -59,17 +59,6 @@
                                        Foreground="White" FontSize="28" FontWeight="Bold"
                                        FontFamily="Segoe UI" Margin="0,6,0,2"/>
                             <TextBlock Text="matriculados" Foreground="#9E8FC0"
-                                       FontSize="11" FontFamily="Segoe UI"/>
-                        </StackPanel>
-                    </Border>
-                    <Border Style="{StaticResource CardStyle}">
-                        <StackPanel>
-                            <TextBlock Text="&#x1F4CB;  Notas" Foreground="#D8CCF0"
-                                       FontSize="12" FontFamily="Segoe UI" Opacity="0.75"/>
-                            <TextBlock x:Name="TxtNotasPendentes" Text="0"
-                                       Foreground="White" FontSize="28" FontWeight="Bold"
-                                       FontFamily="Segoe UI" Margin="0,6,0,2"/>
-                            <TextBlock Text="pendentes" Foreground="#9E8FC0"
                                        FontSize="11" FontFamily="Segoe UI"/>
                         </StackPanel>
                     </Border>

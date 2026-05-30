@@ -13,6 +13,8 @@ namespace Learnix
     public partial class TelaHome : UserControl
     {
         private Aluno? _aluno;
+        private List<MatriculaItemVM> _matriculasVM = new();
+        private bool _carregando = false;
 
         public TelaHome()
         {
@@ -30,7 +32,6 @@ namespace Learnix
             CarregarDados();
         }
 
-        // Sobrecarga antiga mantida por compatibilidade
         public void DefinirAluno(string nome)
         {
             TxtNomeAluno.Text = nome;
@@ -40,6 +41,8 @@ namespace Learnix
         private void CarregarDados()
         {
             if (_aluno == null) return;
+
+            _carregando = true;
 
             using var db = new LearnixDbContext();
 
@@ -51,28 +54,29 @@ namespace Learnix
                 .Include(m => m.Avaliacoes)
                 .ToList();
 
-            // Cards de resumo
             int cursosAtivos = matriculas.Count(m => m.Status == StatusMatricula.Ativa);
             TxtCursosAtivos.Text = cursosAtivos.ToString();
 
-            var todasNotas = matriculas.SelectMany(m => m.Avaliacoes).ToList();
-            if (todasNotas.Any())
+            // Popula ComboBox com todos os cursos do aluno
+            _matriculasVM = matriculas.Select(m => new MatriculaItemVM
             {
-                double media = todasNotas.Average(a => a.Nota);
-                TxtMediaGeral.Text = media.ToString("0.0", new CultureInfo("pt-BR"));
-            }
-            else
-            {
-                TxtMediaGeral.Text = "—";
-            }
+                MatriculaId = m.Id,
+                Titulo = m.Curso?.Titulo ?? "Curso",
+            }).ToList();
 
-            // Pendentes = matrículas ativas sem 100% de progresso
-            int pendentes = matriculas.Count(m =>
-                m.Status == StatusMatricula.Ativa &&
-                (m.Progresso == null || m.Progresso.PercentualConcluido < 100));
-            TxtPendentes.Text = pendentes.ToString();
+            CmbCursos.ItemsSource = _matriculasVM;
+            CmbCursos.DisplayMemberPath = "Titulo";
+            CmbCursos.SelectedValuePath = "MatriculaId";
 
-            // Lista "Continuar estudando" — só cursos ativos e não 100%
+            if (CmbCursos.Items.Count > 0)
+                CmbCursos.SelectedIndex = 0;
+
+            _carregando = false;
+
+            // Força atualização da média para o primeiro item
+            CmbCursos_SelectionChanged(CmbCursos, null!);
+
+            // Lista "Continuar estudando"
             var emAndamento = matriculas
                 .Where(m => m.Status == StatusMatricula.Ativa &&
                             (m.Progresso == null || m.Progresso.PercentualConcluido < 100))
@@ -103,15 +107,24 @@ namespace Learnix
                 }).ToList();
             }
 
-            // Próximas atividades — avaliações futuras
-            var atividades = matriculas
-                .SelectMany(m => m.Avaliacoes.Select(a => new { a, m }))
-                .Where(x => x.a.DataRealizacao >= DateTime.Today)
-                .OrderBy(x => x.a.DataRealizacao)
-                .Take(5)
+            // Próximas atividades
+            var cursoIds = matriculas
+                .Where(m => m.Status == StatusMatricula.Ativa)
+                .Select(m => m.CursoId).ToList();
+
+            var respostasDoAluno = db.RespostasAtividades
+                .Where(r => matriculas.Select(m => m.Id).Contains(r.MatriculaId))
+                .Select(r => r.AtividadeCursoId)
+                .ToHashSet();
+
+            var atividadesPendentes = db.AtividadesCursos
+                .Include(a => a.Curso)
+                .Where(a => cursoIds.Contains(a.CursoId) && !respostasDoAluno.Contains(a.Id))
                 .ToList();
 
-            if (atividades.Count == 0)
+            TxtPendentes.Text = atividadesPendentes.Count.ToString();
+
+            if (atividadesPendentes.Count == 0)
             {
                 PainelSemAtividades.Visibility = Visibility.Visible;
                 ListaAtividades.Visibility = Visibility.Collapsed;
@@ -121,13 +134,45 @@ namespace Learnix
                 PainelSemAtividades.Visibility = Visibility.Collapsed;
                 ListaAtividades.Visibility = Visibility.Visible;
 
-                ListaAtividades.ItemsSource = atividades.Select(x => new HomeAtividadeVM
+                ListaAtividades.ItemsSource = atividadesPendentes.Select(a => new HomeAtividadeVM
                 {
-                    Dia = x.a.DataRealizacao.Day.ToString(),
-                    Titulo = $"Entrega: {x.a.Titulo}",
-                    Subtitulo = $"{x.m.Curso?.Titulo}  •  {x.a.DataRealizacao:dd/MM/yyyy}",
+                    Dia = "📝",
+                    Titulo = a.Pergunta.Length > 50 ? a.Pergunta[..50] + "..." : a.Pergunta,
+                    Subtitulo = $"Curso: {a.Curso?.Titulo}",
                 }).ToList();
             }
+        }
+
+        private void CmbCursos_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_carregando) return;
+            if (_aluno == null || CmbCursos.SelectedItem is not MatriculaItemVM vm) return;
+
+            using var db = new LearnixDbContext();
+
+            var matricula = db.Matriculas
+                .FirstOrDefault(m => m.Id == vm.MatriculaId);
+
+            if (matricula == null) { TxtMediaGeral.Text = "—"; return; }
+
+            bool avaliado = matricula.Status == StatusMatricula.Concluida ||
+                            matricula.Status == StatusMatricula.Reprovada;
+
+            if (!avaliado) { TxtMediaGeral.Text = "—"; return; }
+
+            var respostas = db.RespostasAtividades
+                .Where(r => r.MatriculaId == vm.MatriculaId)
+                .OrderBy(r => r.Id)
+                .ToList();
+
+            if (!respostas.Any()) { TxtMediaGeral.Text = "—"; return; }
+
+            decimal nota1 = respostas.ElementAtOrDefault(0)?.Nota ?? 0m;
+            decimal nota2 = respostas.ElementAtOrDefault(1)?.Nota ?? 0m;
+            decimal nota3 = respostas.ElementAtOrDefault(2)?.Nota ?? 0m;
+            decimal media = (nota1 + nota2 + nota3) / 3m;
+
+            TxtMediaGeral.Text = media.ToString("0.0", new CultureInfo("pt-BR"));
         }
 
         private void BtnContinuar_Click(object sender, RoutedEventArgs e)
@@ -147,6 +192,12 @@ namespace Learnix
                 }
             }
         }
+    }
+
+    public class MatriculaItemVM
+    {
+        public int MatriculaId { get; set; }
+        public string Titulo { get; set; } = "";
     }
 
     public class HomeCursoVM

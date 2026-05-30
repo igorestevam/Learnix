@@ -40,7 +40,7 @@ namespace Learnix
             int notasPendentes = cursos
                 .SelectMany(c => c.MatriculasAtivas ?? new System.Collections.Generic.List<Matricula>())
                 .Count(m => m.Avaliacoes == null || !m.Avaliacoes.Any());
-            TxtNotasPendentes.Text = notasPendentes.ToString();
+           
 
             if (cursos.Count == 0)
             {
