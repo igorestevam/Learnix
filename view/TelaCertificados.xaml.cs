@@ -87,7 +87,7 @@ namespace Learnix
         {
             bool vazio = _certificados.Count == 0;
             PainelVazio.Visibility = vazio ? Visibility.Visible : Visibility.Collapsed;
-            ListaCertificados.Visibility = vazio ? Visibility.Collapsed : Visibility.Visible;
+            ScrollCertificados.Visibility = vazio ? Visibility.Collapsed : Visibility.Visible;
             TxtTotalCerts.Text = _certificados.Count.ToString();
         }
 

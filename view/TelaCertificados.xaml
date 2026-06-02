@@ -99,7 +99,11 @@
                                    Opacity="0.7"/>
                     </StackPanel>
 
-                    <ItemsControl x:Name="ListaCertificados" Visibility="Collapsed">
+                    <ScrollViewer x:Name="ScrollCertificados"
+                                  VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled"
+                                  Visibility="Collapsed">
+                    <ItemsControl x:Name="ListaCertificados">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Border Background="#2A2040" CornerRadius="14"
@@ -157,6 +161,7 @@
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
+                    </ScrollViewer>
                 </Grid>
 
                 <Grid x:Name="PainelCertificado" Visibility="Collapsed">

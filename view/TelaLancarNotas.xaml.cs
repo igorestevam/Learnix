@@ -108,6 +108,8 @@ namespace Learnix
 
             MessageBox.Show($"Notas de {item.NomeAluno} salvas com sucesso!",
                 "Learnix", MessageBoxButton.OK, MessageBoxImage.Information);
+
+            BtnCarregar_Click(sender, e);
         }
     }
 
