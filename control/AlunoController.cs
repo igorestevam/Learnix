@@ -6,6 +6,14 @@ namespace Learnix.control;
 
 public class AlunoController
 {
+    public Aluno? BuscarComHistorico(int id)
+    {
+        using var ctx = new LearnixDbContext();
+        return ctx.Alunos
+            .Include(x => x.HistoricoMatriculas).ThenInclude(m => m.Curso)
+            .FirstOrDefault(x => x.Id == id);
+    }
+
     public void AtualizarPerfil(int alunoId, string nome, string email)
     {
         using var ctx = new LearnixDbContext();

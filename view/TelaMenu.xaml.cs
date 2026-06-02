@@ -17,6 +17,7 @@ namespace Learnix
 
         private Aluno? _aluno;
         private List<CursoMenuVM> _todosCursos = new();
+        private List<Matricula> _historicoAluno = new();
 
         public TelaMenu()
         {
@@ -34,55 +35,53 @@ namespace Learnix
         {
             if (_aluno == null) return;
 
-            var cursosNoBanco = _cursoController.ListarComMatriculas();
-            var historicoAluno = _matriculaController.ListarHistorico(_aluno.Id);
-
-            _todosCursos = cursosNoBanco.Select(c =>
-            {
-                var matricula = historicoAluno.FirstOrDefault(m => m.CursoId == c.Id);
-
-                bool podeMatricular = matricula == null ||
-                                      matricula.Status == StatusMatricula.Cancelada ||
-                                      matricula.Status == StatusMatricula.Reprovada;
-
-                string categoria = c.Categoria?.Nome ?? "Geral";
-                string corFundo = categoria switch { "Humanas" => "#1A3A2A", "Tecnologia" => "#1A2A3A", _ => "#3A2860" };
-                string corTexto = categoria switch { "Humanas" => "#A5D6A7", "Tecnologia" => "#90CAF9", _ => "#D8CCF0" };
-
-                return new CursoMenuVM
-                {
-                    CursoId = c.Id,
-                    Titulo = c.Titulo,
-                    Descricao = c.Descricao,
-                    NomeInstrutor = c.Instrutor != null ? $"Prof. {c.Instrutor.Nome}" : "Sem instrutor vinculado",
-                    NomeCategoria = categoria,
-                    DescricaoCategoria = string.IsNullOrWhiteSpace(c.Categoria?.Descricao)
-                        ? null : c.Categoria.Descricao,
-                    CargaHoraria = $"🕐 {c.CargaHoraria}h",
-                    NumAlunos = $"👥 {c.MatriculasAtivas?.Count ?? 0} aluno(s)",
-                    Preco = c.Preco > 0
-                        ? $"💰 R$ {c.Preco:F2}"
-                        : "💰 Gratuito",
-                    CorFundoCategoria = new SolidColorBrush((Color)ColorConverter.ConvertFromString(corFundo)),
-                    CorTextoCategoria = new SolidColorBrush((Color)ColorConverter.ConvertFromString(corTexto)),
-                    BotaoAtivo = podeMatricular,
-                    TextoBotao = podeMatricular ? "Matricular-se" : "Já Matriculado",
-                    CorBotao = podeMatricular
-                        ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2E7D32"))
-                        : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#555555")),
-                };
-            }).ToList();
+            _historicoAluno = _matriculaController.ListarHistorico(_aluno.Id);
+            _todosCursos = _cursoController.ListarComMatriculas().Select(CursoParaVM).ToList();
 
             AplicarFiltro();
         }
 
+        private CursoMenuVM CursoParaVM(Curso c)
+        {
+            var matricula = _historicoAluno.FirstOrDefault(m => m.CursoId == c.Id);
+            bool podeMatricular = matricula == null ||
+                                  matricula.Status == StatusMatricula.Cancelada ||
+                                  matricula.Status == StatusMatricula.Reprovada;
+
+            string categoria = c.Categoria?.Nome ?? "Geral";
+            string corFundo = categoria switch { "Humanas" => "#1A3A2A", "Tecnologia" => "#1A2A3A", _ => "#3A2860" };
+            string corTexto = categoria switch { "Humanas" => "#A5D6A7", "Tecnologia" => "#90CAF9", _ => "#D8CCF0" };
+
+            return new CursoMenuVM
+            {
+                CursoId = c.Id,
+                Titulo = c.Titulo,
+                Descricao = c.Descricao,
+                NomeInstrutor = c.Instrutor != null ? $"Prof. {c.Instrutor.Nome}" : "Sem instrutor vinculado",
+                NomeCategoria = categoria,
+                DescricaoCategoria = string.IsNullOrWhiteSpace(c.Categoria?.Descricao)
+                    ? null : c.Categoria.Descricao,
+                CargaHoraria = $"🕐 {c.CargaHoraria}h",
+                NumAlunos = $"👥 {c.MatriculasAtivas?.Count ?? 0} aluno(s)",
+                Preco = c.Preco > 0 ? $"💰 R$ {c.Preco:F2}" : "💰 Gratuito",
+                CorFundoCategoria = new SolidColorBrush((Color)ColorConverter.ConvertFromString(corFundo)),
+                CorTextoCategoria = new SolidColorBrush((Color)ColorConverter.ConvertFromString(corTexto)),
+                BotaoAtivo = podeMatricular,
+                TextoBotao = podeMatricular ? "Matricular-se" : "Já Matriculado",
+                CorBotao = podeMatricular
+                    ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2E7D32"))
+                    : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#555555")),
+            };
+        }
+
         private void AplicarFiltro()
         {
-            var filtrados = _todosCursos
-                .Where(c => TxtBusca.Text == "Buscar curso..." ||
-                            string.IsNullOrWhiteSpace(TxtBusca.Text) ||
-                            c.Titulo.Contains(TxtBusca.Text, StringComparison.OrdinalIgnoreCase))
-                .ToList();
+            string termo = TxtBusca.Text;
+            bool semFiltro = termo == "Buscar curso..." || string.IsNullOrWhiteSpace(termo);
+
+            List<CursoMenuVM> filtrados = semFiltro
+                ? _todosCursos
+                : _cursoController.BuscarPorNome(termo).Select(CursoParaVM).ToList();
 
             PainelVazio.Visibility = filtrados.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
             ListaCursos.Visibility = filtrados.Count == 0 ? Visibility.Collapsed : Visibility.Visible;

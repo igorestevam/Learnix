@@ -1,39 +1,32 @@
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using Learnix.data;
+using Learnix.control;
 using Learnix.model;
-using Microsoft.EntityFrameworkCore;
 
 namespace Learnix
 {
     public partial class MainWindow : Window
     {
         private Usuario? _usuarioLogado;
+        private readonly AlunoController _alunoController = new();
+        private readonly InstrutorController _instrutorController = new();
 
         public MainWindow()
         {
             InitializeComponent();
-            using var db = new LearnixDbContext();
             MostrarLogin();
         }
 
         private Aluno? AlunoAtual()
         {
             if (_usuarioLogado is not Aluno a) return null;
-            using var db = new LearnixDbContext();
-            return db.Alunos
-                .Include(x => x.HistoricoMatriculas).ThenInclude(m => m.Curso)
-                .FirstOrDefault(x => x.Id == a.Id);
+            return _alunoController.BuscarComHistorico(a.Id);
         }
 
         private Instrutor? InstrutorAtual()
         {
             if (_usuarioLogado is not Instrutor inst) return null;
-            using var db = new LearnixDbContext();
-            return db.Instrutores
-                .Include(i => i.Cursos)
-                .FirstOrDefault(i => i.Id == inst.Id);
+            return _instrutorController.BuscarComCursos(inst.Id);
         }
 
         private void MostrarLogin()

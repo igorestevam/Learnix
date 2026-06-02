@@ -1,9 +1,5 @@
 namespace Learnix.model
 {
-    /// <summary>
-    /// Perfil de aprendizagem vinculado a um Aluno (1 para 1).
-    /// Telas: TelaPerfil (EstiloPredominante, RitmoSugerido)
-    /// </summary>
     public class PerfilDeAprendizagem
     {
         public int Id { get; set; }

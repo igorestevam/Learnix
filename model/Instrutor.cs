@@ -3,11 +3,6 @@ using System.Collections.Generic;
 
 namespace Learnix.model
 {
-    /// <summary>
-    /// Representa o instrutor de cursos.
-    /// Telas: TelaMenu (Nome), TelaMeusCursos (Nome), TelaAulas (Nome),
-    ///        TelaCertificados (Nome), TelaHome (Nome), TelaHomeInstrutor (Biografia)
-    /// </summary>
     public class Instrutor : Usuario, IPlanejamento
     {
         public string Especialidade { get; set; } = null!;
@@ -26,10 +21,6 @@ namespace Learnix.model
             Cursos = new List<Curso>();
         }
 
-        /// <summary>
-        /// Valida o plano de ensino: exige especialidade definida e gera
-        /// uma biografia padrão quando o instrutor ainda não a preencheu.
-        /// </summary>
         public void Definir()
         {
             if (string.IsNullOrWhiteSpace(Especialidade))

@@ -11,14 +11,12 @@ namespace Learnix.model
     /// </summary>
     public class AulaConcluida
     {
-        // PK composta configurada no OnModelCreating do LearnixDbContext
         public int MatriculaId { get; set; }
         public Matricula Matricula { get; set; } = null!;
 
         public int AulaId { get; set; }
         public Aula Aula { get; set; } = null!;
 
-        // Data em que o aluno concluiu a aula — util para historico e relatorios
         public DateTime DataConclusao { get; set; }
 
         public AulaConcluida()

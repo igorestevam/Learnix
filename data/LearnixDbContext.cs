@@ -11,7 +11,6 @@ namespace Learnix.data
 
         public DbSet<PerfilDeAprendizagem> PerfisDeAprendizagem { get; set; } = null!;
 
-        // Hierarquia de Curso (TPH → tabela unica "Cursos" + coluna discriminador)
         public DbSet<Curso> Cursos { get; set; } = null!;
 
         public DbSet<Categoria> Categorias { get; set; } = null!;
@@ -38,10 +37,7 @@ namespace Learnix.data
             }
         }
 
-        // ──────────────────────────────────────────────────────────────
         // Mapeamento do modelo
-        // ──────────────────────────────────────────────────────────────
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // 1. Aluno -> PerfilDeAprendizagem (1 para 1)

@@ -79,6 +79,32 @@ public class AvaliacaoController
             if (resposta != null) { resposta.Nota = nota; soma += nota; }
         }
 
+        // Sincroniza com Avaliacoes (AV1/AV2/AV3) para aparecer em TelaNotas e TelaHome
+        var titulosAv = new[] { "AV1", "AV2", "AV3" };
+        var existentesAv = ctx.Avaliacoes.Where(a => a.MatriculaId == matriculaId).ToList();
+        var notasOrdenadas = notas.OrderBy(kv => kv.Key).ToList();
+        for (int i = 0; i < notasOrdenadas.Count && i < titulosAv.Length; i++)
+        {
+            var titulo = titulosAv[i];
+            var notaValor = (double)notasOrdenadas[i].Value;
+            var existente = existentesAv.FirstOrDefault(a => a.Titulo == titulo);
+            if (existente != null)
+            {
+                existente.Nota = notaValor;
+                existente.DataRealizacao = DateTime.Now;
+            }
+            else
+            {
+                ctx.Avaliacoes.Add(new Avaliacao
+                {
+                    MatriculaId = matriculaId,
+                    Titulo = titulo,
+                    Nota = notaValor,
+                    DataRealizacao = DateTime.Now,
+                });
+            }
+        }
+
         decimal media = notas.Count > 0 ? soma / notas.Count : 0;
         bool aprovado = media >= 7.0m;
 

@@ -13,7 +13,6 @@ namespace Learnix.model
         public int CategoriaId { get; set; }
         public Categoria Categoria { get; set; } = null!;
 
-        // Nullable — curso pode existir sem instrutor vinculado
         public int? InstrutorId { get; set; }
         public Instrutor? Instrutor { get; set; }
 

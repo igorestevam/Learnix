@@ -2,10 +2,6 @@ using System;
 
 namespace Learnix.model
 {
-    /// <summary>
-    /// Classe base abstrata para todos os usuários do sistema.
-    /// Telas: TelaLogin, TelaCadastro, TelaPerfil
-    /// </summary>
     public abstract class Usuario
     {
         public int Id { get; set; }
