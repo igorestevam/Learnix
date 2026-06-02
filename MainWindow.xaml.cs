@@ -233,7 +233,6 @@ namespace Learnix
         {
             sidebar.SolicitarHome += (s, e) => MostrarHome();
             sidebar.SolicitarBuscarCursos += (s, e) => MostrarMenu(nomeAluno);
-            sidebar.SolicitarMenu += (s, e) => MostrarMenu(nomeAluno);
             sidebar.SolicitarNotas += (s, e) => MostrarNotas();
             sidebar.SolicitarMeusCursos += (s, e) => MostrarMeusCursos(nomeAluno);
             sidebar.SolicitarCertificados += (s, e) => MostrarCertificados(nomeAluno);

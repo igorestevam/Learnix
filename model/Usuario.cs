@@ -27,7 +27,5 @@ namespace Learnix.model
             DataCadastro = DateTime.Now;
         }
 
-        // Polimorfismo: cada tipo de usuário define seu próprio painel
-        public abstract string ObterCaminhoDashboard();
     }
 }

@@ -36,7 +36,11 @@
                            FontFamily="Segoe UI" Margin="0,4,0,2"/>
                 <TextBlock x:Name="TxtEspecialidade" Text=""
                            Foreground="#9E8FC0" FontSize="12"
-                           FontFamily="Segoe UI" Margin="0,0,0,26"/>
+                           FontFamily="Segoe UI" Margin="0,0,0,6"/>
+                <TextBlock x:Name="TxtBiografia" Text=""
+                           Foreground="#D8CCF0" FontSize="12" FontFamily="Segoe UI"
+                           TextWrapping="Wrap" Opacity="0.8"
+                           Visibility="Collapsed" Margin="0,0,0,26"/>
 
                 <!-- Cards resumo -->
                 <UniformGrid Columns="2" Margin="0,0,0,28">

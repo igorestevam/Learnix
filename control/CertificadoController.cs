@@ -1,29 +1,28 @@
-using System.Collections.Generic;
+using Learnix.data;
 using Learnix.model;
-using Learnix.Services;
+using Microsoft.EntityFrameworkCore;
 
-namespace Learnix.Controllers
+namespace Learnix.control;
+
+public class CertificadoController
 {
-    /// <summary>
-    /// Controller responsavel por orquestrar a exibicao e validacao de certificados.
-    /// Usado pela TelaCertificados.
-    /// </summary>
-    public class CertificadoController
+    public List<Certificado> ListarPorAluno(int alunoId)
     {
-        private readonly ICertificadoService _certificadoService;
+        using var ctx = new LearnixDbContext();
+        return ctx.Certificados
+            .Include(c => c.Matricula).ThenInclude(m => m.Aluno)
+            .Include(c => c.Matricula).ThenInclude(m => m.Curso).ThenInclude(cur => cur.Instrutor)
+            .Where(c => c.Matricula.AlunoId == alunoId)
+            .OrderByDescending(c => c.DataEmissao)
+            .ToList();
+    }
 
-        public CertificadoController(ICertificadoService certificadoService)
-        {
-            _certificadoService = certificadoService;
-        }
-
-        public List<Certificado> ListarDoAluno(int alunoId)
-            => _certificadoService.ListarPorAluno(alunoId);
-
-        public Certificado? Validar(string codigo)
-            => _certificadoService.BuscarPorCodigo(codigo);
-
-        public int ContarDoAluno(int alunoId)
-            => _certificadoService.ContarPorAluno(alunoId);
+    public Certificado? BuscarPorCodigo(string codigo)
+    {
+        using var ctx = new LearnixDbContext();
+        return ctx.Certificados
+            .Include(c => c.Matricula).ThenInclude(m => m.Aluno)
+            .Include(c => c.Matricula).ThenInclude(m => m.Curso)
+            .FirstOrDefault(c => c.CodigoCertificado == codigo);
     }
 }

@@ -67,6 +67,105 @@
         <Style x:Key="BtnSalvarStyle" TargetType="Button" BasedOn="{StaticResource BtnEditarStyle}">
             <Setter Property="Background" Value="#2E7D32"/>
         </Style>
+        <Style x:Key="ComboBoxItemPerfilStyle" TargetType="ComboBoxItem">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBoxItem">
+                        <Border x:Name="ItemBorder"
+                                Background="{TemplateBinding Background}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#4E3A7A"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#3A2060"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="ComboPerfilStyle" TargetType="ComboBox">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="#3A2860"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Margin" Value="0,0,0,14"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="ItemContainerStyle" Value="{StaticResource ComboBoxItemPerfilStyle}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <Border x:Name="MainBorder"
+                                    Background="{TemplateBinding Background}"
+                                    CornerRadius="8"
+                                    Padding="12,0,8,0">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="24"/>
+                                    </Grid.ColumnDefinitions>
+                                    <ContentPresenter Grid.Column="0"
+                                                      Content="{TemplateBinding SelectionBoxItem}"
+                                                      ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                                      VerticalAlignment="Center"
+                                                      IsHitTestVisible="False"/>
+                                    <TextBlock Grid.Column="1"
+                                               Text="▾"
+                                               Foreground="#9E8FC0"
+                                               FontSize="14"
+                                               VerticalAlignment="Center"
+                                               HorizontalAlignment="Center"
+                                               IsHitTestVisible="False"/>
+                                </Grid>
+                            </Border>
+                            <ToggleButton Focusable="False"
+                                          IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border Background="Transparent"/>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <Popup x:Name="PART_Popup"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}"
+                                   Placement="Bottom"
+                                   AllowsTransparency="True"
+                                   Focusable="False"
+                                   PopupAnimation="Slide">
+                                <Border Background="#2A2040"
+                                        CornerRadius="8"
+                                        BorderBrush="#4E3A7A"
+                                        BorderThickness="1"
+                                        MinWidth="{TemplateBinding ActualWidth}"
+                                        MaxHeight="200">
+                                    <ScrollViewer CanContentScroll="True">
+                                        <StackPanel IsItemsHost="True"/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="MainBorder" Property="Background" Value="#4E3A7A"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
 
     <Grid>
@@ -154,22 +253,24 @@
                                          IsReadOnly="True" Opacity="0.7"/>
                             </StackPanel>
 
-                            <!-- Estilo de Aprendizagem — novo campo populado pelo code-behind -->
                             <StackPanel Margin="0,0,16,0">
                                 <TextBlock Text="ESTILO DE APRENDIZAGEM" Style="{StaticResource LabelStyle}"/>
-                                <TextBox x:Name="TxtEstilo" Text="—"
+                                <TextBox x:Name="TxtEstilo"
                                          Style="{StaticResource InputEditStyle}"
-                                         IsReadOnly="True"
-                                         Opacity="0.7"/>
+                                         IsReadOnly="True" Opacity="0.7"/>
+                                <ComboBox x:Name="CmbEstilo"
+                                          Style="{StaticResource ComboPerfilStyle}"
+                                          Visibility="Collapsed"/>
                             </StackPanel>
 
-                            <!-- Ritmo Sugerido — novo campo populado pelo code-behind -->
                             <StackPanel>
                                 <TextBlock Text="RITMO SUGERIDO" Style="{StaticResource LabelStyle}"/>
-                                <TextBox x:Name="TxtRitmo" Text="—"
+                                <TextBox x:Name="TxtRitmo"
                                          Style="{StaticResource InputEditStyle}"
-                                         IsReadOnly="True"
-                                         Opacity="0.7"/>
+                                         IsReadOnly="True" Opacity="0.7"/>
+                                <ComboBox x:Name="CmbRitmo"
+                                          Style="{StaticResource ComboPerfilStyle}"
+                                          Visibility="Collapsed"/>
                             </StackPanel>
                         </UniformGrid>
                     </StackPanel>

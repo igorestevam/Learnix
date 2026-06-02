@@ -5,15 +5,16 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using Learnix.data;
+using Learnix.control;
 using Learnix.model;
-using Learnix.Services;
-using Microsoft.EntityFrameworkCore;
 
 namespace Learnix
 {
     public partial class TelaAulas : UserControl
     {
+        private readonly MatriculaController _matriculaController = new();
+        private readonly ProgressoController _progressoController = new();
+
         private string _nomeAluno = string.Empty;
         private Matricula? _matricula;
         private List<Aula> _aulas = new();
@@ -30,15 +31,7 @@ namespace Learnix
                 ? (matricula?.Aluno?.Nome ?? "Aluno")
                 : nomeAluno;
 
-            using var db = new LearnixDbContext();
-            _matricula = db.Matriculas
-                .Include(m => m.Aluno)
-                .Include(m => m.Progresso)
-                .Include(m => m.Curso).ThenInclude(c => c.Instrutor)
-                .Include(m => m.Curso).ThenInclude(c => c.Categoria)
-                .Include(m => m.Curso).ThenInclude(c => c.Modulos)
-                    .ThenInclude(mod => mod.Aulas)
-                .FirstOrDefault(m => m.Id == matricula.Id) ?? matricula;
+            _matricula = _matriculaController.BuscarCompleta(matricula!.Id) ?? matricula;
 
             Sidebar?.DefinirAluno(_nomeAluno);
 
@@ -47,10 +40,7 @@ namespace Learnix
                 .SelectMany(m => m.Aulas.OrderBy(a => a.Ordem))
                 .ToList() ?? new List<Aula>();
 
-            var aulasConcluidas = db.AulasConcluidas
-                .Where(ac => ac.MatriculaId == _matricula.Id)
-                .Select(ac => ac.AulaId)
-                .ToHashSet();
+            var aulasConcluidas = _progressoController.ObterAulasConcluidas(_matricula.Id);
 
             _aulaAtualIndex = _aulas.FindIndex(a => !aulasConcluidas.Contains(a.Id));
             if (_aulaAtualIndex < 0) _aulaAtualIndex = _aulas.Count - 1;
@@ -206,7 +196,6 @@ namespace Learnix
                     AtualizarNavegacao();
                     RenderizarAulasSemRecarregar();
 
-                    // Abre o player com a aula selecionada
                     var main = Application.Current.MainWindow as MainWindow;
                     main?.MostrarPlayer(_matricula!, aula);
                 };
@@ -239,11 +228,7 @@ namespace Learnix
 
         private void RenderizarAulasSemRecarregar()
         {
-            using var db = new LearnixDbContext();
-            var aulasConcluidas = db.AulasConcluidas
-                .Where(ac => ac.MatriculaId == _matricula!.Id)
-                .Select(ac => ac.AulaId)
-                .ToHashSet();
+            var aulasConcluidas = _progressoController.ObterAulasConcluidas(_matricula!.Id);
             RenderizarAulas(aulasConcluidas);
         }
 
@@ -264,26 +249,15 @@ namespace Learnix
             if (_matricula == null || _aulaAtualIndex >= _aulas.Count - 1) return;
 
             var aulaAtual = _aulas[_aulaAtualIndex];
-            using var db = new LearnixDbContext();
+            _progressoController.ConcluirAula(_matricula.Id, aulaAtual.Id);
 
-            bool jaRegistrada = db.AulasConcluidas
-                .Any(ac => ac.MatriculaId == _matricula.Id && ac.AulaId == aulaAtual.Id);
-
-            if (!jaRegistrada)
-            {
-                var service = new ProgressoService(db);
-                service.RegistrarConclusaoAula(_matricula.Id, aulaAtual.Id);
-
-                var progresso = db.Progressos.FirstOrDefault(p => p.MatriculaId == _matricula.Id);
-                if (progresso != null)
-                    TxtProgresso.Text = $"{(int)Math.Round(progresso.PercentualConcluido)}%";
-            }
+            double percentual = _progressoController.ObterPercentual(_matricula.Id);
+            TxtProgresso.Text = $"{(int)Math.Round(percentual)}%";
 
             _aulaAtualIndex++;
             AtualizarNavegacao();
             RenderizarAulasSemRecarregar();
 
-            // Abre o player com a próxima aula
             var main = Application.Current.MainWindow as MainWindow;
             main?.MostrarPlayer(_matricula!, _aulas[_aulaAtualIndex]);
         }

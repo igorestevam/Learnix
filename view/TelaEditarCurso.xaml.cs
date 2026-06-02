@@ -1,18 +1,19 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Learnix.data;
+using Learnix.control;
 using Learnix.model;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Win32;
 
 namespace Learnix
 {
     public partial class TelaEditarCurso : UserControl
     {
+        private readonly CursoController _cursoController = new();
+
         private Instrutor? _instrutor;
         private Curso? _curso;
 
@@ -26,10 +27,7 @@ namespace Learnix
             _instrutor = instrutor;
             Sidebar.DefinirInstrutor(instrutor.Nome);
 
-            using var db = new LearnixDbContext();
-            _curso = db.Cursos
-                .Include(c => c.Modulos).ThenInclude(m => m.Aulas)
-                .FirstOrDefault(c => c.Id == curso.Id) ?? curso;
+            _curso = _cursoController.BuscarPorId(curso.Id) ?? curso;
 
             TxtTitulo.Text = _curso.Titulo;
             TxtDescricao.Text = _curso.Descricao;
@@ -46,16 +44,8 @@ namespace Learnix
             var modulos = _curso.Modulos?.OrderBy(m => m.Ordem).ToList()
                           ?? new List<Modulo>();
 
-            if (modulos.Count == 0)
-            {
-                PainelSemModulos.Visibility = Visibility.Visible;
-                ListaModulos.Visibility = Visibility.Collapsed;
-            }
-            else
-            {
-                PainelSemModulos.Visibility = Visibility.Collapsed;
-                ListaModulos.Visibility = Visibility.Visible;
-            }
+            PainelSemModulos.Visibility = modulos.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            ListaModulos.Visibility = modulos.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
 
             int aulaGlobal = 1;
             ListaModulos.ItemsSource = modulos.Select(m => new ModuloEditVM
@@ -80,15 +70,17 @@ namespace Learnix
         {
             if (_curso == null) return;
 
-            using var db = new LearnixDbContext();
-            var atividades = db.AtividadesCursos
-                .Where(a => a.CursoId == _curso.Id)
-                .OrderBy(a => a.Id)
-                .ToList();
+            var atividades = _cursoController.ListarAtividades(_curso.Id);
 
             TxtPergunta1.Text = atividades.ElementAtOrDefault(0)?.Pergunta ?? "";
             TxtPergunta2.Text = atividades.ElementAtOrDefault(1)?.Pergunta ?? "";
             TxtPergunta3.Text = atividades.ElementAtOrDefault(2)?.Pergunta ?? "";
+        }
+
+        private void RecarregarCurso()
+        {
+            _curso = _cursoController.BuscarPorId(_curso!.Id) ?? _curso;
+            CarregarModulos();
         }
 
         private void BtnSalvarAtividades_Click(object sender, RoutedEventArgs e)
@@ -109,30 +101,7 @@ namespace Learnix
                 return;
             }
 
-            using var db = new LearnixDbContext();
-
-            var atividadesExistentes = db.AtividadesCursos
-                .Where(a => a.CursoId == _curso.Id)
-                .OrderBy(a => a.Id)
-                .ToList();
-
-            for (int i = 0; i < 3; i++)
-            {
-                if (i < atividadesExistentes.Count)
-                {
-                    atividadesExistentes[i].Pergunta = perguntas[i];
-                }
-                else
-                {
-                    db.AtividadesCursos.Add(new AtividadeCurso
-                    {
-                        Pergunta = perguntas[i],
-                        CursoId = _curso.Id,
-                    });
-                }
-            }
-
-            db.SaveChanges();
+            _cursoController.SalvarAtividades(_curso.Id, perguntas);
 
             MessageBox.Show("Atividades salvas com sucesso!", "Learnix",
                 MessageBoxButton.OK, MessageBoxImage.Information);
@@ -156,18 +125,14 @@ namespace Learnix
                 return;
             }
 
-            using var db = new LearnixDbContext();
-            var curso = db.Cursos.Find(_curso.Id);
-            if (curso == null) return;
+            string titulo = TxtTitulo.Text.Trim();
+            string descricao = TxtDescricao.Text.Trim();
 
-            curso.Titulo = TxtTitulo.Text.Trim();
-            curso.Descricao = TxtDescricao.Text.Trim();
-            curso.CargaHoraria = carga;
-            db.SaveChanges();
+            _cursoController.AtualizarDados(_curso.Id, titulo, descricao, carga);
 
-            _curso.Titulo = curso.Titulo;
-            _curso.Descricao = curso.Descricao;
-            _curso.CargaHoraria = curso.CargaHoraria;
+            _curso.Titulo = titulo;
+            _curso.Descricao = descricao;
+            _curso.CargaHoraria = carga;
 
             MessageBox.Show("Curso atualizado com sucesso!", "Learnix",
                 MessageBoxButton.OK, MessageBoxImage.Information);
@@ -180,23 +145,8 @@ namespace Learnix
             var dialog = new InputDialog("Novo Módulo", "Nome do módulo:");
             if (dialog.ShowDialog() != true || string.IsNullOrWhiteSpace(dialog.Resposta)) return;
 
-            using var db = new LearnixDbContext();
-            var ordem = (db.Modulos
-                .Where(m => m.CursoId == _curso.Id)
-                .Max(m => (int?)m.Ordem) ?? 0) + 1;
-
-            db.Modulos.Add(new Modulo
-            {
-                Titulo = dialog.Resposta.Trim(),
-                Ordem = ordem,
-                CursoId = _curso.Id,
-            });
-            db.SaveChanges();
-
-            _curso = db.Cursos
-                .Include(c => c.Modulos).ThenInclude(m => m.Aulas)
-                .FirstOrDefault(c => c.Id == _curso.Id) ?? _curso;
-            CarregarModulos();
+            _cursoController.AdicionarModulo(_curso.Id, dialog.Resposta.Trim());
+            RecarregarCurso();
         }
 
         private void BtnRemoverModulo_Click(object sender, RoutedEventArgs e)
@@ -207,18 +157,8 @@ namespace Learnix
                 MessageBoxButton.YesNo, MessageBoxImage.Warning);
             if (r != MessageBoxResult.Yes) return;
 
-            using var db = new LearnixDbContext();
-            var modulo = db.Modulos.Include(m => m.Aulas)
-                .FirstOrDefault(m => m.Id == moduloId);
-            if (modulo == null) return;
-
-            db.Modulos.Remove(modulo);
-            db.SaveChanges();
-
-            _curso = db.Cursos
-                .Include(c => c.Modulos).ThenInclude(m => m.Aulas)
-                .FirstOrDefault(c => c.Id == _curso!.Id) ?? _curso;
-            CarregarModulos();
+            _cursoController.RemoverModulo(moduloId);
+            RecarregarCurso();
         }
 
         private void BtnAdicionarAula_Click(object sender, RoutedEventArgs e)
@@ -234,25 +174,8 @@ namespace Learnix
             if (!int.TryParse(dialogDuracao.Resposta, out int minutos) || minutos <= 0)
                 minutos = 30;
 
-            using var db = new LearnixDbContext();
-            var ordem = (db.Aulas
-                .Where(a => a.ModuloId == moduloId)
-                .Max(a => (int?)a.Ordem) ?? 0) + 1;
-
-            db.Aulas.Add(new Aula
-            {
-                Titulo = dialogTitulo.Resposta.Trim(),
-                VideoUrl = string.Empty,
-                Duracao = System.TimeSpan.FromMinutes(minutos),
-                Ordem = ordem,
-                ModuloId = moduloId,
-            });
-            db.SaveChanges();
-
-            _curso = db.Cursos
-                .Include(c => c.Modulos).ThenInclude(m => m.Aulas)
-                .FirstOrDefault(c => c.Id == _curso!.Id) ?? _curso;
-            CarregarModulos();
+            _cursoController.AdicionarAula(moduloId, dialogTitulo.Resposta.Trim(), minutos);
+            RecarregarCurso();
         }
 
         private void BtnRemoverAula_Click(object sender, RoutedEventArgs e)
@@ -263,17 +186,8 @@ namespace Learnix
                 MessageBoxButton.YesNo, MessageBoxImage.Warning);
             if (r != MessageBoxResult.Yes) return;
 
-            using var db = new LearnixDbContext();
-            var aula = db.Aulas.Find(aulaId);
-            if (aula == null) return;
-
-            db.Aulas.Remove(aula);
-            db.SaveChanges();
-
-            _curso = db.Cursos
-                .Include(c => c.Modulos).ThenInclude(m => m.Aulas)
-                .FirstOrDefault(c => c.Id == _curso!.Id) ?? _curso;
-            CarregarModulos();
+            _cursoController.RemoverAula(aulaId);
+            RecarregarCurso();
         }
 
         private void BtnSalvarUrl_Click(object sender, RoutedEventArgs e)
@@ -285,20 +199,10 @@ namespace Learnix
                 Title = "Selecionar Vídeo da Aula",
                 Filter = "Vídeos (*.mp4;*.wmv;*.avi)|*.mp4;*.wmv;*.avi|Todos (*.*)|*.*"
             };
-
             if (dlg.ShowDialog() != true) return;
 
-            using var db = new LearnixDbContext();
-            var aula = db.Aulas.Find(aulaId);
-            if (aula == null) return;
-
-            aula.VideoUrl = dlg.FileName;
-            db.SaveChanges();
-
-            _curso = db.Cursos
-                .Include(c => c.Modulos).ThenInclude(m => m.Aulas)
-                .FirstOrDefault(c => c.Id == _curso!.Id) ?? _curso;
-            CarregarModulos();
+            _cursoController.AtualizarVideoAula(aulaId, dlg.FileName);
+            RecarregarCurso();
 
             MessageBox.Show("Vídeo vinculado com sucesso!", "Learnix",
                 MessageBoxButton.OK, MessageBoxImage.Information);

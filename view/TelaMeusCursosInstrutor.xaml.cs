@@ -1,19 +1,19 @@
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using Learnix.data;
+using Learnix.control;
 using Learnix.model;
-using Microsoft.EntityFrameworkCore;
 
 namespace Learnix
 {
     public partial class TelaMeusCursosInstrutor : UserControl
     {
+        private readonly CursoController _cursoController = new();
+        private readonly MatriculaController _matriculaController = new();
+        private readonly AvaliacaoController _avaliacaoController = new();
 
         private int _matriculaCorrecaoAtualId;
         private Instrutor? _instrutor;
@@ -36,23 +36,12 @@ namespace Learnix
         {
             if (_instrutor == null) return;
 
-            using var db = new LearnixDbContext();
+            var cursos = _cursoController.ListarPorInstrutor(_instrutor.Id);
 
-            var cursos = db.Cursos
-                .Where(c => c.InstrutorId == _instrutor.Id)
-                .Include(c => c.Categoria)
-                .Include(c => c.MatriculasAtivas)
-                .ToList();
+            PainelVazio.Visibility = cursos.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            ListaCursos.Visibility = cursos.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
 
-            if (cursos.Count == 0)
-            {
-                PainelVazio.Visibility = Visibility.Visible;
-                ListaCursos.Visibility = Visibility.Collapsed;
-                return;
-            }
-
-            PainelVazio.Visibility = Visibility.Collapsed;
-            ListaCursos.Visibility = Visibility.Visible;
+            if (cursos.Count == 0) return;
 
             _cursos = cursos.Select(c =>
             {
@@ -96,11 +85,7 @@ namespace Learnix
             if (sender is not Button btn || btn.Tag is not int cursoId) return;
             if (_instrutor == null) return;
 
-            using var db = new LearnixDbContext();
-            var curso = db.Cursos
-                .Include(c => c.Modulos).ThenInclude(m => m.Aulas)
-                .FirstOrDefault(c => c.Id == cursoId);
-
+            var curso = _cursoController.BuscarPorId(cursoId);
             if (curso == null) return;
 
             var main = Application.Current.MainWindow as MainWindow;
@@ -109,24 +94,19 @@ namespace Learnix
 
         private void BtnLancarNotas_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is Button btn && btn.Tag is int cursoId)
-            {
-                using var db = new LearnixDbContext();
+            if (sender is not Button btn || btn.Tag is not int cursoId) return;
 
-                var pendentes = db.Matriculas
-                    .Include(m => m.Aluno)
-                    .Where(m => m.CursoId == cursoId && m.Status == StatusMatricula.AguardandoCorrecao)
-                    .Select(m => new AlunoPendenteVM
-                    {
-                        MatriculaId = m.Id,
-                        AlunoNome = m.Aluno != null ? m.Aluno.Nome : "Aluno Desconhecido"
-                    }).ToList();
+            var pendentes = _matriculaController
+                .ListarPorCursoEStatus(cursoId, StatusMatricula.AguardandoCorrecao)
+                .Select(m => new AlunoPendenteVM
+                {
+                    MatriculaId = m.Id,
+                    AlunoNome = m.Aluno?.Nome ?? "Aluno Desconhecido",
+                }).ToList();
 
-                ListaAlunosPendentes.ItemsSource = pendentes;
-                TxtSemAlunos.Visibility = pendentes.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-
-                PainelAlunosPendentes.Visibility = Visibility.Visible;
-            }
+            ListaAlunosPendentes.ItemsSource = pendentes;
+            TxtSemAlunos.Visibility = pendentes.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            PainelAlunosPendentes.Visibility = Visibility.Visible;
         }
 
         private void BtnFecharListaPendentes_Click(object sender, RoutedEventArgs e)
@@ -136,36 +116,34 @@ namespace Learnix
 
         private void BtnAbrirCorrecaoAluno_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is Button btn && btn.Tag is int matriculaId)
+            if (sender is not Button btn || btn.Tag is not int matriculaId) return;
+
+            var matricula = _matriculaController.BuscarCompleta(matriculaId);
+            var respostas = _avaliacaoController.ListarRespostas(matriculaId);
+
+            if (matricula == null || respostas.Count == 0) return;
+
+            _matriculaCorrecaoAtualId = matriculaId;
+            TxtNomeAlunoCorrecao.Text = $"Aluno: {matricula.Aluno?.Nome}";
+
+            _respostasAtual.Clear();
+            for (int i = 0; i < respostas.Count; i++)
             {
-                using var db = new LearnixDbContext();
-                var matricula = db.Matriculas.Include(m => m.Aluno).FirstOrDefault(m => m.Id == matriculaId);
-                var respostas = db.RespostasAtividades.Include(r => r.AtividadeCurso).Where(r => r.MatriculaId == matriculaId).ToList();
-
-                if (matricula == null || respostas.Count == 0) return;
-
-                _matriculaCorrecaoAtualId = matriculaId;
-                TxtNomeAlunoCorrecao.Text = $"Aluno: {matricula.Aluno?.Nome}";
-
-                _respostasAtual.Clear();
-                for (int i = 0; i < respostas.Count; i++)
+                _respostasAtual.Add(new RespostaCorrecaoVM
                 {
-                    _respostasAtual.Add(new RespostaCorrecaoVM
-                    {
-                        RespostaId = respostas[i].Id,
-                        NumeroPergunta = i + 1,
-                        Pergunta = respostas[i].AtividadeCurso?.Pergunta ?? "",
-                        Resposta = respostas[i].Resposta ?? "",
-                        NotaDigitada = ""
-                    });
-                }
-
-                ListaRespostasParaCorrigir.ItemsSource = null;
-                ListaRespostasParaCorrigir.ItemsSource = _respostasAtual;
-
-                PainelAlunosPendentes.Visibility = Visibility.Collapsed;
-                PainelCorrecao.Visibility = Visibility.Visible;
+                    RespostaId = respostas[i].Id,
+                    NumeroPergunta = i + 1,
+                    Pergunta = respostas[i].AtividadeCurso?.Pergunta ?? "",
+                    Resposta = respostas[i].Resposta ?? "",
+                    NotaDigitada = "",
+                });
             }
+
+            ListaRespostasParaCorrigir.ItemsSource = null;
+            ListaRespostasParaCorrigir.ItemsSource = _respostasAtual;
+
+            PainelAlunosPendentes.Visibility = Visibility.Collapsed;
+            PainelCorrecao.Visibility = Visibility.Visible;
         }
 
         private void BtnFecharCorrecao_Click(object sender, RoutedEventArgs e)
@@ -175,11 +153,7 @@ namespace Learnix
 
         private void BtnSalvarNotasProfessor_Click(object sender, RoutedEventArgs e)
         {
-            using var db = new LearnixDbContext();
-            var matricula = db.Matriculas.FirstOrDefault(m => m.Id == _matriculaCorrecaoAtualId);
-            if (matricula == null) return;
-
-            decimal somaNotas = 0;
+            var notas = new Dictionary<int, decimal>();
 
             foreach (var rVM in _respostasAtual)
             {
@@ -188,45 +162,22 @@ namespace Learnix
                     System.Globalization.CultureInfo.InvariantCulture,
                     out decimal notaLida) || notaLida < 0 || notaLida > 10)
                 {
-                    MessageBox.Show("Preencha todas as notas com valores válidos numéricos entre 0 e 10.", "Atenção", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show("Preencha todas as notas com valores válidos numéricos entre 0 e 10.",
+                        "Atenção", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
-
-                var respostaBanco = db.RespostasAtividades.Find(rVM.RespostaId);
-                if (respostaBanco != null)
-                {
-                    respostaBanco.Nota = notaLida;
-                    somaNotas += notaLida;
-                }
+                notas[rVM.RespostaId] = notaLida;
             }
 
-            decimal media = somaNotas / _respostasAtual.Count;
+            var (aprovado, media) = _avaliacaoController.SalvarNotas(_matriculaCorrecaoAtualId, notas);
 
-            if (media >= 7.0m)
-            {
-                matricula.Status = StatusMatricula.Concluida;
-
-                var certificadoExistente = db.Certificados.FirstOrDefault(c => c.MatriculaId == matricula.Id);
-
-                if (certificadoExistente == null)
-                {
-                    db.Certificados.Add(new Certificado
-                    {
-                        MatriculaId = matricula.Id,
-                        CodigoCertificado = "LX-" + Guid.NewGuid().ToString("N").Substring(0, 6).ToUpper(),
-                        DataEmissao = DateTime.Now
-                    });
-                }
-
-                MessageBox.Show($"Avaliação salva! O aluno foi APROVADO com média {media:F1}.", "Aprovado", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
+            if (aprovado)
+                MessageBox.Show($"Avaliação salva! O aluno foi APROVADO com média {media:F1}.",
+                    "Aprovado", MessageBoxButton.OK, MessageBoxImage.Information);
             else
-            {
-                matricula.Status = StatusMatricula.Reprovada;
-                MessageBox.Show($"O aluno foi REPROVADO com média {media:F1}. O status foi alterado para reprovado.", "Reprovado", MessageBoxButton.OK, MessageBoxImage.Warning);
-            }
+                MessageBox.Show($"O aluno foi REPROVADO com média {media:F1}. O status foi alterado para reprovado.",
+                    "Reprovado", MessageBoxButton.OK, MessageBoxImage.Warning);
 
-            db.SaveChanges();
             PainelCorrecao.Visibility = Visibility.Collapsed;
             CarregarCursos();
         }
@@ -235,33 +186,25 @@ namespace Learnix
         {
             if (_instrutor == null || sender is not Button btn || btn.Tag is not int cursoId) return;
 
-            using var db = new LearnixDbContext();
-            var curso = db.Cursos
-                .Include(c => c.MatriculasAtivas)
-                .FirstOrDefault(c => c.Id == cursoId);
+            var vm = _cursos.FirstOrDefault(c => c.CursoId == cursoId);
+            if (vm == null) return;
 
-            if (curso == null) return;
-
-            int numAlunos = curso.MatriculasAtivas?.Count ?? 0;
-            if (numAlunos > 0)
+            if (!vm.PodeSair)
             {
                 MessageBox.Show(
-                    $"Não é possível sair do curso \"{curso.Titulo}\".\n\n" +
-                    $"Existem {numAlunos} aluno(s) matriculado(s).",
+                    $"Não é possível sair do curso \"{vm.Titulo}\".\n\nExistem alunos matriculados.",
                     "Ação Bloqueada", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             var r = MessageBox.Show(
-                $"Deseja realmente sair do curso \"{curso.Titulo}\"?",
+                $"Deseja realmente sair do curso \"{vm.Titulo}\"?",
                 "Confirmar", MessageBoxButton.YesNo, MessageBoxImage.Question);
-
             if (r != MessageBoxResult.Yes) return;
 
-            curso.InstrutorId = null;
-            db.SaveChanges();
+            _cursoController.DesvincularInstrutor(cursoId);
 
-            MessageBox.Show($"Você saiu do curso \"{curso.Titulo}\" com sucesso.",
+            MessageBox.Show($"Você saiu do curso \"{vm.Titulo}\" com sucesso.",
                 "Learnix", MessageBoxButton.OK, MessageBoxImage.Information);
 
             CarregarCursos();
@@ -299,11 +242,13 @@ namespace Learnix
         protected void OnPropertyChanged(string name)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
+
     public class AlunoPendenteVM
     {
         public int MatriculaId { get; set; }
         public string AlunoNome { get; set; } = "";
     }
+
     public class RespostaCorrecaoVM
     {
         public int RespostaId { get; set; }

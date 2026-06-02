@@ -5,14 +5,16 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using Learnix.data;
+using Learnix.control;
 using Learnix.model;
-using Microsoft.EntityFrameworkCore;
 
 namespace Learnix
 {
     public partial class TelaMenu : UserControl
     {
+        private readonly CursoController _cursoController = new();
+        private readonly MatriculaController _matriculaController = new();
+
         private Aluno? _aluno;
         private List<CursoMenuVM> _todosCursos = new();
 
@@ -32,15 +34,8 @@ namespace Learnix
         {
             if (_aluno == null) return;
 
-            using var db = new LearnixDbContext();
-
-            var cursosNoBanco = db.Cursos
-                .Include(c => c.Categoria)
-                .Include(c => c.Instrutor)
-                .Include(c => c.MatriculasAtivas)
-                .ToList();
-
-            var historicoAluno = db.Matriculas.Where(m => m.AlunoId == _aluno.Id).ToList();
+            var cursosNoBanco = _cursoController.ListarComMatriculas();
+            var historicoAluno = _matriculaController.ListarHistorico(_aluno.Id);
 
             _todosCursos = cursosNoBanco.Select(c =>
             {
@@ -54,8 +49,6 @@ namespace Learnix
                 string corFundo = categoria switch { "Humanas" => "#1A3A2A", "Tecnologia" => "#1A2A3A", _ => "#3A2860" };
                 string corTexto = categoria switch { "Humanas" => "#A5D6A7", "Tecnologia" => "#90CAF9", _ => "#D8CCF0" };
 
-                int numAlunos = c.MatriculasAtivas?.Count ?? 0;
-
                 return new CursoMenuVM
                 {
                     CursoId = c.Id,
@@ -63,15 +56,20 @@ namespace Learnix
                     Descricao = c.Descricao,
                     NomeInstrutor = c.Instrutor != null ? $"Prof. {c.Instrutor.Nome}" : "Sem instrutor vinculado",
                     NomeCategoria = categoria,
+                    DescricaoCategoria = string.IsNullOrWhiteSpace(c.Categoria?.Descricao)
+                        ? null : c.Categoria.Descricao,
                     CargaHoraria = $"🕐 {c.CargaHoraria}h",
-                    NumAlunos = $"👥 {numAlunos} aluno(s)",
+                    NumAlunos = $"👥 {c.MatriculasAtivas?.Count ?? 0} aluno(s)",
+                    Preco = c.Preco > 0
+                        ? $"💰 R$ {c.Preco:F2}"
+                        : "💰 Gratuito",
                     CorFundoCategoria = new SolidColorBrush((Color)ColorConverter.ConvertFromString(corFundo)),
                     CorTextoCategoria = new SolidColorBrush((Color)ColorConverter.ConvertFromString(corTexto)),
                     BotaoAtivo = podeMatricular,
                     TextoBotao = podeMatricular ? "Matricular-se" : "Já Matriculado",
                     CorBotao = podeMatricular
-                                            ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2E7D32"))
-                                            : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#555555"))
+                        ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2E7D32"))
+                        : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#555555")),
                 };
             }).ToList();
 
@@ -86,17 +84,11 @@ namespace Learnix
                             c.Titulo.Contains(TxtBusca.Text, StringComparison.OrdinalIgnoreCase))
                 .ToList();
 
-            if (filtrados.Count == 0)
-            {
-                PainelVazio.Visibility = Visibility.Visible;
-                ListaCursos.Visibility = Visibility.Collapsed;
-            }
-            else
-            {
-                PainelVazio.Visibility = Visibility.Collapsed;
-                ListaCursos.Visibility = Visibility.Visible;
+            PainelVazio.Visibility = filtrados.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            ListaCursos.Visibility = filtrados.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+
+            if (filtrados.Count > 0)
                 ListaCursos.ItemsSource = filtrados;
-            }
         }
 
         private void BtnMatricular_Click(object sender, RoutedEventArgs e)
@@ -108,55 +100,14 @@ namespace Learnix
                 "Confirmação", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (result != MessageBoxResult.Yes) return;
 
-            using var db = new LearnixDbContext();
+            bool reativada = _matriculaController.Matricular(_aluno.Id, cursoId);
 
-            var matriculaExistente = db.Matriculas
-                .Include(m => m.Progresso)
-                .FirstOrDefault(m => m.AlunoId == _aluno.Id && m.CursoId == cursoId);
-
-            if (matriculaExistente != null)
-            {
-                if (matriculaExistente.Status == StatusMatricula.Cancelada ||
-                    matriculaExistente.Status == StatusMatricula.Reprovada)
-                {
-                    matriculaExistente.Status = StatusMatricula.Ativa;
-                    matriculaExistente.DataMatricula = DateTime.Now;
-
-                    if (matriculaExistente.Progresso != null)
-                        matriculaExistente.Progresso.PercentualConcluido = 0;
-                    else
-                        matriculaExistente.Progresso = new Progresso { PercentualConcluido = 0 };
-
-                    var aulasAssistidas = db.AulasConcluidas
-                        .Where(a => a.MatriculaId == matriculaExistente.Id).ToList();
-                    if (aulasAssistidas.Any())
-                        db.AulasConcluidas.RemoveRange(aulasAssistidas);
-
-                    var respostasAntigas = db.RespostasAtividades
-                        .Where(r => r.MatriculaId == matriculaExistente.Id).ToList();
-                    if (respostasAntigas.Any())
-                        db.RespostasAtividades.RemoveRange(respostasAntigas);
-
-                    db.SaveChanges();
-                    MessageBox.Show("Sua matrícula foi reativada! Você iniciará o curso do zero.",
-                        "Bons Estudos", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
-            }
+            if (reativada)
+                MessageBox.Show("Sua matrícula foi reativada! Você iniciará o curso do zero.",
+                    "Bons Estudos", MessageBoxButton.OK, MessageBoxImage.Information);
             else
-            {
-                var novaMatricula = new Matricula
-                {
-                    AlunoId = _aluno.Id,
-                    CursoId = cursoId,
-                    Status = StatusMatricula.Ativa,
-                    DataMatricula = DateTime.Now,
-                    Progresso = new Progresso { PercentualConcluido = 0 }
-                };
-                db.Matriculas.Add(novaMatricula);
-                db.SaveChanges();
                 MessageBox.Show("Matrícula realizada com sucesso! Acesse 'Meus Cursos' para começar.",
                     "Sucesso", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
 
             CarregarCursos();
         }
@@ -193,8 +144,10 @@ namespace Learnix
         public string Descricao { get; set; } = "";
         public string NomeInstrutor { get; set; } = "";
         public string NomeCategoria { get; set; } = "";
+        public string? DescricaoCategoria { get; set; }
         public string CargaHoraria { get; set; } = "";
         public string NumAlunos { get; set; } = "";
+        public string Preco { get; set; } = "";
         public SolidColorBrush CorFundoCategoria { get; set; } = new();
         public SolidColorBrush CorTextoCategoria { get; set; } = new();
         public bool BotaoAtivo { get; set; }

@@ -11,9 +11,6 @@ namespace Learnix.model
     {
         public int Id { get; set; }
 
-        // Quantidade de aulas assistidas — usada no ProgressoService para calcular %
-        public int AulasConcluidas { get; set; }
-
         // Percentual exibido nas barras de progresso das telas (0.0 a 100.0)
         public double PercentualConcluido { get; set; }
 
@@ -26,7 +23,6 @@ namespace Learnix.model
 
         public Progresso()
         {
-            AulasConcluidas = 0;
             PercentualConcluido = 0.0;
             UltimaAtualizacao = DateTime.Now;
         }
@@ -34,7 +30,6 @@ namespace Learnix.model
         public Progresso(int id)
         {
             Id = id;
-            AulasConcluidas = 0;
             PercentualConcluido = 0.0;
             UltimaAtualizacao = DateTime.Now;
         }

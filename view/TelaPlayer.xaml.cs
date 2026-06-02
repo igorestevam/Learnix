@@ -7,16 +7,17 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
-using Learnix.data;
+using Learnix.control;
 using Learnix.model;
-using Learnix.Services;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Win32;
 
 namespace Learnix
 {
     public partial class TelaPlayer : UserControl
     {
+        private readonly MatriculaController _matriculaController = new();
+        private readonly ProgressoController _progressoController = new();
+
         private string _nomeAluno = string.Empty;
         private bool _isPlaying = false;
         private bool _arrastando = false;
@@ -56,10 +57,7 @@ namespace Learnix
             _matriculaId = matricula.Id;
             _aulaId = aula.Id;
 
-            using var db = new LearnixDbContext();
-            _matricula = db.Matriculas
-                .Include(m => m.Curso).ThenInclude(c => c.Modulos).ThenInclude(mod => mod.Aulas)
-                .FirstOrDefault(m => m.Id == matricula.Id) ?? matricula;
+            _matricula = _matriculaController.BuscarCompleta(matricula.Id) ?? matricula;
 
             if (string.IsNullOrWhiteSpace(_nomeAluno) && matricula.Aluno != null)
             {
@@ -78,10 +76,7 @@ namespace Learnix
             _aulaAtualIndex = _aulas.FindIndex(a => a.Id == aula.Id);
             if (_aulaAtualIndex < 0) _aulaAtualIndex = 0;
 
-            var aulasConcluidas = db.AulasConcluidas
-                .Where(ac => ac.MatriculaId == _matriculaId)
-                .Select(ac => ac.AulaId)
-                .ToHashSet();
+            var aulasConcluidas = _progressoController.ObterAulasConcluidas(_matriculaId);
 
             RenderizarListaAulas(aulasConcluidas);
             AtualizarNavegacaoPlayer();
@@ -113,19 +108,7 @@ namespace Learnix
         {
             if (_matricula == null || _aulaAtualIndex >= _aulas.Count - 1) return;
 
-            var aulaAtual = _aulas[_aulaAtualIndex];
-            try
-            {
-                using var db = new LearnixDbContext();
-                bool jaRegistrada = db.AulasConcluidas
-                    .Any(ac => ac.MatriculaId == _matriculaId && ac.AulaId == aulaAtual.Id);
-                if (!jaRegistrada)
-                {
-                    var svc = new ProgressoService(db);
-                    svc.RegistrarConclusaoAula(_matriculaId, aulaAtual.Id);
-                }
-            }
-            catch { }
+            _progressoController.ConcluirAula(_matriculaId, _aulas[_aulaAtualIndex].Id);
 
             _aulaAtualIndex++;
             CarregarAulaAtual();
@@ -163,12 +146,7 @@ namespace Learnix
             }
 
             AtualizarNavegacaoPlayer();
-
-            using var db = new LearnixDbContext();
-            var concluidas = db.AulasConcluidas
-                .Where(ac => ac.MatriculaId == _matriculaId)
-                .Select(ac => ac.AulaId).ToHashSet();
-            RenderizarListaAulas(concluidas);
+            RenderizarListaAulas(_progressoController.ObterAulasConcluidas(_matriculaId));
         }
 
         private void RenderizarListaAulas(HashSet<int> aulasConcluidas)
@@ -293,12 +271,7 @@ namespace Learnix
                         }
 
                         AtualizarNavegacaoPlayer();
-
-                        using var db = new LearnixDbContext();
-                        var concluidas = db.AulasConcluidas
-                            .Where(ac => ac.MatriculaId == _matriculaId)
-                            .Select(ac => ac.AulaId).ToHashSet();
-                        RenderizarListaAulas(concluidas);
+                        RenderizarListaAulas(_progressoController.ObterAulasConcluidas(_matriculaId));
                     };
                 }
 
@@ -392,19 +365,9 @@ namespace Learnix
             _isPlaying = false;
             BtnPlayPause.Content = "▶";
 
-            try
-            {
-                using var ctx = new LearnixDbContext();
-                var progSvc = new ProgressoService(ctx);
-                progSvc.RegistrarConclusaoAula(_matriculaId, _aulaId);
-
-                var concluidas = ctx.AulasConcluidas
-                    .Where(ac => ac.MatriculaId == _matriculaId)
-                    .Select(ac => ac.AulaId).ToHashSet();
-                RenderizarListaAulas(concluidas);
-                AtualizarNavegacaoPlayer();
-            }
-            catch { }
+            _progressoController.ConcluirAula(_matriculaId, _aulaId);
+            RenderizarListaAulas(_progressoController.ObterAulasConcluidas(_matriculaId));
+            AtualizarNavegacaoPlayer();
         }
 
         private void VideoPlayer_MediaFailed(object sender, ExceptionRoutedEventArgs e)
@@ -467,6 +430,5 @@ namespace Learnix
                 MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
-        private void AulaLista_Click(object sender, MouseButtonEventArgs e) { }
     }
 }

@@ -31,9 +31,5 @@ namespace Learnix.model
             HistoricoMatriculas = new List<Matricula>();
         }
 
-        public override string ObterCaminhoDashboard()
-        {
-            return $"/PainelAluno/Home?matricula={MatriculaAcademica}";
-        }
     }
 }

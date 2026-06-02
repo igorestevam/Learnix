@@ -165,8 +165,7 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                                 <ComboBox x:Name="ComboCursos"
-                                  Style="{StaticResource ComboStyle}"
-                                  SelectionChanged="ComboCursos_SelectionChanged">
+                                  Style="{StaticResource ComboStyle}">
                                   <ComboBox.ItemTemplate>
                                             <DataTemplate>
                                                <TextBlock Text="{Binding Titulo}" Foreground="White"

@@ -14,9 +14,6 @@ namespace Learnix
         public event EventHandler? SolicitarPerfil;
         public event EventHandler? SolicitarSair;
 
-        // Mantido por compatibilidade com código antigo que usa SolicitarMenu
-        public event EventHandler? SolicitarMenu;
-
         public SidebarControl()
         {
             InitializeComponent();

@@ -1,51 +1,30 @@
-﻿using System;
+﻿using Learnix.data;
 using Learnix.model;
-using Learnix.Services;
+using Microsoft.EntityFrameworkCore;
 
-namespace Learnix.Controllers
+namespace Learnix.control;
+
+public class LoginController
 {
-    /// <summary>
-    /// Controller responsavel por orquestrar o login.
-    /// Chamado pela TelaLogin.
-    /// </summary>
-    public class LoginController
+    public Usuario? RealizarLogin(string codigoAcesso, string senha)
     {
-        private readonly IAuthService _authService;
+        using var ctx = new LearnixDbContext();
+        Aluno? aluno = ctx.Alunos
+            .FirstOrDefault(a =>
+                (a.MatriculaAcademica == codigoAcesso || a.Email == codigoAcesso)
+                && a.Senha == senha);
+        if (aluno != null) return aluno;
 
-        // Injecao de Dependencia via contrato (Interface)
-        public LoginController(IAuthService authService)
-        {
-            _authService = authService;
-        }
+        return ctx.Instrutores
+            .FirstOrDefault(i => i.Email == codigoAcesso && i.Senha == senha);
+    }
 
-        /// <summary>
-        /// Autentica o usuario e retorna o objeto Usuario (Aluno ou Instrutor)
-        /// para a camada de View propagar adiante. Retorna null se credenciais invalidas.
-        /// Este e o metodo usado pela TelaLogin.
-        /// </summary>
-        public Usuario? AutenticarUsuario(string inputUnico, string senhaInserida)
-        {
-            return _authService.RealizarLogin(inputUnico, senhaInserida);
-        }
-
-        /// <summary>
-        /// Mantido por compatibilidade. Apenas loga o resultado no console.
-        /// Prefira AutenticarUsuario(...) que retorna o objeto Usuario.
-        /// </summary>
-        public void ProcessarLogin(string inputUnico, string senhaInserida)
-        {
-            Usuario? usuarioAutenticado = _authService.RealizarLogin(inputUnico, senhaInserida);
-
-            if (usuarioAutenticado == null)
-            {
-                Console.WriteLine("Erro: Codigo de acesso ou senha invalidos.");
-                return;
-            }
-
-            // O Polimorfismo decide o caminho correto sem ifs redundantes
-            string caminhoRedirecionamento = usuarioAutenticado.ObterCaminhoDashboard();
-
-            Console.WriteLine($"Redirecionando sistema para a rota: {caminhoRedirecionamento}");
-        }
+    public string? RecuperarSenha(string email)
+    {
+        using var ctx = new LearnixDbContext();
+        return ctx.Usuarios
+            .Where(u => u.Email == email)
+            .Select(u => u.Senha)
+            .FirstOrDefault();
     }
 }

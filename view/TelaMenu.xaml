@@ -135,7 +135,8 @@
                                     <StackPanel Grid.Column="0">
                                         <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
                                             <Border Background="{Binding CorFundoCategoria}" CornerRadius="20"
-                                                    Padding="10,4" Margin="0,0,8,0">
+                                                    Padding="10,4" Margin="0,0,8,0"
+                                                    ToolTip="{Binding DescricaoCategoria}">
                                                 <TextBlock Text="{Binding NomeCategoria}"
                                                            Foreground="{Binding CorTextoCategoria}"
                                                            FontFamily="Segoe UI" FontSize="11"/>
@@ -160,6 +161,10 @@
                                             <TextBlock Text="{Binding NumAlunos}"
                                                        Foreground="#9E8FC0"
                                                        FontSize="12" FontFamily="Segoe UI"/>
+                                            <TextBlock Text="{Binding Preco}"
+                                                       Foreground="#FFCC80"
+                                                       FontSize="12" FontFamily="Segoe UI"
+                                                       Margin="16,0,0,0"/>
                                         </StackPanel>
                                     </StackPanel>
                                     <Button Grid.Column="1"

@@ -1,40 +1,57 @@
+using Learnix.data;
 using Learnix.model;
-using Learnix.Services;
 
-namespace Learnix.Controllers
+namespace Learnix.control;
+
+public class CadastroController
 {
-    /// <summary>
-    /// Controller responsavel por orquestrar o cadastro de novos usuarios.
-    /// Chamado pela TelaCadastro.
-    /// </summary>
-    public class CadastroController
+    public Aluno? CadastrarAluno(string nome, string email, string senha)
     {
-        private readonly ICadastroService _cadastroService;
+        using var ctx = new LearnixDbContext();
+        if (ctx.Usuarios.Any(u => u.Email == email)) return null;
 
-        public CadastroController(ICadastroService cadastroService)
+        string matricula = email.Contains('@') ? email.Split('@')[0].ToUpper() : email.ToUpper();
+        if (ctx.Alunos.Any(a => a.MatriculaAcademica == matricula)) return null;
+
+        var perfil = new PerfilDeAprendizagem
         {
-            _cadastroService = cadastroService;
-        }
+            EstiloPredominante = "Não definido",
+            RitmoSugerido = "Regular",
+        };
+        ctx.PerfisDeAprendizagem.Add(perfil);
+        ctx.SaveChanges();
 
-        /// <summary>
-        /// Cadastra um Aluno. A matricula academica e gerada automaticamente a partir do email.
-        /// Retorna o Aluno criado ou null em caso de e-mail/matricula duplicados.
-        /// </summary>
-        public Aluno? CadastrarAluno(string nome, string email, string senha)
+        var aluno = new Aluno
         {
-            // Gera uma matricula academica simples baseada no e-mail (parte antes do @)
-            string baseEmail = email.Contains('@') ? email.Split('@')[0] : email;
-            string matriculaAcademica = baseEmail.ToUpper();
+            Nome = nome,
+            Email = email,
+            Senha = senha,
+            MatriculaAcademica = matricula,
+            DataCadastro = DateTime.Now,
+            PerfilDeAprendizagemId = perfil.Id,
+        };
+        ctx.Alunos.Add(aluno);
+        ctx.SaveChanges();
+        return aluno;
+    }
 
-            return _cadastroService.CadastrarAluno(nome, email, senha, matriculaAcademica);
-        }
+    public Instrutor? CadastrarInstrutor(string nome, string email, string senha, string especialidade)
+    {
+        using var ctx = new LearnixDbContext();
+        if (ctx.Usuarios.Any(u => u.Email == email)) return null;
 
-        /// <summary>
-        /// Cadastra um Instrutor.
-        /// </summary>
-        public Instrutor? CadastrarInstrutor(string nome, string email, string senha, string especialidade)
+        var instrutor = new Instrutor
         {
-            return _cadastroService.CadastrarInstrutor(nome, email, senha, especialidade);
-        }
+            Nome = nome,
+            Email = email,
+            Senha = senha,
+            Especialidade = especialidade,
+            Biografia = string.Empty,
+            DataCadastro = DateTime.Now,
+        };
+        instrutor.Definir();
+        ctx.Instrutores.Add(instrutor);
+        ctx.SaveChanges();
+        return instrutor;
     }
 }

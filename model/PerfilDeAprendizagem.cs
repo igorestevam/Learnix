@@ -8,13 +8,10 @@ namespace Learnix.model
     {
         public int Id { get; set; }
 
-        // Ex: "Visual", "Auditivo", "Leitura/Escrita", "Cinestésico"
         public string EstiloPredominante { get; set; } = null!;
 
-        // Ex: "Intensivo", "Regular", "Flexível"
         public string RitmoSugerido { get; set; } = null!;
 
-        // Navegação inversa para o Aluno dono deste perfil
         public Aluno Aluno { get; set; } = null!;
 
         public PerfilDeAprendizagem() { }

@@ -1,15 +1,15 @@
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using Learnix.data;
-using Learnix.model;
+using Learnix.control;
 
 namespace Learnix
 {
     public partial class TelaCadastro : UserControl
     {
+        private readonly CadastroController _cadastroController = new();
+
         public event RoutedEventHandler? SolicitarLogin;
 
         private bool _isInstrutor = false;
@@ -65,60 +65,30 @@ namespace Learnix
                 return;
             }
 
-            using var db = new LearnixDbContext();
-
-            bool emailExiste = db.Usuarios.Any(u => u.Email == email);
-            if (emailExiste)
-            {
-                MessageBox.Show("E-mail já cadastrado. Tente outro.", "Atenção",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
             if (_isInstrutor)
             {
-                var instrutor = new Instrutor
+                var instrutor = _cadastroController.CadastrarInstrutor(nome, email, senha, especialidade);
+                if (instrutor == null)
                 {
-                    Nome = nome,
-                    Email = email,
-                    Senha = senha,
-                    Especialidade = especialidade,
-                    Biografia = string.Empty,
-                    DataCadastro = System.DateTime.Now,
-                };
-                db.Instrutores.Add(instrutor);
-                db.SaveChanges();
-
+                    MessageBox.Show("E-mail já cadastrado. Tente outro.", "Atenção",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
                 MessageBox.Show(
-                    $"Cadastro de instrutor realizado com sucesso!\n\nUse seu e-mail e senha para fazer login.",
+                    "Cadastro de instrutor realizado com sucesso!\n\nUse seu e-mail e senha para fazer login.",
                     "Learnix", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             else
             {
-                string matricula = (email.Contains('@') ? email.Split('@')[0] : email).ToUpper();
-
-                var perfil = new PerfilDeAprendizagem
+                var aluno = _cadastroController.CadastrarAluno(nome, email, senha);
+                if (aluno == null)
                 {
-                    EstiloPredominante = "Não definido",
-                    RitmoSugerido = "Regular",
-                };
-                db.PerfisDeAprendizagem.Add(perfil);
-                db.SaveChanges();
-
-                var novoAluno = new Aluno
-                {
-                    Nome = nome,
-                    Email = email,
-                    Senha = senha,
-                    MatriculaAcademica = matricula,
-                    DataCadastro = System.DateTime.Now,
-                    PerfilDeAprendizagemId = perfil.Id,
-                };
-                db.Alunos.Add(novoAluno);
-                db.SaveChanges();
-
+                    MessageBox.Show("E-mail já cadastrado. Tente outro.", "Atenção",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
                 MessageBox.Show(
-                    $"Cadastro realizado com sucesso!\n\nSua matrícula é: {matricula}\n\nUse-a ou seu e-mail para fazer login.",
+                    $"Cadastro realizado com sucesso!\n\nSua matrícula é: {aluno.MatriculaAcademica}\n\nUse-a ou seu e-mail para fazer login.",
                     "Learnix", MessageBoxButton.OK, MessageBoxImage.Information);
             }
 

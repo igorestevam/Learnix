@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Learnix.model
@@ -5,17 +6,12 @@ namespace Learnix.model
     /// <summary>
     /// Representa o instrutor de cursos.
     /// Telas: TelaMenu (Nome), TelaMeusCursos (Nome), TelaAulas (Nome),
-    ///        TelaCertificados (Nome), TelaHome (Nome)
+    ///        TelaCertificados (Nome), TelaHome (Nome), TelaHomeInstrutor (Biografia)
     /// </summary>
     public class Instrutor : Usuario, IPlanejamento
     {
-        // Exibido no TelaMenu e TelaMeusCursos como identificação do instrutor
         public string Especialidade { get; set; } = null!;
-
-        // Reservado para tela de perfil do instrutor (expansão futura)
         public string Biografia { get; set; } = null!;
-
-        // Cursos que este instrutor ministra (1 para muitos)
         public List<Curso> Cursos { get; set; } = null!;
 
         public Instrutor() : base()
@@ -30,12 +26,18 @@ namespace Learnix.model
             Cursos = new List<Curso>();
         }
 
-        // IPlanejamento — permite ao instrutor definir o plano de ensino do curso
-        public void Definir() { }
-
-        public override string ObterCaminhoDashboard()
+        /// <summary>
+        /// Valida o plano de ensino: exige especialidade definida e gera
+        /// uma biografia padrão quando o instrutor ainda não a preencheu.
+        /// </summary>
+        public void Definir()
         {
-            return $"/PainelInstrutor/Home?id={Id}";
+            if (string.IsNullOrWhiteSpace(Especialidade))
+                throw new InvalidOperationException(
+                    "Especialidade é obrigatória para definir o plano de ensino.");
+
+            if (string.IsNullOrWhiteSpace(Biografia))
+                Biografia = $"Instrutor especializado em {Especialidade}.";
         }
     }
 }

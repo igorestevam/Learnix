@@ -1,24 +1,26 @@
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using Learnix.data;
+using Learnix.control;
 using Learnix.model;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.ObjectModel;
 
 namespace Learnix
 {
     public partial class TelaEscolherCurso : UserControl
     {
+        private readonly CursoController _cursoController = new();
+        private readonly CategoriaController _categoriaController = new();
+        private readonly MatriculaController _matriculaController = new();
+        private readonly AvaliacaoController _avaliacaoController = new();
+
         private int _matriculaCorrecaoAtualId;
-
         private Instrutor? _instrutor;
-
-        private List<TextBox> _caixasDeNota = new List<TextBox>();
-
-        private ObservableCollection<AulaTempVM> _aulasTemporarias = new ObservableCollection<AulaTempVM>();
+        private List<TextBox> _caixasDeNota = new();
+        private ObservableCollection<AulaTempVM> _aulasTemporarias = new();
 
         public TelaEscolherCurso()
         {
@@ -35,8 +37,7 @@ namespace Learnix
 
         private void CarregarCategorias()
         {
-            using var db = new LearnixDbContext();
-            var cats = db.Categorias.ToList();
+            var cats = _categoriaController.ListarTodas();
             ComboCategorias.ItemsSource = cats;
             ComboCategorias.DisplayMemberPath = "Nome";
             ComboCategorias.SelectedValuePath = "Id";
@@ -45,22 +46,12 @@ namespace Learnix
 
         private void CarregarCursos()
         {
-            using var db = new LearnixDbContext();
+            var cursos = _cursoController.ListarSemInstrutor();
 
-            var cursos = db.Cursos
-                .Where(c => c.InstrutorId == null)
-                .Include(c => c.Categoria)
-                .ToList();
+            PainelVazio.Visibility = cursos.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            ListaCursos.Visibility = cursos.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
 
-            if (cursos.Count == 0)
-            {
-                PainelVazio.Visibility = Visibility.Visible;
-                ListaCursos.Visibility = Visibility.Collapsed;
-                return;
-            }
-
-            PainelVazio.Visibility = Visibility.Collapsed;
-            ListaCursos.Visibility = Visibility.Visible;
+            if (cursos.Count == 0) return;
 
             ListaCursos.ItemsSource = cursos.Select(c =>
             {
@@ -94,8 +85,6 @@ namespace Learnix
             }).ToList();
         }
 
-        // ── Botão Adicionar Curso ────────────────────────────────────────────
-
         private void BtnAdicionarCurso_Click(object sender, RoutedEventArgs e)
         {
             PainelNovoCurso.Visibility = Visibility.Visible;
@@ -103,8 +92,6 @@ namespace Learnix
             TxtDescricao.Clear();
             TxtCargaHoraria.Clear();
             TxtPreco.Clear();
-
-            // Limpa as áreas de aula
             TxtAulaTitulo.Clear();
             TxtAulaDuracao.Clear();
             TxtCaminhoVideo.Clear();
@@ -123,20 +110,22 @@ namespace Learnix
 
             if (string.IsNullOrEmpty(titulo) || string.IsNullOrEmpty(duracaoStr))
             {
-                MessageBox.Show("Informe o título e a duração da aula.", "Atenção", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Informe o título e a duração da aula.", "Atenção",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             if (!int.TryParse(duracaoStr, out int duracaoMinutos) || duracaoMinutos <= 0)
             {
-                MessageBox.Show("A duração deve ser um número inteiro positivo.", "Atenção", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("A duração deve ser um número inteiro positivo.", "Atenção",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            // Trava se o instrutor não tiver selecionado o vídeo
             if (string.IsNullOrEmpty(caminhoVideo))
             {
-                MessageBox.Show("Por favor, selecione o arquivo de vídeo clicando no ícone de pasta.", "Atenção", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Por favor, selecione o arquivo de vídeo clicando no ícone de pasta.", "Atenção",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -155,24 +144,18 @@ namespace Learnix
 
         private void BtnRemoverAula_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is Button btn && btn.Tag is string idTemp)
-            {
-                var aula = _aulasTemporarias.FirstOrDefault(a => a.IdTemp == idTemp);
-                if (aula != null)
-                {
-                    _aulasTemporarias.Remove(aula);
+            if (sender is not Button btn || btn.Tag is not string idTemp) return;
 
-                    // Reordena os itens na interface (1, 2, 3...)
-                    for (int i = 0; i < _aulasTemporarias.Count; i++)
-                    {
-                        _aulasTemporarias[i].Ordem = i + 1;
-                    }
+            var aula = _aulasTemporarias.FirstOrDefault(a => a.IdTemp == idTemp);
+            if (aula == null) return;
 
-                    // Atualiza interface
-                    ListaAulasNovas.ItemsSource = null;
-                    ListaAulasNovas.ItemsSource = _aulasTemporarias;
-                }
-            }
+            _aulasTemporarias.Remove(aula);
+
+            for (int i = 0; i < _aulasTemporarias.Count; i++)
+                _aulasTemporarias[i].Ordem = i + 1;
+
+            ListaAulasNovas.ItemsSource = null;
+            ListaAulasNovas.ItemsSource = _aulasTemporarias;
         }
 
         private void BtnSalvarNovoCurso_Click(object sender, RoutedEventArgs e)
@@ -187,12 +170,12 @@ namespace Learnix
 
             if (string.IsNullOrEmpty(p1) || string.IsNullOrEmpty(p2) || string.IsNullOrEmpty(p3))
             {
-                MessageBox.Show("Para salvar, é obrigatório preencher o enunciado das 3 atividades avaliativas discursivas.", "Atenção", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Para salvar, é obrigatório preencher o enunciado das 3 atividades avaliativas discursivas.",
+                    "Atenção", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            if (string.IsNullOrEmpty(titulo) || string.IsNullOrEmpty(descricao) ||
-                string.IsNullOrEmpty(cargaStr))
+            if (string.IsNullOrEmpty(titulo) || string.IsNullOrEmpty(descricao) || string.IsNullOrEmpty(cargaStr))
             {
                 MessageBox.Show("Preencha pelo menos Título, Descrição e Carga Horária.",
                     "Atenção", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -214,23 +197,18 @@ namespace Learnix
 
             var categoriaId = ComboCategorias.SelectedValue is int id ? id : 1;
 
-            // Determina o tipo pelo nome da categoria
-            using var db = new LearnixDbContext();
-            var categoria = db.Categorias.Find(categoriaId);
-            string nomeCategoria = categoria?.Nome ?? "Exatas";
-
-            Curso novoCurso = new Curso();
-
-            novoCurso.Titulo = titulo;
-            novoCurso.Descricao = descricao;
-            novoCurso.CargaHoraria = carga;
-            novoCurso.Preco = preco;
-            novoCurso.CategoriaId = categoriaId;
-            // InstrutorId null = disponível para candidatura
+            var novoCurso = new Curso
+            {
+                Titulo = titulo,
+                Descricao = descricao,
+                CargaHoraria = carga,
+                Preco = preco,
+                CategoriaId = categoriaId,
+            };
 
             if (_aulasTemporarias.Any())
             {
-                var moduloUnico = new Modulo
+                novoCurso.Modulos.Add(new Modulo
                 {
                     Titulo = "Módulo 1",
                     Ordem = 1,
@@ -239,21 +217,19 @@ namespace Learnix
                         Titulo = a.Titulo,
                         VideoUrl = a.Url,
                         Duracao = TimeSpan.FromMinutes(a.Duracao),
-                        Ordem = a.Ordem
+                        Ordem = a.Ordem,
                     }).ToList()
-                };
-                novoCurso.Modulos.Add(moduloUnico);
+                });
             }
 
             novoCurso.Atividades = new List<AtividadeCurso>
             {
                 new AtividadeCurso { Pergunta = p1 },
                 new AtividadeCurso { Pergunta = p2 },
-                new AtividadeCurso { Pergunta = p3 }
+                new AtividadeCurso { Pergunta = p3 },
             };
 
-            db.Cursos.Add(novoCurso);
-            db.SaveChanges();
+            _cursoController.Adicionar(novoCurso);
 
             MessageBox.Show($"Curso \"{titulo}\" criado com sucesso!\nEle já está disponível para candidatura.",
                 "Learnix", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -262,17 +238,15 @@ namespace Learnix
             CarregarCursos();
         }
 
-
         private void BtnCandidatar_Click(object sender, RoutedEventArgs e)
         {
             if (_instrutor == null || sender is not Button btn || btn.Tag is not int cursoId) return;
 
-            using var db = new LearnixDbContext();
-            var curso = db.Cursos.FirstOrDefault(c => c.Id == cursoId);
+            var cursos = _cursoController.ListarSemInstrutor();
+            var curso = cursos.FirstOrDefault(c => c.Id == cursoId);
             if (curso == null) return;
 
-            curso.InstrutorId = _instrutor.Id;
-            db.SaveChanges();
+            _cursoController.VincularInstrutor(cursoId, _instrutor.Id);
 
             MessageBox.Show($"Você foi vinculado ao curso \"{curso.Titulo}\" com sucesso!",
                 "Learnix", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -304,64 +278,46 @@ namespace Learnix
 
             if (string.IsNullOrEmpty(nome))
             {
-                MessageBox.Show("O nome da categoria é obrigatório.", "Atenção", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("O nome da categoria é obrigatório.", "Atenção",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            using (var db = new LearnixDbContext())
+            bool adicionada = _categoriaController.Adicionar(nome, descricao);
+            if (!adicionada)
             {
-                if (db.Categorias.Any(c => c.Nome.ToLower() == nome.ToLower()))
-                {
-                    MessageBox.Show("Já existe uma categoria cadastrada com este nome.", "Atenção", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
-                var novaCategoria = new Categoria
-                {
-                    Nome = nome,
-                    Descricao = descricao
-                };
-
-                db.Categorias.Add(novaCategoria);
-                db.SaveChanges();
+                MessageBox.Show("Já existe uma categoria cadastrada com este nome.", "Atenção",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
             }
 
-            MessageBox.Show($"Categoria '{nome}' adicionada com sucesso!\nEla já pode ser selecionada ao criar um novo curso.", "Learnix", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show($"Categoria '{nome}' adicionada com sucesso!\nEla já pode ser selecionada ao criar um novo curso.",
+                "Learnix", MessageBoxButton.OK, MessageBoxImage.Information);
 
             PainelNovaCategoria.Visibility = Visibility.Collapsed;
         }
 
         private void BtnSelecionarVideo_Click(object sender, RoutedEventArgs e)
         {
-            var openFileDialog = new Microsoft.Win32.OpenFileDialog
+            var dlg = new Microsoft.Win32.OpenFileDialog
             {
                 Title = "Selecionar Vídeo da Aula",
                 Filter = "Arquivos de Vídeo (*.mp4;*.avi;*.mkv)|*.mp4;*.avi;*.mkv|Todos os Arquivos (*.*)|*.*"
             };
 
-            if (openFileDialog.ShowDialog() == true)
-            {
-                TxtCaminhoVideo.Text = openFileDialog.FileName;
-            }
+            if (dlg.ShowDialog() == true)
+                TxtCaminhoVideo.Text = dlg.FileName;
         }
 
         public void AbrirCorrecao(int matriculaIdAguardando)
         {
-            using var db = new LearnixDbContext();
-            var matricula = db.Matriculas
-                .Include(m => m.Aluno)
-                .Include(m => m.Curso)
-                .FirstOrDefault(m => m.Id == matriculaIdAguardando);
-
-            var respostas = db.RespostasAtividades
-                .Include(r => r.AtividadeCurso)
-                .Where(r => r.MatriculaId == matriculaIdAguardando)
-                .ToList();
+            var matricula = _matriculaController.BuscarCompleta(matriculaIdAguardando);
+            var respostas = _avaliacaoController.ListarRespostas(matriculaIdAguardando);
 
             if (respostas.Count < 3) return;
 
             _matriculaCorrecaoAtualId = matriculaIdAguardando;
-            TxtNomeAlunoCorrecao.Text = $"Aluno: {matricula?.Aluno.Nome} | Curso: {matricula?.Curso.Titulo}";
+            TxtNomeAlunoCorrecao.Text = $"Aluno: {matricula?.Aluno?.Nome} | Curso: {matricula?.Curso?.Titulo}";
             ListaRespostasParaCorrigir.Children.Clear();
             _caixasDeNota.Clear();
 
@@ -369,13 +325,37 @@ namespace Learnix
             {
                 var r = respostas[i];
 
-                ListaRespostasParaCorrigir.Children.Add(new TextBlock { Text = $"Q{i + 1}: {r.AtividadeCurso.Pergunta}", Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#D8CCF0")), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 4) });
+                ListaRespostasParaCorrigir.Children.Add(new TextBlock
+                {
+                    Text = $"Q{i + 1}: {r.AtividadeCurso.Pergunta}",
+                    Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#D8CCF0")),
+                    TextWrapping = TextWrapping.Wrap,
+                    Margin = new Thickness(0, 0, 0, 4),
+                });
+                ListaRespostasParaCorrigir.Children.Add(new TextBlock
+                {
+                    Text = $"Resposta: {r.Resposta}",
+                    Foreground = Brushes.White,
+                    TextWrapping = TextWrapping.Wrap,
+                    Margin = new Thickness(0, 0, 0, 8),
+                });
+                ListaRespostasParaCorrigir.Children.Add(new TextBlock
+                {
+                    Text = "Nota (0 a 10):",
+                    Foreground = Brushes.Yellow,
+                    FontSize = 11,
+                });
 
-                ListaRespostasParaCorrigir.Children.Add(new TextBlock { Text = $"Resposta: {r.Resposta}", Foreground = Brushes.White, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 8) });
-
-                ListaRespostasParaCorrigir.Children.Add(new TextBlock { Text = "Nota (0 a 10):", Foreground = Brushes.Yellow, FontSize = 11 });
-                var txtNota = new TextBox { Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#3A2860")), Foreground = Brushes.White, Margin = new Thickness(0, 0, 0, 20), Padding = new Thickness(8), Width = 60, HorizontalAlignment = HorizontalAlignment.Left, Tag = r.Id };
-
+                var txtNota = new TextBox
+                {
+                    Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#3A2860")),
+                    Foreground = Brushes.White,
+                    Margin = new Thickness(0, 0, 0, 20),
+                    Padding = new Thickness(8),
+                    Width = 60,
+                    HorizontalAlignment = HorizontalAlignment.Left,
+                    Tag = r.Id,
+                };
                 _caixasDeNota.Add(txtNota);
                 ListaRespostasParaCorrigir.Children.Add(txtNota);
             }
@@ -390,51 +370,28 @@ namespace Learnix
 
         private void BtnSalvarNotasProfessor_Click(object sender, RoutedEventArgs e)
         {
-            using var db = new LearnixDbContext();
-            var matricula = db.Matriculas.Include(m => m.Curso).FirstOrDefault(m => m.Id == _matriculaCorrecaoAtualId);
-            if (matricula == null) return;
-
-            decimal somaNotas = 0;
+            var notas = new Dictionary<int, decimal>();
 
             foreach (var txt in _caixasDeNota)
             {
                 if (!decimal.TryParse(txt.Text, out decimal notaLida) || notaLida < 0 || notaLida > 10)
                 {
-                    MessageBox.Show("Preencha todas as notas com valores válidos entre 0 e 10.", "Atenção", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show("Preencha todas as notas com valores válidos entre 0 e 10.", "Atenção",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
-
-                int respostaId = (int)txt.Tag;
-                var respostaBanco = db.RespostasAtividades.Find(respostaId);
-                if (respostaBanco != null)
-                {
-                    respostaBanco.Nota = notaLida;
-                    somaNotas += notaLida;
-                }
+                notas[(int)txt.Tag] = notaLida;
             }
 
-            decimal media = somaNotas / 3;
+            var (aprovado, media) = _avaliacaoController.SalvarNotas(_matriculaCorrecaoAtualId, notas);
 
-            if (media >= 7.0m)
-            {
-                matricula.Status = StatusMatricula.Concluida;
-
-                db.Certificados.Add(new Certificado
-                {
-                    MatriculaId = matricula.Id,
-                    CodigoCertificado = "LX-" + Guid.NewGuid().ToString("N").Substring(0, 6).ToUpper(),
-                    DataEmissao = DateTime.Now
-                });
-
-                MessageBox.Show($"Avaliação salva! O aluno foi APROVADO com média {media:F1} e o certificado foi emitido.", "Aprovado", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
+            if (aprovado)
+                MessageBox.Show($"Avaliação salva! O aluno foi APROVADO com média {media:F1} e o certificado foi emitido.",
+                    "Aprovado", MessageBoxButton.OK, MessageBoxImage.Information);
             else
-            {
-                matricula.Status = StatusMatricula.Reprovada;
-                MessageBox.Show($"O aluno foi REPROVADO com média {media:F1}. A matrícula foi cancelada e ele precisará refazer o curso do zero.", "Reprovado", MessageBoxButton.OK, MessageBoxImage.Warning);
-            }
+                MessageBox.Show($"O aluno foi REPROVADO com média {media:F1}. A matrícula foi cancelada e ele precisará refazer o curso do zero.",
+                    "Reprovado", MessageBoxButton.OK, MessageBoxImage.Warning);
 
-            db.SaveChanges();
             PainelCorrecao.Visibility = Visibility.Collapsed;
         }
     }

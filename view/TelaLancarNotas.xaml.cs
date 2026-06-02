@@ -1,18 +1,21 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using Learnix.data;
+using Learnix.control;
 using Learnix.model;
-using Microsoft.EntityFrameworkCore;
 
 namespace Learnix
 {
     public partial class TelaLancarNotas : UserControl
     {
+        private readonly CursoController _cursoController = new();
+        private readonly MatriculaController _matriculaController = new();
+        private readonly AvaliacaoController _avaliacaoController = new();
+
         private Instrutor? _instrutor;
         private List<AlunoNotaVM> _alunosVM = new();
 
@@ -31,12 +34,8 @@ namespace Learnix
         private void CarregarCursos()
         {
             if (_instrutor == null) return;
-            using var db = new LearnixDbContext();
-            var cursos = db.Cursos
-                .Where(c => c.InstrutorId == _instrutor.Id)
-                .ToList();
 
-
+            var cursos = _cursoController.ListarPorInstrutor(_instrutor.Id);
             ComboCursos.SelectedValuePath = "Id";
             ComboCursos.ItemsSource = cursos;
 
@@ -44,30 +43,17 @@ namespace Learnix
                 ComboCursos.SelectedIndex = 0;
         }
 
-        private void ComboCursos_SelectionChanged(object sender, SelectionChangedEventArgs e) { }
-
         private void BtnCarregar_Click(object sender, RoutedEventArgs e)
         {
             if (ComboCursos.SelectedItem is not Curso curso) return;
 
-            using var db = new LearnixDbContext();
-            var matriculas = db.Matriculas
-                .Where(m => m.CursoId == curso.Id)
-                .Include(m => m.Aluno)
-                .Include(m => m.Avaliacoes)
-                .ToList();
-
-            if (matriculas.Count == 0)
-            {
-                PainelNotas.Visibility = Visibility.Visible;
-                PainelSemAlunos.Visibility = Visibility.Visible;
-                ListaAlunos.Visibility = Visibility.Collapsed;
-                return;
-            }
+            var matriculas = _matriculaController.ListarPorCurso(curso.Id);
 
             PainelNotas.Visibility = Visibility.Visible;
-            PainelSemAlunos.Visibility = Visibility.Collapsed;
-            ListaAlunos.Visibility = Visibility.Visible;
+            PainelSemAlunos.Visibility = matriculas.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            ListaAlunos.Visibility = matriculas.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+
+            if (matriculas.Count == 0) return;
 
             _alunosVM = matriculas.Select(m =>
             {
@@ -93,19 +79,16 @@ namespace Learnix
             var item = _alunosVM.FirstOrDefault(a => a.MatriculaId == matriculaId);
             if (item == null) return;
 
-            var novasNotas = new (string Titulo, string Valor)[]
+            var entradas = new (string titulo, string valor)[]
             {
                 ("AV1", item.NotaAV1),
                 ("AV2", item.NotaAV2),
                 ("AV3", item.NotaAV3),
             };
 
-            using var db = new LearnixDbContext();
-            var avaliacoesExistentes = db.Avaliacoes
-                .Where(a => a.MatriculaId == matriculaId)
-                .ToList();
+            var notasValidas = new List<(string titulo, double nota)>();
 
-            foreach (var (titulo, valor) in novasNotas)
+            foreach (var (titulo, valor) in entradas)
             {
                 if (string.IsNullOrWhiteSpace(valor)) continue;
 
@@ -118,25 +101,10 @@ namespace Learnix
                     return;
                 }
 
-                var existente = avaliacoesExistentes.FirstOrDefault(a => a.Titulo == titulo);
-                if (existente != null)
-                {
-                    existente.Nota = nota;
-                    existente.DataRealizacao = DateTime.Now;
-                }
-                else
-                {
-                    db.Avaliacoes.Add(new Avaliacao
-                    {
-                        MatriculaId = matriculaId,
-                        Titulo = titulo,
-                        Nota = nota,
-                        DataRealizacao = DateTime.Now,
-                    });
-                }
+                notasValidas.Add((titulo, nota));
             }
 
-            db.SaveChanges();
+            _avaliacaoController.SalvarNotasAvaliacao(matriculaId, notasValidas);
 
             MessageBox.Show($"Notas de {item.NomeAluno} salvas com sucesso!",
                 "Learnix", MessageBoxButton.OK, MessageBoxImage.Information);

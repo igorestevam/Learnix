@@ -1,19 +1,18 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Learnix.Controllers;
-using Learnix.data;
+using Learnix.control;
 using Learnix.model;
-using Learnix.Services;
 
 namespace Learnix
 {
     public partial class TelaLogin : UserControl
     {
+        private readonly LoginController _loginController = new();
+
         public event RoutedEventHandler? SolicitarCadastro;
         public event RoutedEventHandler? SolicitarRecuperacaoSenha;
 
-        // Passa o objeto Usuario autenticado apos login bem-sucedido
         public delegate void HomeHandler(object sender, RoutedEventArgs e, Usuario usuario);
         public event HomeHandler? SolicitarHome;
 
@@ -34,13 +33,7 @@ namespace Learnix
                 return;
             }
 
-            // DbContext em using para liberar a conexao apos o login
-            using var dbContext = new LearnixDbContext();
-            var authService = new AuthService(dbContext);
-            var controller = new LoginController(authService);
-
-            // Agora usamos o controller (e nao mais o service direto) — padrao MVC
-            Usuario? usuarioAutenticado = controller.AutenticarUsuario(codigoAcesso, senha);
+            Usuario? usuarioAutenticado = _loginController.RealizarLogin(codigoAcesso, senha);
 
             if (usuarioAutenticado != null)
             {
